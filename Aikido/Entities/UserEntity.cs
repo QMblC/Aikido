@@ -5,28 +5,28 @@ namespace Aikido.Entities
     public class UserEntity : IDbEntity
     {
         [Key]
-        public long id { get; set; }
+        public long Id { get; set; }
 
-        public Role role { get; set; }
+        public Role Role { get; set; }
 
         [Required]
-        public string login { get; set; }
+        public string Login { get; set; }
         [Required]
-        public string password { get; set; }
+        public string Password { get; set; }
         [Required]
-        public string fullName { get; set; }
+        public string FullName { get; set; }
 
-        public byte[] photo { get; set; } = [];
-        public string phoneNumber { get; set; }
-        public DateTime birthday { get; set; }
-        public string city { get; set; }
-        public Grade grade { get; set; }
-        public DateTime certificationDate { get; set; }
-        public int annualFee { get; set; }
-        public Sex sex { get; set; }
-        public long groupId { get; set; }
-        public string parentFullName { get; set; }
-        public string parentFullNumber { get; set; }
-        public DateTime registrationDate { get; set; }
+        public byte[] Photo { get; set; } = [];
+        public string PhoneNumber { get; set; }
+        public DateTime Birthday { get; set; }
+        public string City { get; set; }
+        public Grade Grade { get; set; }
+        public DateTime CertificationDate { get; set; }
+        public int AnnualFee { get; set; }
+        public Sex Sex { get; set; }
+        public long GroupId { get; set; }
+        public string ParentFullName { get; set; }
+        public string ParentFullNumber { get; set; }
+        public DateTime RegistrationDate { get; set; }
     }
 }

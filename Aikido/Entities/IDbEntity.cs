@@ -5,6 +5,6 @@ namespace Aikido.Entities
     public interface IDbEntity
     {
         [Key]
-        public long id { get; set; }
+        public long Id { get; set; }
     }
 }
