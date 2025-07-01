@@ -1,6 +1,7 @@
 ﻿namespace Aikido.Entities
 {
-    public class ClubEntity
+    public class ClubEntity : IDbEntity
     {
+        public long id { get; set; }
     }
 }
