@@ -1,4 +1,5 @@
 ﻿using Aikido.Data;
+using Aikido.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Aikido.Controllers
@@ -7,41 +8,51 @@ namespace Aikido.Controllers
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
-        [HttpGet("get/{id}")]
-        public async Task<IActionResult> GetUserDataById(long id, [FromServices] AppDbContext context)
+        private readonly UserService userService;
+
+        public UserController(UserService userService)
         {
-            return Ok(new
+            this.userService = userService;
+        }
+
+        [HttpGet("get/{id}")]
+        public async Task<IActionResult> GetUserDataById(long id)
+        {
+            try
             {
-                id = id
-            });
+                var user = await userService.GetUserDataById(id);
+                return Ok(user);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
         }
 
         [HttpGet("get-ids")]
-        public async Task<IActionResult> GetIds([FromServices] AppDbContext context)
+        public IActionResult GetIds()
         {
-            return Ok(new
-            {
-                ids =  new List<long> { 1, 2, 3}
-            });
+            return Ok(new { ids = new List<long> { 1, 2, 3 } });
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> Create([FromServices] AppDbContext context)
+        public IActionResult Create()
         {
-            return Ok(new
-            {
-                message = "sucsessful"
-            });
+            return Ok(new { message = "successful" });
         }
 
         [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> Delete([FromServices] AppDbContext context)
+        public IActionResult Delete(long id)
         {
             return Ok();
         }
 
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> Update(long id, [FromServices] AppDbContext context)
+        public IActionResult Update(long id)
         {
             return Ok();
         }

@@ -13,9 +13,13 @@ namespace Aikido.Services
             this.context = context;
         }
 
-        public async Task<UserEntity?> GetUserDataById(long id)
+        public async Task<UserEntity> GetUserDataById(long id)
         {
-            return await context.Users.FindAsync(id);
+            var user = await context.Users.FindAsync(id);
+            if (user == null)
+                throw new KeyNotFoundException($"Пользователь с Id = {id} не найден.");
+
+            return user;
         }
     }
 }

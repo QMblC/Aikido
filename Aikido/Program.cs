@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
 using Aikido.Data;
+using Aikido.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connString));
 
 builder.Services.AddControllers();
+builder.Services.AddScoped<UserService>();
+
 
 var app = builder.Build();
 
