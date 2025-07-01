@@ -1,6 +1,6 @@
 ﻿namespace Aikido.Entities
 {
-    public class Attendance
+    public class StatementEntity
     {
     }
 }
