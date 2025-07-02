@@ -1,6 +1,8 @@
 ﻿using Aikido.Data;
+using Aikido.Requests;
 using Aikido.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace Aikido.Controllers
 {
@@ -34,25 +36,59 @@ namespace Aikido.Controllers
         }
 
         [HttpGet("get-ids")]
-        public IActionResult GetIds()
+        public async Task<IActionResult> GetIds()
         {
             return Ok(new { ids = new List<long> { 1, 2, 3 } });
         }
 
         [HttpPost("create")]
-        public IActionResult Create()
+        public async Task<IActionResult> Create([FromForm] UserRequest request)
         {
-            return Ok(new { message = "successful" });
+            UserJson userData;
+
+            try
+            {
+                userData = await request.Parse();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Ошибка при обработке JSON: {ex.Message}");
+            }
+
+            long userId;
+
+            try
+            {
+                userId = await userService.CreateUser(userData);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+
+            return Ok(new { id =  userId});
         }
 
         [HttpDelete("delete/{id}")]
-        public IActionResult Delete(long id)
+        public async Task<IActionResult> Delete(long id)
         {
-            return Ok();
+            try
+            {
+                await userService.DeleteUser(id);
+                return Ok();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
         }
 
         [HttpPut("update/{id}")]
-        public IActionResult Update(long id)
+        public async Task<IActionResult> Update(long id)
         {
             return Ok();
         }
