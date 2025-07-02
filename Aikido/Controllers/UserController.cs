@@ -35,11 +35,21 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpGet("get-ids")]
-        public async Task<IActionResult> GetIds()
+        [HttpGet("get/short-list")]
+        public async Task<IActionResult> GetUserShortList()
         {
-            return Ok(new { ids = new List<long> { 1, 2, 3 } });
+            try
+            {
+                var users = await userService.GetUserIdAndNamesAsync();
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Ошибка при получении списка пользователей.");
+            }
         }
+
+
 
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromForm] UserRequest request)

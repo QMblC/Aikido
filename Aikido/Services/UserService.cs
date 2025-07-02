@@ -1,6 +1,8 @@
 ﻿using Aikido.Data;
+using Aikido.Dto;
 using Aikido.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Aikido.Services
 {
@@ -22,6 +24,20 @@ namespace Aikido.Services
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка при обработке пользователя: {ex.InnerException?.Message}", ex);
+            }
+        }
+
+        public async Task<List<UserShortDto>> GetUserIdAndNamesAsync()
+        {
+            try
+            {
+                return await context.Users
+                    .Select(u => new UserShortDto { Id = u.Id, Name = u.FullName })
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("Не удалось получить список пользователей.", ex);
             }
         }
 
@@ -57,7 +73,6 @@ namespace Aikido.Services
 
             await SaveDb();
 
-            return;
         }
         public async Task UpdateUser(long id, UserJson userNewData)
         {
