@@ -88,9 +88,34 @@ namespace Aikido.Controllers
         }
 
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> Update(long id)
+        public async Task<IActionResult> Update(long id, [FromForm] UserRequest request)
         {
+            UserJson userData;
+
+            try
+            {
+                userData = await request.Parse();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Ошибка при обработке JSON: {ex.Message}");
+            }
+
+            try
+            {
+                await userService.UpdateUser(id, userData);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+
             return Ok();
         }
+
     }
 }
