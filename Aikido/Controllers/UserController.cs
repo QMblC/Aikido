@@ -66,7 +66,7 @@ namespace Aikido.Controllers
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
 
-            return Ok(new { id =  userId});
+            return Ok(new { id =  userId}); //ToDo Тут возможно нужно возвращать JWT
         }
 
         [HttpDelete("delete/{id}")]

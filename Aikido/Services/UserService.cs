@@ -13,6 +13,19 @@ namespace Aikido.Services
             this.context = context;
         }
 
+        private async Task SaveDb()
+        {
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка при обработке пользователя: {ex.InnerException?.Message}", ex);
+            }
+        }
+
+
         public async Task<UserEntity> GetUserDataById(long id)
         {
             var userEntity = await context.Users.FindAsync(id);
@@ -29,14 +42,7 @@ namespace Aikido.Services
 
             context.Users.Add(userEntity);
 
-            try
-            {
-                await context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Ошибка при сохранении пользователя: " + ex.InnerException?.Message, ex);
-            }
+            await SaveDb();
 
             return userEntity.Id;
         }
@@ -48,7 +54,8 @@ namespace Aikido.Services
                 throw new KeyNotFoundException($"Пользователь с Id = {id} не найден.");
 
             context.Remove(userEntity);
-            await context.SaveChangesAsync();
+
+            await SaveDb();
 
             return;
         }
@@ -60,7 +67,7 @@ namespace Aikido.Services
 
             userEntity.UpdateFromJson(userNewData);
 
-            await context.SaveChangesAsync();
+            await SaveDb();
         }
 
     }
