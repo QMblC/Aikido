@@ -51,7 +51,7 @@ namespace Aikido.Services
             return userEntity;
         }
 
-        public async Task<long> CreateUser(UserJson userData)
+        public async Task<long> CreateUser(UserDto userData)
         {
             var userEntity = new UserEntity();
             userEntity.UpdateFromJson(userData);
@@ -74,7 +74,7 @@ namespace Aikido.Services
             await SaveDb();
 
         }
-        public async Task UpdateUser(long id, UserJson userNewData)
+        public async Task UpdateUser(long id, UserDto userNewData)
         {
             var userEntity = await context.Users.FindAsync(id);
             if (userEntity == null)

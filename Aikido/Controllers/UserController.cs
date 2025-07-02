@@ -54,7 +54,7 @@ namespace Aikido.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromForm] UserRequest request)
         {
-            UserJson userData;
+            UserDto userData;
 
             try
             {
@@ -100,7 +100,7 @@ namespace Aikido.Controllers
         [HttpPut("update/{id}")]
         public async Task<IActionResult> Update(long id, [FromForm] UserRequest request)
         {
-            UserJson userData;
+            UserDto userData;
 
             try
             {
