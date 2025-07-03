@@ -61,3 +61,7 @@
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
+*.html linguist-vendored
+*.cshtml linguist-vendored
+*.css linguist-vendored
+
