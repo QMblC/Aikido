@@ -1,5 +1,6 @@
 ﻿using Aikido.Data;
 using Aikido.Dto;
+using Aikido.Entities;
 using Aikido.Requests;
 using Aikido.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -71,42 +72,46 @@ namespace Aikido.Controllers
 
             try
             {
-                var users = await userService.GetUserListAlphabetAscending(userIndexes.StartIndex, userIndexes.FinishIndex);
+                var pagedResult = await userService.GetUserListAlphabetAscending(userIndexes.StartIndex, userIndexes.FinishIndex);
 
                 var usersResponse = new List<UserBaseResponseDto>();
 
-                for (var i = 0; i < users.Count(); i++)
+                foreach (var user in pagedResult.Users)
                 {
-                    var groupId = (long)users[i].GroupId;
+                    if (user.GroupId == null)
+                        continue;
 
-                    var group = await groupService.GetGroupById(groupId);
-
-                    var club = await clubService.GetClubById(group.ClubId);
+                    var club = await clubService.GetClubById(user.ClubId);
 
                     var newResponse = new UserBaseResponseDto
                     {
-                        Id = users[i].Id,
-                        Role = users[i].Role.ToString(),
-                        Login = users[i].Login,
-                        FullName = users[i].FullName,
-                        Photo = Convert.ToBase64String(users[i].Photo),
-                        Birthday = users[i].Birthday,
-                        City = users[i].City,
-                        Grade = users[i].City,
-                        ClubId = club.Id,
+                        Id = user.Id,
+                        Role = user.Role.ToString(),
+                        Login = user.Login,
+                        FullName = user.FullName,
+                        Photo = Convert.ToBase64String(user.Photo),
+                        Birthday = user.Birthday,
+                        City = user.City,
+                        Grade = user.Grade,
+                        ClubId = user.ClubId,
                         ClubName = club.Name
                     };
 
-                    usersResponse.Add(newResponse);           
+                    usersResponse.Add(newResponse);
                 }
 
-                return Ok(usersResponse);
+                return Ok(new
+                {
+                    TotalCount = pagedResult.TotalCount,
+                    Users = usersResponse
+                });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, "Ошибка при получении списка пользователей.");
             }
         }
+
 
 
         [HttpPost("create")]

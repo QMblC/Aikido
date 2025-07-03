@@ -6,6 +6,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Aikido.Services
 {
+    public class PagedUserResult
+    {
+        public int TotalCount { get; set; }
+        public List<UserEntity> Users { get; set; } = [];
+    }
+
+
     public class UserService
     {
         private readonly AppDbContext context;
@@ -84,9 +91,11 @@ namespace Aikido.Services
             await SaveDb();
         }
 
-        public async Task<List<UserEntity>> GetUserListAlphabetAscending(int startIndex, int finishIndex)
+        public async Task<PagedUserResult> GetUserListAlphabetAscending(int startIndex, int finishIndex)
         {
-            return await context.Users
+            var totalCount = await context.Users.CountAsync();
+
+            var users = await context.Users
                 .OrderBy(u => u.FullName)
                 .Skip(startIndex)
                 .Take(finishIndex - startIndex)
@@ -100,11 +109,16 @@ namespace Aikido.Services
                     City = u.City,
                     Birthday = u.Birthday,
                     Grade = u.Grade,
+                    ClubId = u.ClubId,
                     GroupId = u.GroupId
                 })
                 .ToListAsync();
+
+            return new PagedUserResult
+            {
+                TotalCount = totalCount,
+                Users = users
+            };
         }
-
-
     }
 }

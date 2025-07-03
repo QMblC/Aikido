@@ -11,7 +11,7 @@ namespace Aikido.Entities
 
         }
 
-        public UserEntity(Role role, string fullName)
+        public UserEntity(string role, string fullName)
         {
             Role = role;
             FullName = fullName;
@@ -20,7 +20,7 @@ namespace Aikido.Entities
         [Key]
         public long Id { get; set; }
 
-        public Role Role { get; set; }
+        public string? Role { get; set; }
 
         public string? Login { get; set; }
         public string? Password { get; set; }
@@ -33,8 +33,10 @@ namespace Aikido.Entities
         public string? Grade { get; set; }
         public DateTime? CertificationDate { get; set; }
         public int? AnnualFee { get; set; }
-        public Sex? Sex { get; set; }
-        public long? GroupId { get; set; }
+        public string? Sex { get; set; }
+        public long ClubId { get; set; }
+        public long GroupId { get; set; }
+        public int? SchoolClass { get; set; }
         public string? ParentFullName { get; set; }
         public string? ParentFullNumber { get; set; }
         public DateTime? RegistrationDate { get; set; }
@@ -42,7 +44,7 @@ namespace Aikido.Entities
         public void UpdateFromJson(UserDto userNewData)
         {
             if (userNewData.Role != null)
-                Role = Enum.Parse<Role>(userNewData.Role);
+                Role = userNewData.Role;
 
             if (!string.IsNullOrEmpty(userNewData.Login))
                 Login = userNewData.Login;
@@ -75,10 +77,16 @@ namespace Aikido.Entities
                 AnnualFee = userNewData.AnnualFee;
 
             if (userNewData.Sex != null)
-                Sex = Enum.Parse<Sex>(userNewData.Sex);
+                Sex = userNewData.Sex;
+
+            if (userNewData.SchoolClass != null)
+                SchoolClass = (int)userNewData.SchoolClass;
+
+            if (userNewData.ClubId != null)
+                ClubId = (long)userNewData.ClubId;
 
             if (userNewData.GroupId != null)
-                GroupId = userNewData.GroupId;
+                GroupId = (long)userNewData.GroupId;
 
             if (!string.IsNullOrEmpty(userNewData.ParentFullName))
                 ParentFullName = userNewData.ParentFullName;
