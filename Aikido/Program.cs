@@ -1,15 +1,11 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using System;
 using Aikido.Data;
 using Aikido.Services;
+using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connString = "Host=localhost;Port=5432;Database=Aikido;Username=postgres;Password=1122";
+var connString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddCors(options =>
 {
@@ -25,15 +21,17 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connString));
 
-builder.Services.AddControllers();
 builder.Services.AddScoped<UserService>();
 
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    });
 
 var app = builder.Build();
 
 app.MapGet("/", () => "Сервер работает!");
 app.UseCors("AllowAll");
-
 app.MapControllers();
-
 app.Run("http://0.0.0.0:5000");
