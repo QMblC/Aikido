@@ -6,7 +6,6 @@ namespace Aikido.Entities
     {
         [Key]
         public long Id { get; set; }
-
         public long GroupId { get; set; }
     }
 }

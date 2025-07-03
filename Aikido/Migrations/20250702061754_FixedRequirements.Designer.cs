@@ -3,6 +3,7 @@ using System;
 using Aikido.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Aikido.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250702061754_FixedRequirements")]
+    partial class FixedRequirements
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,53 +33,60 @@ namespace Aikido.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<int?>("AnnualFee")
+                    b.Property<int>("AnnualFee")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime?>("Birthday")
+                    b.Property<DateTime>("Birthday")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("CertificationDate")
+                    b.Property<DateTime>("CertificationDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("City")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("Grade")
+                    b.Property<int>("Grade")
                         .HasColumnType("integer");
 
-                    b.Property<long?>("GroupId")
+                    b.Property<long>("GroupId")
                         .HasColumnType("bigint");
 
                     b.Property<string>("Login")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("ParentFullName")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("ParentFullNumber")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Password")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("PhoneNumber")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<byte[]>("Photo")
+                        .IsRequired()
                         .HasColumnType("bytea");
 
-                    b.Property<DateTime?>("RegistrationDate")
+                    b.Property<DateTime>("RegistrationDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Role")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("Sex")
+                    b.Property<int>("Sex")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
