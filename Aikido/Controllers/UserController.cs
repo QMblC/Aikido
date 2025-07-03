@@ -22,7 +22,7 @@ namespace Aikido.Controllers
         {
             try
             {
-                var user = await userService.GetUserDataById(id);
+                var user = await userService.GetUserById(id);
                 return Ok(user);
             }
             catch (KeyNotFoundException ex)
