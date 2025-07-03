@@ -42,7 +42,7 @@ namespace Aikido.Services
         }
 
 
-        public async Task<UserEntity> GetUserDataById(long id)
+        public async Task<UserEntity> GetUserById(long id)
         {
             var userEntity = await context.Users.FindAsync(id);
             if (userEntity == null)

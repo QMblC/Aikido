@@ -5,8 +5,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Aikido.Services
 {
-    
-
     public class AuthService
     {
         private readonly AppDbContext context;
