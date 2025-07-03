@@ -23,6 +23,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ClubService>();
+builder.Services.AddScoped<GroupService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

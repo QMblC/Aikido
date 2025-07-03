@@ -3,13 +3,13 @@ using System.Text.Json;
 
 namespace Aikido.Requests
 {
-    public class ClubRequest
+    public class GroupRequest
     {
-        public IFormFile ClubDataJson { get; set; }
+        public IFormFile GroupDataJson { get; set; }
 
-        public async Task<ClubDto> Parse()
+        public async Task<GroupDto> Parse()
         {
-            using var reader = new StreamReader(ClubDataJson.OpenReadStream());
+            using var reader = new StreamReader(GroupDataJson.OpenReadStream());
             var jsonString = await reader.ReadToEndAsync();
 
             var options = new JsonSerializerOptions
@@ -17,12 +17,12 @@ namespace Aikido.Requests
                 PropertyNameCaseInsensitive = true
             };
 
-            var userData = JsonSerializer.Deserialize<ClubDto>(jsonString, options);
+            var groupData = JsonSerializer.Deserialize<GroupDto>(jsonString, options);
 
-            if (userData == null)
+            if (groupData == null)
                 throw new Exception("Не удалось десериализовать JSON.");
 
-            return userData;
+            return groupData;
         }
     }
 }

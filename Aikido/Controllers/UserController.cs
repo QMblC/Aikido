@@ -12,10 +12,15 @@ namespace Aikido.Controllers
     public class UserController : ControllerBase
     {
         private readonly UserService userService;
+        private readonly ClubService clubService;
+        private readonly GroupService groupService;
 
-        public UserController(UserService userService)
+        public UserController(UserService userService, ClubService clubService, GroupService groupService)
         {
             this.userService = userService;
+            this.clubService = clubService;
+            this.groupService = groupService;
+
         }
 
         [HttpGet("get/{id}")]
@@ -67,7 +72,35 @@ namespace Aikido.Controllers
             try
             {
                 var users = await userService.GetUserListAlphabetAscending(userIndexes.StartIndex, userIndexes.FinishIndex);
-                return Ok(users);
+
+                var usersResponse = new List<UserBaseResponseDto>();
+
+                for (var i = 0; i < users.Count(); i++)
+                {
+                    var groupId = (long)users[i].GroupId;
+
+                    var group = await groupService.GetGroupById(groupId);
+
+                    var club = await clubService.GetClubById(group.ClubId);
+
+                    var newResponse = new UserBaseResponseDto
+                    {
+                        Id = users[i].Id,
+                        Role = users[i].Role.ToString(),
+                        Login = users[i].Login,
+                        FullName = users[i].FullName,
+                        Photo = Convert.ToBase64String(users[i].Photo),
+                        Birthday = users[i].Birthday,
+                        City = users[i].City,
+                        Grade = users[i].City,
+                        ClubId = club.Id,
+                        ClubName = club.Name
+                    };
+
+                    usersResponse.Add(newResponse);           
+                }
+
+                return Ok(usersResponse);
             }
             catch (Exception ex)
             {

@@ -36,6 +36,13 @@ namespace Aikido.Services
             return clubEntity;
         }
 
+
+        public async Task<List<ClubEntity>> GetClubsList()
+        {
+            return await context.Clubs.OrderBy(club => club.Name)
+                .ToListAsync();
+        }
+
         public async Task<long> CreateClub(ClubDto clubData)
         {
             var clubEntity = new ClubEntity();
@@ -59,6 +66,7 @@ namespace Aikido.Services
             await SaveDb();
 
         }
+
         public async Task UpdateClub(long id, Dto.ClubDto clubNewData)
         {
             var clubEntity = await context.Clubs.FindAsync(id);

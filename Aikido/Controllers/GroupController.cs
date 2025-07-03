@@ -7,22 +7,22 @@ namespace Aikido.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ClubController : Controller
+    public class GroupController : Controller
     {
-        private readonly ClubService clubService;
+        private readonly GroupService groupService;
 
-        public ClubController(ClubService clubService)
+        public GroupController(GroupService groupService)
         {
-            this.clubService = clubService;
+            this.groupService = groupService;
         }
 
         [HttpGet("get/{id}")]
-        public async Task<IActionResult> GetClubDataById(long id)
+        public async Task<IActionResult> GetGroupDataById(long id)
         {
             try
             {
-                var user = await clubService.GetClubById(id);
-                return Ok(user);
+                var group = await groupService.GetGroupById(id);
+                return Ok(group);
             }
             catch (KeyNotFoundException ex)
             {
@@ -34,46 +34,32 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpGet("get/list")]
-        public async Task<IActionResult> GetClubsList()
-        {
-            try
-            {
-                var clubs = await clubService.GetClubsList();
-                return Ok(clubs);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
-            }
-        }
-
         [HttpPost("create")]
-        public async Task<IActionResult> Create([FromForm] ClubRequest request)
+        public async Task<IActionResult> Create([FromForm] GroupRequest request)
         {
-            ClubDto clubData;
+            GroupDto groupData;
 
             try
             {
-                clubData = await request.Parse();
+                groupData = await request.Parse();
             }
             catch (Exception ex)
             {
                 return BadRequest($"Ошибка при обработке JSON: {ex.Message}");
             }
 
-            long clubId;
+            long groupId;
 
             try
             {
-                clubId = await clubService.CreateClub(clubData);
+                groupId = await groupService.CreateGroup(groupData);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
 
-            return Ok(new { id = clubId });
+            return Ok(new { id = groupId });
         }
 
         [HttpDelete("delete/{id}")]
@@ -81,7 +67,7 @@ namespace Aikido.Controllers
         {
             try
             {
-                await clubService.DeleteClub(id);
+                await groupService.DeleteGroup(id);
                 return Ok();
             }
             catch (KeyNotFoundException ex)
@@ -94,6 +80,5 @@ namespace Aikido.Controllers
             }
         }
 
-        
     }
 }
