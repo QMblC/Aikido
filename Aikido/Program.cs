@@ -22,6 +22,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connString));
 
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<ClubService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

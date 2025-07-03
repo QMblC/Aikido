@@ -1,14 +1,15 @@
-﻿using System.Text.Json;
+﻿using Aikido.Dto;
+using System.Text.Json;
 
 namespace Aikido.Requests
 {
-    public class UserRequest
+    public class ClubRequest
     {
-        public IFormFile UserDataJson { get; set; }
+        public IFormFile ClubDataJson { get; set; }
 
-        public async Task<UserDto> Parse()
+        public async Task<ClubDto> Parse()
         {
-            using var reader = new StreamReader(UserDataJson.OpenReadStream());
+            using var reader = new StreamReader(ClubDataJson.OpenReadStream());
             var jsonString = await reader.ReadToEndAsync();
 
             var options = new JsonSerializerOptions
@@ -16,7 +17,7 @@ namespace Aikido.Requests
                 PropertyNameCaseInsensitive = true
             };
 
-            var userData = JsonSerializer.Deserialize<UserDto>(jsonString, options);
+            var userData = JsonSerializer.Deserialize<ClubDto>(jsonString, options);
 
             if (userData == null)
                 throw new Exception("Не удалось десериализовать JSON.");

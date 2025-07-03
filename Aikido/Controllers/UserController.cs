@@ -1,4 +1,5 @@
 ﻿using Aikido.Data;
+using Aikido.Dto;
 using Aikido.Requests;
 using Aikido.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -49,6 +50,30 @@ namespace Aikido.Controllers
             }
         }
 
+        [HttpGet("get/short-list-cut-data")]
+        public async Task<IActionResult> GetUserShortListCutData([FromForm] UserIndexesRequest request)
+        {
+            UserIndexesDto userIndexes;
+
+            try
+            {
+                userIndexes = await request.Parse();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Ошибка при обработке JSON: {ex.Message}");
+            }
+
+            try
+            {
+                var users = await userService.GetUserListAlphabetAscending(userIndexes.StartIndex, userIndexes.FinishIndex);
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Ошибка при получении списка пользователей.");
+            }
+        }
 
 
         [HttpPost("create")]

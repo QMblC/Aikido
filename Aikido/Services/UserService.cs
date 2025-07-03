@@ -41,7 +41,6 @@ namespace Aikido.Services
             }
         }
 
-
         public async Task<UserEntity> GetUserById(long id)
         {
             var userEntity = await context.Users.FindAsync(id);
@@ -84,6 +83,28 @@ namespace Aikido.Services
 
             await SaveDb();
         }
+
+        public async Task<List<UserEntity>> GetUserListAlphabetAscending(int startIndex, int finishIndex)
+        {
+            return await context.Users
+                .OrderBy(u => u.FullName)
+                .Skip(startIndex)
+                .Take(finishIndex - startIndex)
+                .Select(u => new UserEntity
+                {
+                    Id = u.Id,
+                    FullName = u.FullName,
+                    Photo = u.Photo,
+                    Login = u.Login,
+                    Role = u.Role,
+                    City = u.City,
+                    Birthday = u.Birthday,
+                    Grade = u.Grade,
+                    GroupId = u.GroupId
+                })
+                .ToListAsync();
+        }
+
 
     }
 }

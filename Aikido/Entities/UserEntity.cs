@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 
 namespace Aikido.Entities
 {
@@ -29,7 +30,7 @@ namespace Aikido.Entities
         public string? PhoneNumber { get; set; }
         public DateTime? Birthday { get; set; }
         public string? City { get; set; }
-        public Grade? Grade { get; set; }
+        public string? Grade { get; set; }
         public DateTime? CertificationDate { get; set; }
         public int? AnnualFee { get; set; }
         public Sex? Sex { get; set; }
@@ -65,7 +66,7 @@ namespace Aikido.Entities
                 City = userNewData.City;
 
             if (userNewData.Grade != null)
-                Grade = Enum.Parse<Grade>(userNewData.Grade);
+                Grade = userNewData.Grade;
 
             if (userNewData.CertificationDate != null)
                 CertificationDate = DateTime.SpecifyKind(userNewData.CertificationDate.Value, DateTimeKind.Utc);

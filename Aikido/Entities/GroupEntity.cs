@@ -9,6 +9,6 @@ namespace Aikido.Entities
         public long UserId { get; set; }
         public long ClubId { get; set; }
         public string? Name { get; set; }
-        public string? AgeGroup { get; set; }
+        public int AgeGroup { get; set; }
     }
 }
