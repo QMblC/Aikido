@@ -6,7 +6,7 @@ namespace Aikido.Requests
     {
         public IFormFile UserDataJson { get; set; }
 
-        public async Task<UserJson> Parse()
+        public async Task<UserDto> Parse()
         {
             using var reader = new StreamReader(UserDataJson.OpenReadStream());
             var jsonString = await reader.ReadToEndAsync();
@@ -16,7 +16,7 @@ namespace Aikido.Requests
                 PropertyNameCaseInsensitive = true
             };
 
-            var userData = JsonSerializer.Deserialize<UserJson>(jsonString, options);
+            var userData = JsonSerializer.Deserialize<UserDto>(jsonString, options);
 
             if (userData == null)
                 throw new Exception("Не удалось десериализовать JSON.");

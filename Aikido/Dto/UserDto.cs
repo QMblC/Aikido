@@ -1,4 +1,4 @@
-﻿public class UserJson
+﻿public class UserDto
 {
     public string Role { get; set; }
     public string Login { get; set; }

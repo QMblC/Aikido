@@ -38,7 +38,7 @@ namespace Aikido.Entities
         public string? ParentFullNumber { get; set; }
         public DateTime? RegistrationDate { get; set; }
 
-        public void UpdateFromJson(UserJson userNewData)
+        public void UpdateFromJson(UserDto userNewData)
         {
             if (userNewData.Role != null)
                 Role = Enum.Parse<Role>(userNewData.Role);

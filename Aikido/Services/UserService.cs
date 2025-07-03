@@ -1,6 +1,8 @@
 ﻿using Aikido.Data;
+using Aikido.Dto;
 using Aikido.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Aikido.Services
 {
@@ -13,6 +15,33 @@ namespace Aikido.Services
             this.context = context;
         }
 
+        private async Task SaveDb()
+        {
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка при обработке пользователя: {ex.InnerException?.Message}", ex);
+            }
+        }
+
+        public async Task<List<UserShortDto>> GetUserIdAndNamesAsync()
+        {
+            try
+            {
+                return await context.Users
+                    .Select(u => new UserShortDto { Id = u.Id, Name = u.FullName })
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("Не удалось получить список пользователей.", ex);
+            }
+        }
+
+
         public async Task<UserEntity> GetUserDataById(long id)
         {
             var userEntity = await context.Users.FindAsync(id);
@@ -22,21 +51,14 @@ namespace Aikido.Services
             return userEntity;
         }
 
-        public async Task<long> CreateUser(UserJson userData)
+        public async Task<long> CreateUser(UserDto userData)
         {
             var userEntity = new UserEntity();
             userEntity.UpdateFromJson(userData);
 
             context.Users.Add(userEntity);
 
-            try
-            {
-                await context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Ошибка при сохранении пользователя: " + ex.InnerException?.Message, ex);
-            }
+            await SaveDb();
 
             return userEntity.Id;
         }
@@ -48,11 +70,11 @@ namespace Aikido.Services
                 throw new KeyNotFoundException($"Пользователь с Id = {id} не найден.");
 
             context.Remove(userEntity);
-            await context.SaveChangesAsync();
 
-            return;
+            await SaveDb();
+
         }
-        public async Task UpdateUser(long id, UserJson userNewData)
+        public async Task UpdateUser(long id, UserDto userNewData)
         {
             var userEntity = await context.Users.FindAsync(id);
             if (userEntity == null)
@@ -60,7 +82,7 @@ namespace Aikido.Services
 
             userEntity.UpdateFromJson(userNewData);
 
-            await context.SaveChangesAsync();
+            await SaveDb();
         }
 
     }

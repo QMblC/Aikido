@@ -35,16 +35,26 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpGet("get-ids")]
-        public async Task<IActionResult> GetIds()
+        [HttpGet("get/short-list")]
+        public async Task<IActionResult> GetUserShortList()
         {
-            return Ok(new { ids = new List<long> { 1, 2, 3 } });
+            try
+            {
+                var users = await userService.GetUserIdAndNamesAsync();
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Ошибка при получении списка пользователей.");
+            }
         }
+
+
 
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromForm] UserRequest request)
         {
-            UserJson userData;
+            UserDto userData;
 
             try
             {
@@ -66,7 +76,7 @@ namespace Aikido.Controllers
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
 
-            return Ok(new { id =  userId});
+            return Ok(new { id =  userId}); //ToDo Тут возможно нужно возвращать JWT
         }
 
         [HttpDelete("delete/{id}")]
@@ -88,9 +98,34 @@ namespace Aikido.Controllers
         }
 
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> Update(long id)
+        public async Task<IActionResult> Update(long id, [FromForm] UserRequest request)
         {
+            UserDto userData;
+
+            try
+            {
+                userData = await request.Parse();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Ошибка при обработке JSON: {ex.Message}");
+            }
+
+            try
+            {
+                await userService.UpdateUser(id, userData);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+
             return Ok();
         }
+
     }
 }
