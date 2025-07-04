@@ -55,17 +55,13 @@ namespace Aikido.Entities
             if (!string.IsNullOrEmpty(userNewData.FullName))
                 FullName = userNewData.FullName;
 
-            if (!string.IsNullOrEmpty(userNewData.Photo))
-                Photo = Convert.FromBase64String(userNewData.Photo);
+            Photo = Convert.FromBase64String(userNewData.Photo);
 
-            if (!string.IsNullOrEmpty(userNewData.PhoneNumber))
-                PhoneNumber = userNewData.PhoneNumber;
+            PhoneNumber = userNewData.PhoneNumber;
 
-            if (userNewData.Birthday != null)
-                Birthday = DateTime.SpecifyKind(userNewData.Birthday.Value, DateTimeKind.Utc);
+            Birthday = DateTime.SpecifyKind(userNewData.Birthday.Value, DateTimeKind.Utc);
 
-            if (!string.IsNullOrEmpty(userNewData.City))
-                City = userNewData.City;
+            City = userNewData.City;
 
             if (userNewData.Grade != null)
                 Grade = userNewData.Grade;
@@ -75,24 +71,21 @@ namespace Aikido.Entities
 
             if (userNewData.AnnualFee != null)
                 AnnualFee = userNewData.AnnualFee;
+            else
+                AnnualFee = 0;
 
             if (userNewData.Sex != null)
                 Sex = userNewData.Sex;
 
-            if (userNewData.SchoolClass != null)
-                SchoolClass = (int)userNewData.SchoolClass;
+            SchoolClass = (int)userNewData.SchoolClass;
 
-            if (userNewData.ClubId != null)
-                ClubId = (long)userNewData.ClubId;
+            ClubId = (long)userNewData.ClubId;
 
-            if (userNewData.GroupId != null)
-                GroupId = (long)userNewData.GroupId;
+            GroupId = (long)userNewData.GroupId;
 
-            if (!string.IsNullOrEmpty(userNewData.ParentFullName))
-                ParentFullName = userNewData.ParentFullName;
+            ParentFullName = userNewData.ParentFullName;
 
-            if (!string.IsNullOrEmpty(userNewData.ParentFullNumber))
-                ParentFullNumber = userNewData.ParentFullNumber;
+            ParentFullNumber = userNewData.ParentFullNumber;
 
             if (userNewData.RegistrationDate != null)
                 RegistrationDate = DateTime.SpecifyKind(userNewData.RegistrationDate.Value, DateTimeKind.Utc);
