@@ -21,8 +21,8 @@ namespace Aikido.Controllers
         {
             try
             {
-                var user = await clubService.GetClubById(id);
-                return Ok(user);
+                var club = await clubService.GetClubById(id);
+                return Ok(club);
             }
             catch (KeyNotFoundException ex)
             {

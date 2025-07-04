@@ -1,9 +1,11 @@
 ﻿using Aikido.Data;
 using Aikido.Dto;
 using Aikido.Entities;
+using Aikido.Entities.Filters;
 using Aikido.Requests;
 using Aikido.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Text.Json;
 
 namespace Aikido.Controllers
@@ -57,60 +59,16 @@ namespace Aikido.Controllers
         }
 
         [HttpGet("get/short-list-cut-data/{startIndex}/{finishIndex}")]
-        public async Task<IActionResult> GetUserShortListCutData(int startIndex, int finishIndex)
+        public async Task<IActionResult> GetUserShortListCutData(
+            int startIndex,
+            int finishIndex,
+            [FromQuery] UserFilter filter)
         {
             try
             {
-                var pagedResult = await userService.GetUserListAlphabetAscending(startIndex, finishIndex);
+                var pagedResult = await userService.GetUserListAlphabetAscending(startIndex, finishIndex, filter);
 
-                var usersResponse = new List<UserBaseResponseDto>();
-
-                foreach (var user in pagedResult.Users)
-                {
-                    if (user.GroupId == null)
-                        continue;
-
-                    if (user.ClubId == 0 || user.ClubId == null)
-                    {
-                        var newResponse = new UserBaseResponseDto
-                        {
-                            Id = user.Id,
-                            Role = user.Role.ToString(),
-                            Login = user.Login,
-                            FullName = user.FullName,
-                            Photo = Convert.ToBase64String(user.Photo),
-                            Birthday = user.Birthday,
-                            City = user.City,
-                            Grade = user.Grade,
-                            ClubId = null,
-                            ClubName = null
-                        };
-
-                        usersResponse.Add(newResponse);
-                    }
-                    else
-                    {
-                        var club = await clubService.GetClubById((long)user.ClubId);
-
-                        var newResponse = new UserBaseResponseDto
-                        {
-                            Id = user.Id,
-                            Role = user.Role.ToString(),
-                            Login = user.Login,
-                            FullName = user.FullName,
-                            Photo = Convert.ToBase64String(user.Photo),
-                            Birthday = user.Birthday,
-                            City = user.City,
-                            Grade = user.Grade,
-                            ClubId = user.ClubId,
-                            ClubName = club.Name
-                        };
-
-                        usersResponse.Add(newResponse);
-                    }
-
-                    
-                }
+                var usersResponse = ParseUserToBaseResponse(pagedResult.Users);
 
                 return Ok(new
                 {
@@ -122,6 +80,40 @@ namespace Aikido.Controllers
             {
                 return StatusCode(500, "Ошибка при получении списка пользователей.");
             }
+        }
+
+        private async Task<List<UserBaseResponseDto>> ParseUserToBaseResponse(List<UserEntity> users)
+        {
+            var usersResponse = new List<UserBaseResponseDto>();
+
+            foreach (var user in users)
+            {
+                var newResponse = new UserBaseResponseDto
+                {
+                    Id = user.Id,
+                    Role = user.Role.ToString(),
+                    Login = user.Login,
+                    FullName = user.FullName,
+                    Photo = Convert.ToBase64String(user.Photo),
+                    Birthday = user.Birthday,
+                    City = user.City,
+                    Grade = user.Grade,
+                    ClubId = null,
+                    ClubName = null
+                };
+
+                if (user.ClubId != 0 && user.ClubId != null)
+                {
+                    var club = await clubService.GetClubById((long)user.ClubId);
+
+                    newResponse.ClubId = user.ClubId;
+                    newResponse.ClubName = club.Name;
+                }
+
+                usersResponse.Add(newResponse);
+            }
+
+            return usersResponse;
         }
 
 

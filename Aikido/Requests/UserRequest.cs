@@ -13,7 +13,8 @@ namespace Aikido.Requests
 
             var options = new JsonSerializerOptions
             {
-                PropertyNameCaseInsensitive = true
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             };
 
             var userData = JsonSerializer.Deserialize<UserDto>(jsonString, options);
@@ -23,7 +24,5 @@ namespace Aikido.Requests
 
             return userData;
         }
-
-
     }
 }
