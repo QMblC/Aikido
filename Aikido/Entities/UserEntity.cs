@@ -34,8 +34,8 @@ namespace Aikido.Entities
         public DateTime? CertificationDate { get; set; }
         public int? AnnualFee { get; set; }
         public string? Sex { get; set; }
-        public long ClubId { get; set; }
-        public long GroupId { get; set; }
+        public long? ClubId { get; set; }
+        public long? GroupId { get; set; }
         public int? SchoolClass { get; set; }
         public string? ParentFullName { get; set; }
         public string? ParentFullNumber { get; set; }

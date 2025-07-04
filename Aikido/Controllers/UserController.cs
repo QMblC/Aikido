@@ -56,23 +56,12 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpGet("get/short-list-cut-data")]
-        public async Task<IActionResult> GetUserShortListCutData([FromForm] UserIndexesRequest request)
+        [HttpGet("get/short-list-cut-data/{startIndex}/{finishIndex}")]
+        public async Task<IActionResult> GetUserShortListCutData(int startIndex, int finishIndex)
         {
-            UserIndexesDto userIndexes;
-
             try
             {
-                userIndexes = await request.Parse();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при обработке JSON: {ex.Message}");
-            }
-
-            try
-            {
-                var pagedResult = await userService.GetUserListAlphabetAscending(userIndexes.StartIndex, userIndexes.FinishIndex);
+                var pagedResult = await userService.GetUserListAlphabetAscending(startIndex, finishIndex);
 
                 var usersResponse = new List<UserBaseResponseDto>();
 
@@ -81,23 +70,46 @@ namespace Aikido.Controllers
                     if (user.GroupId == null)
                         continue;
 
-                    var club = await clubService.GetClubById(user.ClubId);
-
-                    var newResponse = new UserBaseResponseDto
+                    if (user.ClubId == 0 || user.ClubId == null)
                     {
-                        Id = user.Id,
-                        Role = user.Role.ToString(),
-                        Login = user.Login,
-                        FullName = user.FullName,
-                        Photo = Convert.ToBase64String(user.Photo),
-                        Birthday = user.Birthday,
-                        City = user.City,
-                        Grade = user.Grade,
-                        ClubId = user.ClubId,
-                        ClubName = club.Name
-                    };
+                        var newResponse = new UserBaseResponseDto
+                        {
+                            Id = user.Id,
+                            Role = user.Role.ToString(),
+                            Login = user.Login,
+                            FullName = user.FullName,
+                            Photo = Convert.ToBase64String(user.Photo),
+                            Birthday = user.Birthday,
+                            City = user.City,
+                            Grade = user.Grade,
+                            ClubId = null,
+                            ClubName = null
+                        };
 
-                    usersResponse.Add(newResponse);
+                        usersResponse.Add(newResponse);
+                    }
+                    else
+                    {
+                        var club = await clubService.GetClubById((long)user.ClubId);
+
+                        var newResponse = new UserBaseResponseDto
+                        {
+                            Id = user.Id,
+                            Role = user.Role.ToString(),
+                            Login = user.Login,
+                            FullName = user.FullName,
+                            Photo = Convert.ToBase64String(user.Photo),
+                            Birthday = user.Birthday,
+                            City = user.City,
+                            Grade = user.Grade,
+                            ClubId = user.ClubId,
+                            ClubName = club.Name
+                        };
+
+                        usersResponse.Add(newResponse);
+                    }
+
+                    
                 }
 
                 return Ok(new
