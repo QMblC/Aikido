@@ -1,8 +1,10 @@
 ﻿using Aikido.Data;
 using Aikido.Dto;
 using Aikido.Entities;
+using Aikido.Entities.Filters;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace Aikido.Services
 {
@@ -91,27 +93,20 @@ namespace Aikido.Services
             await SaveDb();
         }
 
-        public async Task<PagedUserResult> GetUserListAlphabetAscending(int startIndex, int finishIndex)
+        public async Task<PagedUserResult> GetUserListAlphabetAscending(
+            int startIndex,
+            int finishIndex,
+            UserFilter? filter = null)
         {
-            var totalCount = await context.Users.CountAsync();
+            var query = ApplyUserFilters(context.Users.AsQueryable(), filter);
 
-            var users = await context.Users
+            var totalCount = await query.CountAsync();
+
+            var users = await query
                 .OrderBy(u => u.FullName)
                 .Skip(startIndex)
                 .Take(finishIndex - startIndex)
-                .Select(u => new UserEntity
-                {
-                    Id = u.Id,
-                    FullName = u.FullName,
-                    Photo = u.Photo,
-                    Login = u.Login,
-                    Role = u.Role,
-                    City = u.City,
-                    Birthday = u.Birthday,
-                    Grade = u.Grade,
-                    ClubId = u.ClubId,
-                    GroupId = u.GroupId
-                })
+                .Select(ProjectToUserEntity())
                 .ToListAsync();
 
             return new PagedUserResult
@@ -120,5 +115,49 @@ namespace Aikido.Services
                 Users = users
             };
         }
+
+
+        private IQueryable<UserEntity> ApplyUserFilters(IQueryable<UserEntity> query, UserFilter? filter)
+        {
+            if (filter == null) return query;
+
+            if (!string.IsNullOrEmpty(filter.Role))
+                query = query.Where(u => u.Role == filter.Role);
+
+            if (!string.IsNullOrEmpty(filter.City))
+                query = query.Where(u => u.City == filter.City);
+
+            if (!string.IsNullOrEmpty(filter.Grade))
+                query = query.Where(u => u.Grade == filter.Grade);
+
+            if (filter.ClubId.HasValue)
+                query = query.Where(u => u.ClubId == filter.ClubId);
+
+            if (filter.GroupId.HasValue)
+                query = query.Where(u => u.GroupId == filter.GroupId);
+
+            if (!string.IsNullOrEmpty(filter.Sex))
+                query = query.Where(u => u.Sex == filter.Sex);
+
+            return query;
+        }
+
+        private static Expression<Func<UserEntity, UserEntity>> ProjectToUserEntity()
+        {
+            return u => new UserEntity
+            {
+                Id = u.Id,
+                FullName = u.FullName,
+                Photo = u.Photo,
+                Login = u.Login,
+                Role = u.Role,
+                City = u.City,
+                Birthday = u.Birthday,
+                Grade = u.Grade,
+                ClubId = u.ClubId,
+                GroupId = u.GroupId
+            };
+        }
+
     }
 }

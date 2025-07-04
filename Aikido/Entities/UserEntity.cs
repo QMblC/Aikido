@@ -97,7 +97,5 @@ namespace Aikido.Entities
             if (userNewData.RegistrationDate != null)
                 RegistrationDate = DateTime.SpecifyKind(userNewData.RegistrationDate.Value, DateTimeKind.Utc);
         }
-
-
     }
 }
