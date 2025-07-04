@@ -2,6 +2,7 @@
 using Aikido.Dto;
 using Aikido.Entities;
 using Aikido.Entities.Filters;
+using ClosedXML.Excel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -61,15 +62,27 @@ namespace Aikido.Services
 
         public async Task<long> CreateUser(UserDto userData)
         {
+            await EnsureLoginIsUnique(userData.Login);
+
             var userEntity = new UserEntity();
             userEntity.UpdateFromJson(userData);
 
             context.Users.Add(userEntity);
-
             await SaveDb();
 
             return userEntity.Id;
         }
+
+        private async Task EnsureLoginIsUnique(string? login)
+        {
+            if (string.IsNullOrWhiteSpace(login))
+                return;
+
+            var loginExists = await context.Users.AnyAsync(u => u.Login == login);
+            if (loginExists)
+                throw new Exception($"Пользователь с логином '{login}' уже существует.");
+        }
+
 
         public async Task DeleteUser(long id)
         {
@@ -84,6 +97,8 @@ namespace Aikido.Services
         }
         public async Task UpdateUser(long id, UserDto userNewData)
         {
+            await EnsureLoginIsUnique(userNewData.Login);
+
             var userEntity = await context.Users.FindAsync(id);
             if (userEntity == null)
                 throw new KeyNotFoundException($"Пользователь с Id = {id} не найден.");
@@ -115,7 +130,6 @@ namespace Aikido.Services
                 Users = users
             };
         }
-
 
         private IQueryable<UserEntity> ApplyUserFilters(IQueryable<UserEntity> query, UserFilter? filter)
         {
@@ -158,6 +172,7 @@ namespace Aikido.Services
                 GroupId = u.GroupId
             };
         }
+
 
     }
 }

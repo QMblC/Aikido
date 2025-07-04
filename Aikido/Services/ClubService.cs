@@ -67,7 +67,7 @@ namespace Aikido.Services
 
         }
 
-        public async Task UpdateClub(long id, Dto.ClubDto clubNewData)
+        public async Task UpdateClub(long id, ClubDto clubNewData)
         {
             var clubEntity = await context.Clubs.FindAsync(id);
             if (clubEntity == null)
@@ -77,6 +77,5 @@ namespace Aikido.Services
 
             await SaveDb();
         }
-
     }
 }

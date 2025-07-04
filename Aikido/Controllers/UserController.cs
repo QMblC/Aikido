@@ -17,12 +17,18 @@ namespace Aikido.Controllers
         private readonly UserService userService;
         private readonly ClubService clubService;
         private readonly GroupService groupService;
+        private readonly TableService tableService;
 
-        public UserController(UserService userService, ClubService clubService, GroupService groupService)
+        public UserController(
+            UserService userService,
+            ClubService clubService,
+            GroupService groupService,
+            TableService tableService)
         {
             this.userService = userService;
             this.clubService = clubService;
             this.groupService = groupService;
+            this.tableService = tableService;
 
         }
 
@@ -116,6 +122,15 @@ namespace Aikido.Controllers
             return usersResponse;
         }
 
+        [HttpGet("get/table")]
+        public async Task<IActionResult> ExportUsers()
+        {
+            var stream = await tableService.ExportUsersToExcelAsync();
+
+            return File(stream,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "База пользователей.xlsx");
+        }
 
 
         [HttpPost("create")]

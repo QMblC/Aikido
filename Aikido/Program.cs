@@ -21,9 +21,12 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connString));
 
-builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<ClubService>();
-builder.Services.AddScoped<GroupService>();
+builder.Services.AddScoped<UserService>()
+    .AddScoped<ClubService>()
+    .AddScoped<GroupService>()
+    .AddScoped<TableService>();
+
+
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
