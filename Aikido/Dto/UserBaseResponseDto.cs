@@ -11,6 +11,6 @@
         public string City { get; set; }
         public string Grade { get; set; }
         public long? ClubId { get; set; }
-        public string ClubName { get; set; }
+        public string? ClubName { get; set; }
     }
 }
