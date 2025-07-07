@@ -62,6 +62,7 @@ namespace Aikido.Services
 
         public async Task<long> CreateUser(UserDto userData)
         {
+
             await EnsureLoginIsUnique(userData.Login);
 
             var userEntity = new UserEntity();
@@ -134,23 +135,23 @@ namespace Aikido.Services
         {
             if (filter == null) return query;
 
-            if (!string.IsNullOrEmpty(filter.Role))
-                query = query.Where(u => u.Role == filter.Role);
+            if (filter.Roles?.Any() == true)
+                query = query.Where(u => filter.Roles.Contains(u.Role));
 
-            if (!string.IsNullOrEmpty(filter.City))
-                query = query.Where(u => u.City == filter.City);
+            if (filter.Cities?.Any() == true)
+                query = query.Where(u => filter.Cities.Contains(u.City));
 
-            if (!string.IsNullOrEmpty(filter.Grade))
-                query = query.Where(u => u.Grade == filter.Grade);
+            if (filter.Grades?.Any() == true)
+                query = query.Where(u => filter.Grades.Contains(u.Grade));
 
-            if (filter.ClubId.HasValue)
-                query = query.Where(u => u.ClubId == filter.ClubId);
+            if (filter.ClubIds?.Any() == true)
+                query = query.Where(u => u.ClubId.HasValue && filter.ClubIds.Contains(u.ClubId.Value));
 
-            if (filter.GroupId.HasValue)
-                query = query.Where(u => u.GroupId == filter.GroupId);
+            if (filter.GroupIds?.Any() == true)
+                query = query.Where(u => u.GroupId.HasValue && filter.GroupIds.Contains(u.GroupId.Value));
 
-            if (!string.IsNullOrEmpty(filter.Sex))
-                query = query.Where(u => u.Sex == filter.Sex);
+            if (filter.Sexes?.Any() == true)
+                query = query.Where(u => filter.Sexes.Contains(u.Sex));
 
             if (!string.IsNullOrWhiteSpace(filter.Name))
             {
@@ -160,7 +161,6 @@ namespace Aikido.Services
 
             return query;
         }
-
 
         private static Expression<Func<UserEntity, UserEntity>> ProjectToUserEntity()
         {

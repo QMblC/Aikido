@@ -2,13 +2,12 @@
 {
     public class UserFilter
     {
-        public string? Role { get; set; }
-        public string? City { get; set; }
-        public string? Grade { get; set; }
-        public long? ClubId { get; set; }
-        public long? GroupId { get; set; }
-        public string? Sex { get; set; }
+        public List<string>? Roles { get; set; }
+        public List<string>? Cities { get; set; }
+        public List<string>? Grades { get; set; }
+        public List<long>? ClubIds { get; set; }
+        public List<long>? GroupIds { get; set; }
+        public List<string>? Sexes { get; set; }
         public string? Name { get; set; }
     }
-
 }

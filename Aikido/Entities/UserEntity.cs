@@ -1,14 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
 
 namespace Aikido.Entities
 {
     public class UserEntity : IDbEntity
     {
-
         public UserEntity()
         {
-
         }
 
         public UserEntity(string role, string fullName)
@@ -21,7 +18,6 @@ namespace Aikido.Entities
         public long Id { get; set; }
 
         public string? Role { get; set; }
-
         public string? Login { get; set; }
         public string? Password { get; set; }
         public string FullName { get; set; }
@@ -55,11 +51,28 @@ namespace Aikido.Entities
             if (!string.IsNullOrEmpty(userNewData.FullName))
                 FullName = userNewData.FullName;
 
-            Photo = Convert.FromBase64String(userNewData.Photo);
+            if (!string.IsNullOrEmpty(userNewData.Photo))
+            {
+                try
+                {
+                    Photo = Convert.FromBase64String(userNewData.Photo);
+                }
+                catch (FormatException)
+                {
+                    Photo = [];
+                }
+            }
+            else
+            {
+                Photo = [];
+            }
 
             PhoneNumber = userNewData.PhoneNumber;
 
-            Birthday = DateTime.SpecifyKind(userNewData.Birthday.Value, DateTimeKind.Utc);
+            if (userNewData.Birthday != null)
+                Birthday = DateTime.SpecifyKind(userNewData.Birthday.Value, DateTimeKind.Utc);
+            else
+                Birthday = null;
 
             City = userNewData.City;
 
@@ -68,27 +81,25 @@ namespace Aikido.Entities
 
             if (userNewData.CertificationDate != null)
                 CertificationDate = DateTime.SpecifyKind(userNewData.CertificationDate.Value, DateTimeKind.Utc);
-
-            if (userNewData.AnnualFee != null)
-                AnnualFee = userNewData.AnnualFee;
             else
-                AnnualFee = 0;
+                CertificationDate = null;
+
+            AnnualFee = userNewData.AnnualFee ?? 0;
 
             if (userNewData.Sex != null)
                 Sex = userNewData.Sex;
 
-            SchoolClass = (int)userNewData.SchoolClass;
-
-            ClubId = (long)userNewData.ClubId;
-
-            GroupId = (long)userNewData.GroupId;
+            SchoolClass = userNewData.SchoolClass;
+            ClubId = userNewData.ClubId;
+            GroupId = userNewData.GroupId;
 
             ParentFullName = userNewData.ParentFullName;
-
             ParentFullNumber = userNewData.ParentFullNumber;
 
             if (userNewData.RegistrationDate != null)
                 RegistrationDate = DateTime.SpecifyKind(userNewData.RegistrationDate.Value, DateTimeKind.Utc);
+            else
+                RegistrationDate = null;
         }
     }
 }
