@@ -5,6 +5,7 @@ using Aikido.Entities.Filters;
 using ClosedXML.Excel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Linq.Expressions;
 
 namespace Aikido.Services
@@ -14,7 +15,6 @@ namespace Aikido.Services
         public int TotalCount { get; set; }
         public List<UserEntity> Users { get; set; } = [];
     }
-
 
     public class UserService
     {
@@ -82,7 +82,6 @@ namespace Aikido.Services
             if (loginExists)
                 throw new Exception($"Пользователь с логином '{login}' уже существует.");
         }
-
 
         public async Task DeleteUser(long id)
         {
@@ -153,8 +152,15 @@ namespace Aikido.Services
             if (!string.IsNullOrEmpty(filter.Sex))
                 query = query.Where(u => u.Sex == filter.Sex);
 
+            if (!string.IsNullOrWhiteSpace(filter.Name))
+            {
+                var lowered = filter.Name.ToLower();
+                query = query.Where(u => u.FullName.ToLower().StartsWith(lowered));
+            }
+
             return query;
         }
+
 
         private static Expression<Func<UserEntity, UserEntity>> ProjectToUserEntity()
         {
