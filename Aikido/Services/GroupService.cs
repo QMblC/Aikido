@@ -57,5 +57,14 @@ namespace Aikido.Services
 
             await SaveDb();
         }
+
+        public async Task<List<GroupEntity>> GetGroupsByClubId(long clubId)
+        {
+            var groups = await context.Groups
+                .Where(g => g.ClubId == clubId)
+                .ToListAsync();
+
+            return groups;
+        }
     }
 }

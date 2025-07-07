@@ -80,5 +80,20 @@ namespace Aikido.Controllers
             }
         }
 
+        [HttpGet("get-by-club/{clubId}")]
+        public async Task<IActionResult> GetGroupsByClubId(long clubId)
+        {
+            try
+            {
+                var groups = await groupService.GetGroupsByClubId(clubId);
+                return Ok(groups);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+
     }
 }

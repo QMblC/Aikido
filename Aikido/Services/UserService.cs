@@ -62,7 +62,6 @@ namespace Aikido.Services
 
         public async Task<long> CreateUser(UserDto userData)
         {
-
             await EnsureLoginIsUnique(userData.Login);
 
             var userEntity = new UserEntity();
@@ -74,12 +73,14 @@ namespace Aikido.Services
             return userEntity.Id;
         }
 
-        private async Task EnsureLoginIsUnique(string? login)
+        private async Task EnsureLoginIsUnique(string? login, long? excludeUserId = null)
         {
             if (string.IsNullOrWhiteSpace(login))
                 return;
 
-            var loginExists = await context.Users.AnyAsync(u => u.Login == login);
+            var loginExists = await context.Users
+                .AnyAsync(u => u.Login == login && (!excludeUserId.HasValue || u.Id != excludeUserId.Value));
+
             if (loginExists)
                 throw new Exception($"Пользователь с логином '{login}' уже существует.");
         }
@@ -97,7 +98,7 @@ namespace Aikido.Services
         }
         public async Task UpdateUser(long id, UserDto userNewData)
         {
-            await EnsureLoginIsUnique(userNewData.Login);
+            await EnsureLoginIsUnique(userNewData.Login, id);
 
             var userEntity = await context.Users.FindAsync(id);
             if (userEntity == null)
@@ -107,6 +108,7 @@ namespace Aikido.Services
 
             await SaveDb();
         }
+
 
         public async Task<PagedUserResult> GetUserListAlphabetAscending(
             int startIndex,
@@ -178,7 +180,5 @@ namespace Aikido.Services
                 GroupId = u.GroupId
             };
         }
-
-
     }
 }
