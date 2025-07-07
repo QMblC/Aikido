@@ -33,7 +33,7 @@ namespace Aikido.Entities
                 Name = groupNewData.Name;
 
             if (groupNewData.AgeGroup != 0)
-                AgeGroup = groupNewData.AgeGroup;
+                AgeGroup = (int)groupNewData.AgeGroup;
         }
     }
 }

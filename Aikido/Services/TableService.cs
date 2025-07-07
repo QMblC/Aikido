@@ -1,6 +1,13 @@
 ﻿using Aikido.Data;
+using Aikido.Entities;
 using ClosedXML.Excel;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
+using System.IO;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
+using System;
 
 namespace Aikido.Services
 {
@@ -64,6 +71,68 @@ namespace Aikido.Services
             return stream;
         }
 
+        public async Task ImportUsersFromExcelAsync(Stream excelStream)
+        {
+            using var workbook = new XLWorkbook(excelStream);
+            var worksheet = workbook.Worksheets.First();
+
+            var existingLogins = await GetExistingLoginsAsync();
+
+            foreach (var row in worksheet.RowsUsed().Skip(1))
+            {
+                ValidateRequiredFields(row);
+
+                var login = row.Cell(3).GetString()?.Trim();
+
+                if (IsLoginDuplicate(login, existingLogins, context.Users.Local.ToList()))
+                {
+                    throw new Exception($"Логин '{login}' уже существует (строка {row.RowNumber()})");
+                }
+
+                var user = CreateUserFromRow(row);
+                context.Users.Add(user);
+            }
+
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                var innerException = ex.InnerException?.Message ?? "нет внутренней ошибки";
+                throw new Exception($"Ошибка при сохранении в БД: {ex.Message}. Внутренняя ошибка: {innerException}");
+            }
+        }
+
+        public async Task UpdateUsersFromExcelAsync(Stream excelStream)
+        {
+            using var workbook = new XLWorkbook(excelStream);
+            var worksheet = workbook.Worksheets.First();
+
+            foreach (var row in worksheet.RowsUsed().Skip(1))
+            {
+                ValidateRequiredFields(row);
+
+                var id = TryParseLong(row.Cell(1).GetString());
+                if (id == null)
+                {
+                    throw new Exception($"Некорректный ID пользователя (строка {row.RowNumber()})");
+                }
+
+                var user = await context.Users.FindAsync(id.Value);
+                if (user == null)
+                {
+                    throw new Exception($"Пользователь с ID {id} не найден (строка {row.RowNumber()})");
+                }
+
+                UpdateUserFromRow(user, row);
+
+                context.Users.Update(user);
+            }
+
+            await context.SaveChangesAsync();
+        }
+
         private void WriteExcelHeader(IXLWorksheet worksheet)
         {
             var headers = new[]
@@ -79,7 +148,107 @@ namespace Aikido.Services
             }
         }
 
+        private async Task<List<string>> GetExistingLoginsAsync()
+        {
+            return await context.Users
+                .Where(u => u.Login != null)
+                .Select(u => u.Login!)
+                .ToListAsync();
+        }
 
+        private void ValidateRequiredFields(IXLRow row)
+        {
+            if (string.IsNullOrWhiteSpace(row.Cell(3).GetString()?.Trim()) ||
+                string.IsNullOrWhiteSpace(row.Cell(4).GetString()?.Trim()) ||
+                string.IsNullOrWhiteSpace(row.Cell(2).GetString()?.Trim()) ||
+                string.IsNullOrWhiteSpace(row.Cell(5).GetString()?.Trim()))
+            {
+                throw new Exception($"Не указаны обязательные поля в строке {row.RowNumber()}");
+            }
+        }
 
+        private bool IsLoginDuplicate(string? login, List<string> existingLogins, List<UserEntity> usersToAdd)
+        {
+            if (string.IsNullOrEmpty(login))
+                return false;
+
+            return existingLogins.Contains(login) || usersToAdd.Any(u => u.Login == login);
+        }
+
+        private UserEntity CreateUserFromRow(IXLRow row)
+        {
+            return new UserEntity
+            {
+                Role = row.Cell(2).GetString(),
+                Login = row.Cell(3).GetString()?.Trim(),
+                // Пароль в Excel не используется, генерировать отдельно при создании
+                FullName = row.Cell(5).GetString(),
+                PhoneNumber = row.Cell(6).GetString(),
+                Birthday = ConvertToUtc(TryParseDate(row.Cell(7).GetString())),
+                City = row.Cell(8).GetString(),
+                Grade = row.Cell(9).GetString(),
+                CertificationDate = ConvertToUtc(TryParseDate(row.Cell(10).GetString())),
+                AnnualFee = TryParseInt(row.Cell(11).GetString()),
+                Sex = row.Cell(12).GetString(),
+                ClubId = TryParseLong(row.Cell(13).GetString()),
+                GroupId = TryParseLong(row.Cell(15).GetString()),
+                SchoolClass = TryParseInt(row.Cell(17).GetString()),
+                ParentFullName = row.Cell(18).GetString(),
+                ParentFullNumber = row.Cell(19).GetString(),
+                RegistrationDate = ConvertToUtc(TryParseDate(row.Cell(20).GetString()))
+            };
+        }
+
+        private void UpdateUserFromRow(UserEntity user, IXLRow row)
+        {
+            user.Role = row.Cell(2).GetString();
+            user.Login = row.Cell(3).GetString()?.Trim();
+            // Пароль не обновляем из Excel
+            user.FullName = row.Cell(5).GetString();
+            user.PhoneNumber = row.Cell(6).GetString();
+            user.Birthday = ConvertToUtc(TryParseDate(row.Cell(7).GetString()));
+            user.City = row.Cell(8).GetString();
+            user.Grade = row.Cell(9).GetString();
+            user.CertificationDate = ConvertToUtc(TryParseDate(row.Cell(10).GetString()));
+            user.AnnualFee = TryParseInt(row.Cell(11).GetString());
+            user.Sex = row.Cell(12).GetString();
+            user.ClubId = TryParseLong(row.Cell(13).GetString());
+            user.GroupId = TryParseLong(row.Cell(15).GetString());
+            user.SchoolClass = TryParseInt(row.Cell(17).GetString());
+            user.ParentFullName = row.Cell(18).GetString();
+            user.ParentFullNumber = row.Cell(19).GetString();
+            user.RegistrationDate = ConvertToUtc(TryParseDate(row.Cell(20).GetString()));
+        }
+
+        private DateTime? TryParseDate(string? input)
+        {
+            return DateTime.TryParseExact(input, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var result)
+                ? result
+                : null;
+        }
+
+        private DateTime? ConvertToUtc(DateTime? date)
+        {
+            if (!date.HasValue) return null;
+
+            var dt = date.Value;
+            if (dt.Kind == DateTimeKind.Unspecified)
+                return DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+
+            if (dt.Kind == DateTimeKind.Local)
+                return dt.ToUniversalTime();
+
+            return dt; // уже UTC
+        }
+
+        private int? TryParseInt(string? input)
+        {
+            return int.TryParse(input, out var result) ? result : null;
+        }
+
+        private long? TryParseLong(string? input)
+        {
+            return long.TryParse(input, out var result) ? result : null;
+        }
     }
 }

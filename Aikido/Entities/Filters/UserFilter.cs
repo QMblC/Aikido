@@ -8,5 +8,7 @@
         public long? ClubId { get; set; }
         public long? GroupId { get; set; }
         public string? Sex { get; set; }
+        public string? Name { get; set; }
     }
+
 }

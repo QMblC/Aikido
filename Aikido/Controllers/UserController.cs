@@ -209,5 +209,44 @@ namespace Aikido.Controllers
             return Ok();
         }
 
+        [HttpPost("create/from-table")]
+        public async Task<IActionResult> ImportUsersFromExcel([FromForm] TableRequest request)
+        {
+            if (request.File == null || request.File.Length == 0)
+            {
+                return BadRequest("Файл не был предоставлен или он пустой.");
+            }
+
+            try
+            {
+                using var stream = request.File.OpenReadStream();
+                await tableService.ImportUsersFromExcelAsync(stream);
+                return Ok(new { Message = "Импорт пользователей выполнен успешно." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при импорте пользователей.", Details = ex.Message });
+            }
+        }
+
+        [HttpPut("update/from-table")]
+        public async Task<IActionResult> UpdateUsersFromExcel([FromForm] TableRequest request)
+        {
+            if (request.File == null || request.File.Length == 0)
+            {
+                return BadRequest("Файл не был предоставлен или он пустой.");
+            }
+
+            try
+            {
+                using var stream = request.File.OpenReadStream();
+                await tableService.UpdateUsersFromExcelAsync(stream);
+                return Ok(new { Message = "Обновление пользователей выполнено успешно." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при обновлении пользователей.", Details = ex.Message });
+            }
+        }
     }
 }
