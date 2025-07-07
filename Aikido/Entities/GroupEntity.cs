@@ -13,7 +13,6 @@ namespace Aikido.Entities
         public string? Name { get; set; }
         public int AgeGroup { get; set; }
 
-
         public void UpdateFromJson(GroupDto groupNewData)
         {
             if (groupNewData.CreatorId != 0)
