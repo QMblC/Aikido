@@ -88,7 +88,15 @@ namespace Aikido.Controllers
 
             foreach (var group in groupEntities)
             {
-                var coach = await userService.GetUserById(group.CoachId);
+                UserEntity coach;
+                try
+                {
+                    coach = await userService.GetUserById(group.CoachId);
+                }
+                catch
+                {
+                    coach = null;
+                }
 
                 groupDtos.Add(new GroupDetailsDto
                 {
