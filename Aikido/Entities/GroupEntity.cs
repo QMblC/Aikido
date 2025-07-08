@@ -11,7 +11,7 @@ namespace Aikido.Entities
         public List<long>? UserIds { get; set; }
         public long ClubId { get; set; }
         public string? Name { get; set; }
-        public string AgeGroup { get; set; }
+        public string? AgeGroup { get; set; }
 
         public void UpdateFromJson(GroupDto groupNewData)
         {
@@ -19,7 +19,7 @@ namespace Aikido.Entities
                 CoachId = (long)groupNewData.CoachId;
 
             if (groupNewData.UserIds != null)
-                UserIds = new List<long>(groupNewData.UserIds);
+                UserIds = new (groupNewData.UserIds);
 
             if (groupNewData.ClubId != null)
                 ClubId = (long)groupNewData.ClubId;

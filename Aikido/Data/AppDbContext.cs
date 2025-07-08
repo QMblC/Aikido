@@ -10,5 +10,8 @@ namespace Aikido.Data
         public DbSet<ClubEntity> Clubs { get; set; }
         public DbSet<GroupEntity> Groups { get; set; }
         public DbSet<EventEntity> Events { get; set; }
+        public DbSet<AttendanceEntity> Attendances { get; set; }
+        public DbSet<ScheduleEntity> Schedule { get; set; }
+        public DbSet<ExclusionDateEntity> ExclusionDates { get; set; }
     }
 }
