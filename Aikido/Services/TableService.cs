@@ -133,7 +133,7 @@ namespace Aikido.Services
             await context.SaveChangesAsync();
         }
 
-        public async Task<MemoryStream> GenerateUserTemplateExcelAsync()
+        public async Task<MemoryStream> GenerateUserUpdateTemplateExcelAsync()
         {
             var workbook = new XLWorkbook();
             var worksheet = workbook.Worksheets.Add("Шаблон пользователей");
@@ -147,6 +147,7 @@ namespace Aikido.Services
 
             return stream;
         }
+
         private void WriteExcelHeader(IXLWorksheet worksheet)
         {
             var headers = new[]
@@ -161,6 +162,37 @@ namespace Aikido.Services
                 worksheet.Cell(1, i + 1).Value = headers[i];
             }
         }
+
+        public async Task<MemoryStream> GenerateUserCreateTemplateExcelAsync()
+        {
+            var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Шаблон создания пользователей");
+
+            WriteExcelCreateHeader(worksheet);
+            worksheet.Columns().AdjustToContents();
+
+            var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
+
+            return stream;
+        }
+
+        private void WriteExcelCreateHeader(IXLWorksheet worksheet)
+        {
+            var headers = new[]
+            {
+                "Роль", "Логин", "Пароль", "ФИО", "Телефон", "Дата рождения", "Город",
+                "Кю/Дан", "Дата аттестации", "Взнос", "Пол", "Клуб ID", "Клуб", "Группа ID",
+                "Группа", "Класс", "ФИО родителя", "Телефон родителя", "Дата регистрации"
+            };
+
+            for (int i = 0; i < headers.Length; i++)
+            {
+                worksheet.Cell(1, i + 1).Value = headers[i];
+            }
+        }
+
 
         private async Task<List<string>> GetExistingLoginsAsync()
         {

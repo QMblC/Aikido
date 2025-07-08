@@ -10,10 +10,15 @@ namespace Aikido.Controllers
     public class GroupController : Controller
     {
         private readonly GroupService groupService;
+        private readonly ScheduleService scheduleService;
 
-        public GroupController(GroupService groupService)
+        public GroupController(
+            GroupService groupService,
+            ScheduleService scheduleService
+            )
         {
             this.groupService = groupService;
+            this.scheduleService = scheduleService;
         }
 
         [HttpGet("get/{id}")]
@@ -41,7 +46,7 @@ namespace Aikido.Controllers
 
             try
             {
-                groupData = await request.Parse();
+                groupData = await request.ParseGroupAsync();
             }
             catch (Exception ex)
             {
@@ -56,7 +61,16 @@ namespace Aikido.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+                return StatusCode(500, new { Message = "Ошибка создания группы", Details = ex.Message });
+            }
+
+            try
+            {
+                //await
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при создании расписания", Details = ex.Message });
             }
 
             return Ok(new { id = groupId });

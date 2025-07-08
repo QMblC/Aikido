@@ -306,12 +306,29 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpGet("get/table-template")]
-        public async Task<IActionResult> GetUserTemplate()
+        [HttpGet("get/table-template-for-update")]
+        public async Task<IActionResult> GetUserUpdateTemplate()
         {
             try
             {
-                var stream = await tableService.GenerateUserTemplateExcelAsync();
+                var stream = await tableService.GenerateUserUpdateTemplateExcelAsync();
+
+                return File(stream,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "Шаблон пользователей.xlsx");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при создании шаблона.", Details = ex.Message });
+            }
+        }
+
+        [HttpGet("get/table-template-for-create")]
+        public async Task<IActionResult> GetUserCreateTemplate()
+        {
+            try
+            {
+                var stream = await tableService.GenerateUserCreateTemplateExcelAsync();
 
                 return File(stream,
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

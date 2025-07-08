@@ -24,7 +24,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<UserService>()
     .AddScoped<ClubService>()
     .AddScoped<GroupService>()
-    .AddScoped<TableService>();
+    .AddScoped<TableService>()
+    .AddScoped<ScheduleService>();
 
 
 
