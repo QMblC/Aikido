@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Aikido.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Aikido.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250708054112_FixClubs")]
+    partial class FixClubs
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -92,14 +95,13 @@ namespace Aikido.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("AgeGroup")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("AgeGroup")
+                        .HasColumnType("integer");
 
                     b.Property<long>("ClubId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("CoachId")
+                    b.Property<long>("CreatorId")
                         .HasColumnType("bigint");
 
                     b.Property<string>("Name")

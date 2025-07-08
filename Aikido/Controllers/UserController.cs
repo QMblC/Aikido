@@ -209,6 +209,36 @@ namespace Aikido.Controllers
             return Ok();
         }
 
+        [HttpPost("create/list")]
+        public async Task<IActionResult> CreateUsersList([FromBody] UserListRequest request)
+        {
+            List<UserDto> users;
+
+            try
+            {
+                users = await request.Parse();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = "Ошибка обработки JSON.", Details = ex.Message });
+            }
+
+            if (users == null || !users.Any())
+                return BadRequest("Список пользователей пустой.");
+
+            try
+            {
+                var createdIds = await userService.CreateUsers(users);
+                return Ok(new { CreatedUserIds = createdIds });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при создании пользователей.", Details = ex.Message });
+            }
+        }
+
+
+
         [HttpPost("create/from-table")]
         public async Task<IActionResult> ImportUsersFromExcel([FromForm] TableRequest request)
         {
@@ -248,5 +278,23 @@ namespace Aikido.Controllers
                 return StatusCode(500, new { Message = "Ошибка при обновлении пользователей.", Details = ex.Message });
             }
         }
+
+        [HttpGet("get/table-template")]
+        public async Task<IActionResult> GetUserTemplate()
+        {
+            try
+            {
+                var stream = await tableService.GenerateUserTemplateExcelAsync();
+
+                return File(stream,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "Шаблон пользователей.xlsx");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при создании шаблона.", Details = ex.Message });
+            }
+        }
+
     }
 }

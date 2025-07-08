@@ -15,7 +15,7 @@ namespace Aikido.Entities
         public string? Description { get; set; }
         public byte[] File { get; set; } = [];
 
-        public async Task UpdateFromJsonAsync(EventDto eventNewData)
+        public async Task UpdateFromJson(EventDto eventNewData)
         {
             UserId = eventNewData.UserId;
             PublishDate = eventNewData.PublishDate;

@@ -1,6 +1,8 @@
 ﻿using Aikido.Dto;
+using Aikido.Entities;
 using Aikido.Requests;
 using Aikido.Services;
+using DocumentFormat.OpenXml.InkML;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Aikido.Controllers
@@ -9,11 +11,19 @@ namespace Aikido.Controllers
     [Route("api/[controller]")]
     public class ClubController : Controller
     {
+        private readonly UserService userService;
         private readonly ClubService clubService;
+        private readonly GroupService groupService;
 
-        public ClubController(ClubService clubService)
+        public ClubController(
+            UserService userService, 
+            ClubService clubService, 
+            GroupService groupService
+            )
         {
+            this.userService = userService;
             this.clubService = clubService;
+            this.groupService = groupService;
         }
 
         [HttpGet("get/{id}")]
@@ -33,6 +43,82 @@ namespace Aikido.Controllers
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
         }
+
+        [HttpGet("get/details/{id}")]
+        public async Task<IActionResult> GetClubDetails(long id)
+        {
+            ClubEntity club;
+
+            try
+            {
+                club = await clubService.GetClubById(id);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+
+            var result = await BuildClubDetailsDto(club);
+            return Ok(result);
+        }
+
+        [HttpGet("get/details/list")]
+        public async Task<IActionResult> GetAllClubDetails()
+        {
+            var clubs = await clubService.GetClubsList();
+            var result = new List<ClubDetailsDto>();
+
+            foreach (var club in clubs)
+            {
+                var dto = await BuildClubDetailsDto(club);
+                result.Add(dto);
+            }
+
+            return Ok(result);
+        }
+
+        private async Task<ClubDetailsDto> BuildClubDetailsDto(ClubEntity club)
+        {
+            var groupEntities = await groupService.GetGroupsByClubId(club.Id);
+            var groupDtos = new List<GroupDetailsDto>();
+
+            foreach (var group in groupEntities)
+            {
+                var coach = await userService.GetUserById(group.CoachId);
+
+                groupDtos.Add(new GroupDetailsDto
+                {
+                    Name = group.Name,
+                    Coach = coach == null ? null : new CoachDto
+                    {
+                        Name = coach.FullName,
+                        Grade = coach.Grade,
+                        Phone = coach.PhoneNumber
+                    },
+                    Schedule = new Dictionary<string, string>
+                    {
+                        ["пн"] = "19:00-20:30",
+                        ["ср"] = "19:00-20:30",
+                        ["пт"] = "19:00-20:30"
+                    }
+                });
+            }
+
+            return new ClubDetailsDto
+            {
+                Id = club.Id,
+                Name = club.Name,
+                City = club.City,
+                Address = club.Address,
+                Groups = groupDtos
+            };
+        }
+
+
 
         [HttpGet("get/list")]
         public async Task<IActionResult> GetClubsList()

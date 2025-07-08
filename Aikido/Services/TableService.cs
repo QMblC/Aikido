@@ -133,6 +133,20 @@ namespace Aikido.Services
             await context.SaveChangesAsync();
         }
 
+        public async Task<MemoryStream> GenerateUserTemplateExcelAsync()
+        {
+            var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Шаблон пользователей");
+
+            WriteExcelHeader(worksheet);
+            worksheet.Columns().AdjustToContents();
+
+            var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
+
+            return stream;
+        }
         private void WriteExcelHeader(IXLWorksheet worksheet)
         {
             var headers = new[]
