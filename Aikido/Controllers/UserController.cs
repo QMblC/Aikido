@@ -210,7 +210,7 @@ namespace Aikido.Controllers
         }
 
         [HttpPost("create/list")]
-        public async Task<IActionResult> CreateUsersList([FromBody] UserListRequest request)
+        public async Task<IActionResult> CreateUsersList([FromForm] UserListRequest request)
         {
             List<UserDto> users;
 
@@ -237,6 +237,33 @@ namespace Aikido.Controllers
             }
         }
 
+        [HttpPost("update/list")]
+        public async Task<IActionResult> UpdateUsersList([FromForm] UserListRequest request)
+        {
+            List<UserDto> users;
+
+            try
+            {
+                users = await request.Parse();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = "Ошибка обработки JSON.", Details = ex.Message });
+            }
+
+            if (users == null || !users.Any())
+                return BadRequest("Список пользователей пустой.");
+
+            try
+            {
+                await userService.UpdateUsers(users);
+                return Ok(new { Message = "Пользователи успешно обновлены." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при обновлении пользователей.", Details = ex.Message });
+            }
+        }
 
 
         [HttpPost("create/from-table")]

@@ -113,7 +113,6 @@ namespace Aikido.Services
                 .ToList();
         }
 
-
         private async Task EnsureLoginIsUnique(string? login, long? excludeUserId = null)
         {
             if (string.IsNullOrWhiteSpace(login))
@@ -150,6 +149,46 @@ namespace Aikido.Services
             await SaveDb();
         }
 
+        public async Task UpdateUsers(List<UserDto> usersData)
+        {
+            var idsToUpdate = usersData
+                .Select(u => u.Id)
+                .Where(id => id.HasValue)
+                .Select(id => id.Value)
+                .ToList();
+
+            if (idsToUpdate.Count != usersData.Count)
+                throw new Exception("Некоторые записи не содержат Id.");
+
+            var existingUsers = await context.Users
+                .Where(u => idsToUpdate.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id);
+
+            var loginsToCheck = usersData
+                .Select(u => u.Login?.Trim())
+                .Where(l => !string.IsNullOrWhiteSpace(l))
+                .ToList();
+
+            var duplicatesInRequest = loginsToCheck
+                .GroupBy(l => l)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .ToList();
+
+            if (duplicatesInRequest.Any())
+                throw new Exception($"Дубликаты логинов в списке: {string.Join(", ", duplicatesInRequest)}");
+
+            foreach (var userDto in usersData)
+            {
+                if (!userDto.Id.HasValue || !existingUsers.TryGetValue(userDto.Id.Value, out var userEntity))
+                    throw new Exception($"Пользователь с Id = {userDto.Id} не найден.");
+
+                await EnsureLoginIsUnique(userDto.Login, userDto.Id);
+                userEntity.UpdateFromJson(userDto);
+            }
+
+            await SaveDb();
+        }
 
         public async Task<PagedUserResult> GetUserListAlphabetAscending(
             int startIndex,
