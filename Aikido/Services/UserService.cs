@@ -73,6 +73,47 @@ namespace Aikido.Services
             return userEntity.Id;
         }
 
+        public async Task<List<long>> CreateUsers(List<UserDto> usersData)
+        {
+            var createdUserIds = new List<long>();
+            var loginsToCheck = usersData
+                .Select(u => u.Login?.Trim())
+                .Where(l => !string.IsNullOrWhiteSpace(l))
+                .ToList();
+
+            var duplicatesInRequest = loginsToCheck
+                .GroupBy(l => l)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .ToList();
+
+            if (duplicatesInRequest.Any())
+                throw new Exception($"Дубликаты логинов в запросе: {string.Join(", ", duplicatesInRequest)}");
+
+            var existingLogins = await context.Users
+                .Where(u => loginsToCheck.Contains(u.Login))
+                .Select(u => u.Login)
+                .ToListAsync();
+
+            if (existingLogins.Any())
+                throw new Exception($"Следующие логины уже существуют: {string.Join(", ", existingLogins)}");
+
+            foreach (var userData in usersData)
+            {
+                var userEntity = new UserEntity();
+                userEntity.UpdateFromJson(userData);
+                context.Users.Add(userEntity);
+            }
+
+            await SaveDb();
+
+            return context.Users
+                .Where(u => loginsToCheck.Contains(u.Login))
+                .Select(u => u.Id)
+                .ToList();
+        }
+
+
         private async Task EnsureLoginIsUnique(string? login, long? excludeUserId = null)
         {
             if (string.IsNullOrWhiteSpace(login))
