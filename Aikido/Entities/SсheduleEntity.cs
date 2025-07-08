@@ -2,7 +2,7 @@
 
 namespace Aikido.Entities
 {
-    public class SheduleEntity : IDbEntity
+    public class SсheduleEntity : IDbEntity
     {
         [Key]
         public long Id { get; set; }

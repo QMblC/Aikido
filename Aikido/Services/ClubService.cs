@@ -1,6 +1,7 @@
 ﻿using Aikido.Data;
 using Aikido.Dto;
 using Aikido.Entities;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -74,6 +75,38 @@ namespace Aikido.Services
                 throw new KeyNotFoundException($"Клуб с Id = {id} не найден.");
 
             clubEntity.UpdateFromJson(clubNewData);
+
+            await SaveDb();
+        }
+
+        public async Task AddGroupToClub(long clubId, long groupId)
+        {
+            var clubEntity = await context.Clubs.FindAsync(clubId);
+            if (clubEntity == null)
+                throw new KeyNotFoundException($"Клуб с Id = {clubId} не найден.");
+
+            var groupList = clubEntity.Groups.ToList();
+
+            if (!groupList.Contains(groupId))
+                groupList.Add(groupId); 
+
+            clubEntity.Groups = groupList.ToArray();
+
+            await SaveDb();
+        }
+
+        public async Task DeleteGroupFromClub(long clubId, long groupId)
+        {
+            var clubEntity = await context.Clubs.FindAsync(clubId);
+            if (clubEntity == null)
+                throw new KeyNotFoundException($"Клуб с Id = {clubId} не найден.");
+
+            var groupList = clubEntity.Groups.ToList();
+
+            if (!groupList.Remove(groupId))
+                throw new KeyNotFoundException($"Группа с Id = {groupId} не найдена в клубе.");
+
+            clubEntity.Groups = groupList.ToArray();
 
             await SaveDb();
         }
