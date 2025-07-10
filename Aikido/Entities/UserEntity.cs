@@ -39,6 +39,9 @@ namespace Aikido.Entities
 
         public void UpdateFromJson(UserDto userNewData)
         {
+            if (userNewData.Id != null)
+                Id = (long)userNewData.Id;
+
             if (userNewData.Role != null)
                 Role = userNewData.Role;
 

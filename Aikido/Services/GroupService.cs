@@ -5,26 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Aikido.Services
 {
-    public class GroupService
+    public class GroupService : DbService
     {
-        private readonly AppDbContext context;
-
-        public GroupService(AppDbContext context)
-        {
-            this.context = context;
-        }
-
-        private async Task SaveDb()
-        {
-            try
-            {
-                await context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Ошибка при обработке группы: {ex.InnerException?.Message}", ex);
-            }
-        }
+        public GroupService(AppDbContext context) : base(context) { }
 
         public async Task<GroupEntity> GetGroupById(long id)
         {
@@ -47,7 +30,15 @@ namespace Aikido.Services
             return groupEntity.Id;
         }
 
-        public async Task DeleteGroup(long id)
+        public async Task UpdateGroup(long id, GroupDto newData)
+        {
+            var groupEntity = await GetGroupById(id);
+            groupEntity.UpdateFromJson(newData);
+
+            await SaveDb();
+        }
+
+        public async Task DeleteGroup(long id, bool saveDB = true)
         {
             var groupEntity = await context.Groups.FindAsync(id);
             if (groupEntity == null)
@@ -55,16 +46,40 @@ namespace Aikido.Services
 
             context.Remove(groupEntity);
 
-            await SaveDb();
+            if (saveDB)
+                await SaveDb();
         }
 
         public async Task<List<GroupEntity>> GetGroupsByClubId(long clubId)
         {
-            var groups = await context.Groups
+            return await context.Groups
                 .Where(g => g.ClubId == clubId)
                 .ToListAsync();
 
-            return groups;
+        }
+
+        public async Task<List<GroupEntity>> GetGroupsByUser(long userId)
+        {
+            return await context.Groups
+                .Where(g => g.CoachId == userId || g.UserIds.Contains(userId))
+                .ToListAsync();
+        }
+
+        public async Task DeleteUserFromGroup(GroupEntity groupEntity, long userId)
+        {
+            if (groupEntity.CoachId == userId)
+            {
+                groupEntity.CoachId = null;
+            }
+            if (groupEntity.UserIds.Contains(userId))
+            {
+                groupEntity.UserIds.Remove(userId);
+            }
+        }
+
+        public async Task<List<GroupEntity>> GetGroups()
+        {
+            return await context.Groups.ToListAsync();
         }
     }
 }

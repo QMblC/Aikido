@@ -28,7 +28,7 @@ namespace Aikido.Requests
             return groupData;
         }
 
-        public async Task<List<ScheduleDto>> ParseScheduleAsync()
+        public async Task<List<ScheduleDto>> ParseScheduleAsync()//ToDo переделать парсинг
         {
             if (ScheduleDataJson == null)
                 return new List<ScheduleDto>(); // Пустой список — это ок
