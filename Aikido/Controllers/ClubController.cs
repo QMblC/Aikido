@@ -14,16 +14,19 @@ namespace Aikido.Controllers
         private readonly UserService userService;
         private readonly ClubService clubService;
         private readonly GroupService groupService;
+        private readonly ScheduleService scheduleService;
 
         public ClubController(
             UserService userService, 
             ClubService clubService, 
-            GroupService groupService
+            GroupService groupService,
+            ScheduleService scheduleService
             )
         {
             this.userService = userService;
             this.clubService = clubService;
             this.groupService = groupService;
+            this.scheduleService = scheduleService;
         }
 
         [HttpGet("get/{id}")]
@@ -98,6 +101,15 @@ namespace Aikido.Controllers
                     coach = null;
                 }
 
+                var scheduleEntities = await scheduleService.GetGroupSchedule(group.Id);
+
+                var scheduleDict = scheduleEntities
+                    .GroupBy(s => s.DayOfWeek)
+                    .ToDictionary(
+                        g => DayOfWeekToRussian(g.Key),
+                        g => string.Join("-", g.First().StartTime.ToString(@"hh\:mm"), g.First().EndTime.ToString(@"hh\:mm")),
+                        StringComparer.OrdinalIgnoreCase);
+
                 groupDtos.Add(new GroupDetailsDto
                 {
                     Name = group.Name,
@@ -107,12 +119,7 @@ namespace Aikido.Controllers
                         Grade = coach.Grade,
                         Phone = coach.PhoneNumber
                     },
-                    Schedule = new Dictionary<string, string>
-                    {
-                        ["пн"] = "19:00-20:30",
-                        ["ср"] = "19:00-20:30",
-                        ["пт"] = "19:00-20:30"
-                    }
+                    Schedule = scheduleDict
                 });
             }
 
@@ -126,7 +133,17 @@ namespace Aikido.Controllers
             };
         }
 
-
+        private string DayOfWeekToRussian(DayOfWeek dayOfWeek) => dayOfWeek switch
+        {
+            DayOfWeek.Monday => "Пн",
+            DayOfWeek.Tuesday => "Вт",
+            DayOfWeek.Wednesday => "Ср",
+            DayOfWeek.Thursday => "Чт",
+            DayOfWeek.Friday => "Пт",
+            DayOfWeek.Saturday => "Сб",
+            DayOfWeek.Sunday => "Вс",
+            _ => ""
+        };
 
         [HttpGet("get/list")]
         public async Task<IActionResult> GetClubsList()
