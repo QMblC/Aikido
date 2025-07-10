@@ -91,6 +91,8 @@ namespace Aikido.Controllers
                 };
 
                 groupId = await groupService.CreateGroup(groupDto);
+                await clubService.AddGroupToClub((long)groupData.ClubId, groupId);
+                
             }
             catch (Exception ex)
             {
