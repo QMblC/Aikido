@@ -25,7 +25,8 @@ builder.Services.AddScoped<UserService>()
     .AddScoped<ClubService>()
     .AddScoped<GroupService>()
     .AddScoped<TableService>()
-    .AddScoped<ScheduleService>();
+    .AddScoped<ScheduleService>()
+    .AddScoped<AttendanceService>();
 
 
 

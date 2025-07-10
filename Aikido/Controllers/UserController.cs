@@ -234,7 +234,33 @@ namespace Aikido.Controllers
 
             try
             {
+                foreach (var club in users.Select(u => u.ClubId))
+                {
+                    await clubService.GetClubById((long)club);
+                }
+            }
+            catch
+            {
+                return BadRequest("В данных содержатся несуществующие Id клубов");
+            }
+
+            try
+            {
+                foreach (var group in users.Select(u => u.GroupId))
+                {
+                    await clubService.GetClubById((long)group);
+                }
+            }
+            catch
+            {
+                return BadRequest("В данных содержатся несуществующие Id групп");
+            }
+
+
+            try
+            {
                 var createdIds = await userService.CreateUsers(users);
+                
                 return Ok(new { CreatedUserIds = createdIds });
             }
             catch (Exception ex)

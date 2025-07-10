@@ -102,9 +102,6 @@ namespace Aikido.Services
             await SaveDb();
         }
 
-
-
-
         public async Task<List<ExclusionDateEntity>> GetGroupExclusionDates(long groupId, DateTime month)
         {
             return await context.ExclusionDates
