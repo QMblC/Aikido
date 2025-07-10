@@ -6,26 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Aikido.Services
 {
-    public class EventService
+    public class EventService : DbService
     {
-        private readonly AppDbContext context;
-
-        public EventService(AppDbContext context)
-        {
-            this.context = context;
-        }
-
-        private async Task SaveDb()
-        {
-            try
-            {
-                await context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Ошибка при обработке мероприятия: {ex.InnerException?.Message}", ex);
-            }
-        }
+        public EventService(AppDbContext context) : base(context) { }
 
         public async Task<ClubEntity> GetEventById(long id)
         {

@@ -91,7 +91,7 @@ namespace Aikido.Controllers
                 UserEntity coach;
                 try
                 {
-                    coach = await userService.GetUserById(group.CoachId);
+                    coach = await userService.GetUserById((long)group.CoachId);
                 }
                 catch
                 {
@@ -170,11 +170,43 @@ namespace Aikido.Controllers
             return Ok(new { id = clubId });
         }
 
+        [HttpPut("update/{id}")]
+        public async Task<IActionResult> Update(long id, [FromForm] ClubRequest request)
+        {
+            var updatedClub = await request.Parse();
+
+            if (updatedClub == null)
+            {
+                return BadRequest("Данные клуба не переданы.");
+            }
+
+            try
+            {
+                await clubService.UpdateClub(id, updatedClub);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+
+            return Ok(new { Message = "Клуб успешно обновлён." });
+        }
+
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> Delete(long id)
         {
             try
-            {
+            {   var groupsDelete = clubService.GetClubById(id).Result.Groups;
+
+                foreach (var group in groupsDelete)
+                {
+                    await groupService.DeleteGroup(group, false);
+                }
+
                 await clubService.DeleteClub(id);
                 return Ok();
             }

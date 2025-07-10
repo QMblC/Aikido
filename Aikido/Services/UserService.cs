@@ -16,26 +16,9 @@ namespace Aikido.Services
         public List<UserEntity> Users { get; set; } = [];
     }
 
-    public class UserService
+    public class UserService : DbService
     {
-        private readonly AppDbContext context;
-
-        public UserService(AppDbContext context)
-        {
-            this.context = context;
-        }
-
-        private async Task SaveDb()
-        {
-            try
-            {
-                await context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Ошибка при обработке пользователя: {ex.InnerException?.Message}", ex);
-            }
-        }
+        public UserService(AppDbContext context) : base(context) { }
 
         public async Task<List<UserShortDto>> GetUserIdAndNamesAsync()
         {
@@ -125,15 +108,16 @@ namespace Aikido.Services
                 throw new Exception($"Пользователь с логином '{login}' уже существует.");
         }
 
-        public async Task DeleteUser(long id)
+        public async Task DeleteUser(long id, bool saveDb = true)
         {
             var userEntity = await context.Users.FindAsync(id);
             if (userEntity == null)
                 throw new KeyNotFoundException($"Пользователь с Id = {id} не найден.");
 
-            context.Remove(userEntity);
+            context.Users.Remove(userEntity);
 
-            await SaveDb();
+            if (saveDb)
+                await SaveDb();
 
         }
         public async Task UpdateUser(long id, UserDto userNewData)
@@ -184,6 +168,10 @@ namespace Aikido.Services
                     throw new Exception($"Пользователь с Id = {userDto.Id} не найден.");
 
                 await EnsureLoginIsUnique(userDto.Login, userDto.Id);
+
+                if (userDto.Photo == null)
+                    userDto.Photo = Convert.ToBase64String(userEntity.Photo);
+
                 userEntity.UpdateFromJson(userDto);
             }
 

@@ -1,6 +1,7 @@
 ﻿using Aikido.Dto;
 using Aikido.Requests;
 using Aikido.Services;
+using DocumentFormat.OpenXml.InkML;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Aikido.Controllers
@@ -9,14 +10,20 @@ namespace Aikido.Controllers
     [Route("api/[controller]")]
     public class GroupController : Controller
     {
+        private readonly UserService userService;
+        private readonly ClubService clubService;
         private readonly GroupService groupService;
         private readonly ScheduleService scheduleService;
 
         public GroupController(
+            UserService userService,
+            ClubService clubService,
             GroupService groupService,
             ScheduleService scheduleService
             )
         {
+            this.userService = userService;
+            this.clubService = clubService;
             this.groupService = groupService;
             this.scheduleService = scheduleService;
         }
@@ -39,14 +46,22 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpPost("create")]
-        public async Task<IActionResult> Create([FromForm] GroupRequest request)
+        [HttpGet("get/list-by-club/{clubId}")]
+        public async Task<IActionResult> GetGroupList(long clubId)
         {
-            GroupDto groupData;
+            var groups = await groupService.GetGroupsByClubId(clubId);
+
+            return Ok(groups);
+        }
+
+        [HttpPost("create")]
+        public async Task<IActionResult> Create([FromForm] GroupInfoRequest request)
+        {
+            GroupInfoDto groupData;
 
             try
             {
-                groupData = await request.ParseGroupAsync();
+                groupData = await request.ParseGroupInfoAsync();
             }
             catch (Exception ex)
             {
@@ -57,7 +72,25 @@ namespace Aikido.Controllers
 
             try
             {
-                groupId = await groupService.CreateGroup(groupData);
+                await userService.GetUserById((long)groupData.CoachId);
+            }
+            catch
+            {
+                groupData.CoachId = null;
+            }
+
+            try
+            {
+                var groupDto = new GroupDto
+                {
+                    Name = groupData.Name,
+                    AgeGroup = groupData.AgeGroup,
+                    CoachId = groupData.CoachId,
+                    ClubId = groupData.ClubId,
+                    UserIds = groupData.GroupMembers?.Select(m => m.Id).ToList()
+                };
+
+                groupId = await groupService.CreateGroup(groupDto);
             }
             catch (Exception ex)
             {
@@ -66,14 +99,137 @@ namespace Aikido.Controllers
 
             try
             {
-                //await
+                if (groupData.Schedule != null)
+                {
+                    await scheduleService.CreateGroupScheduleDeleteExcess(groupId, groupData.Schedule);
+                }
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Ошибка при создании расписания", Details = ex.Message });
             }
 
+            try
+            {
+                var allDates = new List<ExclusionDateDto>();
+
+                if (groupData.ExtraDates != null)
+                {
+                    allDates.AddRange(groupData.ExtraDates.Select(d => new ExclusionDateDto
+                    {
+                        GroupId = groupId,
+                        DateTime = d.ToString("yyyy-MM-dd"),
+                        status = "extra"
+                    }));
+                }
+
+                if (groupData.MinorDates != null)
+                {
+                    allDates.AddRange(groupData.MinorDates.Select(d => new ExclusionDateDto
+                    {
+                        GroupId = groupId,
+                        DateTime = d.ToString("yyyy-MM-dd"),
+                        status = "minor"
+                    }));
+                }
+
+                if (allDates.Any())
+                {
+                    await scheduleService.CreateExclusionDateDeleteExcess(groupId, allDates);
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при сохранении исключений", Details = ex.Message });
+            }
+
             return Ok(new { id = groupId });
+        }
+
+
+
+        [HttpPut("update/{id}")]
+        public async Task<IActionResult> Update(long id, [FromForm] GroupInfoRequest request)
+        {
+            GroupInfoDto groupData;
+
+            try
+            {
+                groupData = await request.ParseGroupInfoAsync();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Ошибка при обработке JSON группы: {ex.Message}");
+            }
+
+            try
+            {
+                var groupDto = new GroupDto
+                {
+                    Name = groupData.Name,
+                    AgeGroup = groupData.AgeGroup,
+                    CoachId = groupData.CoachId,
+                    ClubId = groupData.ClubId,
+                    UserIds = (groupData.GroupMembers != null && groupData.GroupMembers.Any())
+                        ? groupData.GroupMembers.Select(m => m.Id).ToList()
+                        : null
+                };
+
+                await groupService.UpdateGroup(id, groupDto);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка обновления группы", Details = ex.Message });
+            }
+
+            try
+            {
+                if (groupData.Schedule != null)
+                {
+                    await scheduleService.CreateGroupScheduleDeleteExcess(id, groupData.Schedule);
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка обновления расписания", Details = ex.Message });
+            }
+
+            try
+            {
+                var exclusions = new List<ExclusionDateDto>();
+
+                if (groupData.ExtraDates != null)
+                {
+                    exclusions.AddRange(groupData.ExtraDates.Select(date => new ExclusionDateDto
+                    {
+                        GroupId = id,
+                        DateTime = date.ToString("yyyy-MM-dd"),
+                        status = "extra"
+                    }));
+                }
+
+                if (groupData.MinorDates != null)
+                {
+                    exclusions.AddRange(groupData.MinorDates.Select(date => new ExclusionDateDto
+                    {
+                        GroupId = id,
+                        DateTime = date.ToString("yyyy-MM-dd"),
+                        status = "minor"
+                    }));
+                }
+
+                await scheduleService.CreateExclusionDateDeleteExcess(id, exclusions);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при обновлении исключений", Details = ex.Message });
+            }
+
+            return Ok(new { Message = "Группа успешно обновлена", Id = id });
         }
 
         [HttpDelete("delete/{id}")]
@@ -108,6 +264,120 @@ namespace Aikido.Controllers
             }
         }
 
+        [HttpGet("get/list")]
+        public async Task<IActionResult> GetList()
+        {
+            var groups = await groupService.GetGroups();
 
+            return Ok(groups);
+        }
+
+        [HttpGet("get/info/{groupId}")]
+        public async Task<IActionResult> GetGroupInfo(long groupId)
+        {
+            var groupInfo = new GroupInfoDto();
+
+            var group = await groupService.GetGroupById(groupId);
+            if (group == null)
+                return NotFound(new { Message = $"Группа с Id = {groupId} не найдена." });
+
+            groupInfo.Id = group.Id;
+            groupInfo.Name = group.Name;
+            groupInfo.AgeGroup = group.AgeGroup;
+            groupInfo.ClubId = group.ClubId;
+
+            if (group.ClubId != null)
+            {
+                try
+                {
+                    var club = await clubService.GetClubById((long)group.ClubId);
+                    groupInfo.Club = club.Name;
+                }
+                catch (KeyNotFoundException)
+                {
+                    groupInfo.Club = null;
+                }
+            }
+            else
+            {
+                groupInfo.Club = null;
+            }
+
+            groupInfo.CoachId = group.CoachId;
+
+            if (group.CoachId != null)
+            {
+                try
+                {
+                    var coach = await userService.GetUserById((long)group.CoachId);
+                    groupInfo.Coach = coach.FullName;
+                }
+                catch (KeyNotFoundException)
+                {
+                    groupInfo.Coach = null;
+                }
+            }
+            else
+            {
+                groupInfo.Coach = null;
+            }
+
+            groupInfo.GroupMembers = new List<UserShortDto>();
+            if (group.UserIds != null)
+            {
+                foreach (var userId in group.UserIds)
+                {
+                    try
+                    {
+                        var user = await userService.GetUserById(userId);
+                        groupInfo.GroupMembers.Add(new UserShortDto
+                        {
+                            Id = userId,
+                            Name = user.FullName
+                        });
+                    }
+                    catch (KeyNotFoundException)
+                    {
+                        continue;
+                    }
+                }
+            }
+
+            var scheduleEntities = await scheduleService.GetGroupSchedule(groupId);
+            var scheduleDict = new Dictionary<string, string>();
+            foreach (var scheduleItem in scheduleEntities)
+            {
+                string dayKey = scheduleItem.DayOfWeek switch
+                {
+                    DayOfWeek.Monday => "Пн",
+                    DayOfWeek.Tuesday => "Вт",
+                    DayOfWeek.Wednesday => "Ср",
+                    DayOfWeek.Thursday => "Чт",
+                    DayOfWeek.Friday => "Пт",
+                    DayOfWeek.Saturday => "Сб",
+                    DayOfWeek.Sunday => "Вс",
+                    _ => null
+                };
+
+                if (dayKey != null)
+                {
+                    scheduleDict[dayKey] = $"{scheduleItem.StartTime:hh\\:mm}-{scheduleItem.EndTime:hh\\:mm}";
+                }
+            }
+            groupInfo.Schedule = scheduleDict;
+
+            var exclusionDates = await scheduleService.GetGroupExclusionDates(groupId, DateTime.Now);
+            groupInfo.ExtraDates = exclusionDates
+                .Where(d => d.Status == "extra")
+                .Select(d => d.Date.Date)
+                .ToList();
+
+            groupInfo.MinorDates = exclusionDates
+                .Where(d => d.Status == "minor")
+                .Select(d => d.Date.Date)
+                .ToList();
+
+            return Ok(groupInfo);
+        }
     }
 }

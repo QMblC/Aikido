@@ -11,14 +11,9 @@ using System;
 
 namespace Aikido.Services
 {
-    public class TableService
+    public class TableService : DbService
     {
-        private readonly AppDbContext context;
-
-        public TableService(AppDbContext context)
-        {
-            this.context = context;
-        }
+        public TableService(AppDbContext context) : base(context) { }
 
         public async Task<MemoryStream> ExportUsersToExcelAsync()
         {

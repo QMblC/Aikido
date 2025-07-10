@@ -7,9 +7,9 @@ namespace Aikido.Entities
     {
         [Key]
         public long Id { get; set; }
-        public long CoachId { get; set; }
-        public List<long>? UserIds { get; set; }
-        public long ClubId { get; set; }
+        public long? CoachId { get; set; }
+        public List<long>? UserIds { get; set; } = new();
+        public long? ClubId { get; set; }
         public string? Name { get; set; }
         public string? AgeGroup { get; set; }
 
@@ -19,7 +19,25 @@ namespace Aikido.Entities
                 CoachId = (long)groupNewData.CoachId;
 
             if (groupNewData.UserIds != null)
-                UserIds = new (groupNewData.UserIds);
+                UserIds = new List<long>(groupNewData.UserIds);
+
+            if (groupNewData.ClubId != null)
+                ClubId = (long)groupNewData.ClubId;
+
+            if (!string.IsNullOrEmpty(groupNewData.Name))
+                Name = groupNewData.Name;
+
+            if (!string.IsNullOrEmpty(groupNewData.AgeGroup))
+                AgeGroup = groupNewData.AgeGroup;
+        }
+
+        public void UpdateFromJson(GroupInfoDto groupNewData)
+        {
+            if (groupNewData.CoachId != null)
+                CoachId = (long)groupNewData.CoachId;
+
+            if (groupNewData.GroupMembers != null)
+                UserIds = new(groupNewData.GroupMembers.Select(u => u.Id));
 
             if (groupNewData.ClubId != null)
                 ClubId = (long)groupNewData.ClubId;

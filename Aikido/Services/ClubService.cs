@@ -7,26 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Aikido.Services
 {
-    public class ClubService
+    public class ClubService : DbService
     {
-        private readonly AppDbContext context;
-
-        public ClubService(AppDbContext context)
-        {
-            this.context = context;
-        }
-
-        private async Task SaveDb()
-        {
-            try
-            {
-                await context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Ошибка при обработке клуба: {ex.InnerException?.Message}", ex);
-            }
-        }
+        public ClubService(AppDbContext context) : base(context) { }
 
         public async Task<ClubEntity> GetClubById(long id)
         {
@@ -36,7 +19,6 @@ namespace Aikido.Services
 
             return clubEntity;
         }
-
 
         public async Task<List<ClubEntity>> GetClubsList()
         {

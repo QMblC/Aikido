@@ -29,7 +29,6 @@ namespace Aikido.Controllers
             this.clubService = clubService;
             this.groupService = groupService;
             this.tableService = tableService;
-
         }
 
         [HttpGet("get/{id}")]
@@ -166,6 +165,13 @@ namespace Aikido.Controllers
         {
             try
             {
+                var userGroups = await groupService.GetGroupsByUser(id);
+
+                foreach (var group in userGroups)
+                {
+                    await groupService.DeleteUserFromGroup(group, id);
+                }
+
                 await userService.DeleteUser(id);
                 return Ok();
             }
