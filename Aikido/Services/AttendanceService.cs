@@ -34,10 +34,12 @@ namespace Aikido.Services
             await SaveDb();
         }
 
-        public async Task<List<AttendanceEntity>> GetUserAttendance(long userId)
+        public async Task<List<AttendanceEntity>> GetUserMonthlyAttendance(long userId, DateTime month)
         {
             return await context.Attendances
                 .Where(a => a.UserId == userId)
+                .Where(a => a.VisitDate.Value.Year == month.Year)
+                .Where(a => a.VisitDate.Value.Month == month.Month)
                 .ToListAsync();
         }
     }

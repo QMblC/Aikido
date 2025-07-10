@@ -84,6 +84,9 @@ namespace Aikido.Services
             foreach (var userData in usersData)
             {
                 var userEntity = new UserEntity();
+
+
+
                 userEntity.UpdateFromJson(userData);
                 context.Users.Add(userEntity);
             }
