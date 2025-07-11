@@ -1,6 +1,7 @@
 ﻿using Aikido.Data;
 using Aikido.Dto;
 using Aikido.Entities;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using Microsoft.EntityFrameworkCore;
 
 namespace Aikido.Services
@@ -80,6 +81,38 @@ namespace Aikido.Services
         public async Task<List<GroupEntity>> GetGroups()
         {
             return await context.Groups.ToListAsync();
+        }
+
+        public async Task<List<long>> GetGroupMemberIds(long groupId)
+        {
+            try
+            {
+                return await context.Groups
+                    .Where(g => g.Id == groupId)
+                    .SelectMany(g => g.UserIds)
+                    .ToListAsync();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                throw new KeyNotFoundException($"Пользователь с Id = {groupId} не найден.");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"{ex.Message}");
+            }
+        }
+
+        public async Task UpdateGroupMembers(long groupId, List<long> memberIds)
+        {
+            var groupEntity = context.Groups.FindAsync(groupId).Result;
+            if (groupEntity == null)
+            {
+                throw new KeyNotFoundException($"Группа с Id = {groupId} не найдена");
+            }
+
+            groupEntity.UserIds = memberIds;
+
+            await SaveDb();
         }
     }
 }
