@@ -9,12 +9,12 @@ namespace Aikido.Entities
         public string? Title { get; set; }
         public DateTime Date { get; set; }
         public string? Location { get; set; }
-        public decimal PriceSeminar { get; set; }
-        public decimal PriceAnnualFee { get; set; }
-        public decimal PriceBudoPassport { get; set; }
-        public decimal PriceAttestation5to2Kyu { get; set; }
-        public decimal PriceAttestation1Kyu { get; set; }
-        public decimal PriceAttestationBlackBelt { get; set; }
+        public decimal PriceSeminarInRubles { get; set; }
+        public decimal PriceAnnualFeeRubles { get; set; }
+        public decimal PriceBudoPassportRubles { get; set; }
+        public decimal PriceAttestation5to2KyuInRubles { get; set; }
+        public decimal PriceAttestation1KyuInRubles { get; set; }
+        public decimal PriceAttestationBlackBeltInRubles { get; set; }
         public byte[]? FinalStatementFile { get; set; }
     }
 }
