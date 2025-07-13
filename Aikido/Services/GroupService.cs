@@ -66,16 +66,24 @@ namespace Aikido.Services
                 .ToListAsync();
         }
 
+        public async Task AddUserToGroup(long groupId, long userId)
+        {
+            var groupEntity = context.Groups.FindAsync(userId).Result;
+            if (groupEntity == null)
+            {
+                throw new KeyNotFoundException($"Пользователя с Id = {userId} не существует");
+            }
+
+            groupEntity.AddUser(userId);
+
+            await SaveDb();
+        }
+
         public async Task DeleteUserFromGroup(GroupEntity groupEntity, long userId)
         {
-            if (groupEntity.CoachId == userId)
-            {
-                groupEntity.CoachId = null;
-            }
-            if (groupEntity.UserIds.Contains(userId))
-            {
-                groupEntity.UserIds.Remove(userId);
-            }
+            groupEntity.DeleteUser(userId);
+
+            await SaveDb();
         }
 
         public async Task<List<GroupEntity>> GetGroups()

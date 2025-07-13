@@ -151,6 +151,11 @@ namespace Aikido.Controllers
             try
             {
                 userId = await userService.CreateUser(userData);
+
+                if (userData.GroupId != null)
+                {
+                    await groupService.AddUserToGroup((long)userData.GroupId, userId);
+                }
             }
             catch (Exception ex)
             {
