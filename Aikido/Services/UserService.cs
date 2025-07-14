@@ -246,9 +246,9 @@ namespace Aikido.Services
                 query = query.Where(u => u.GroupId.HasValue && filter.GroupIds.Contains(u.GroupId.Value));
             }
 
-            if (filter.Sexes?.Any() == true)
+            if (filter.Sex?.Any() == true)
             {
-                var enumSexes = filter.Sexes
+                var enumSexes = filter.Sex
                     .Select(EnumParser.ConvertStringToEnum<Sex>)
                     .ToList();
 

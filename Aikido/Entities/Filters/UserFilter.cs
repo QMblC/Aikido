@@ -7,7 +7,7 @@
         public List<string>? Grades { get; set; }
         public List<long>? ClubIds { get; set; }
         public List<long>? GroupIds { get; set; }
-        public List<string>? Sexes { get; set; }
+        public List<string>? Sex { get; set; }
         public string? Name { get; set; }
     }
 }

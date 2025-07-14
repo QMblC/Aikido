@@ -94,7 +94,6 @@ namespace Aikido.Controllers
                 var pagedResult = await userService.GetUserListAlphabetAscending(startIndex, finishIndex, filter);
                 var users = pagedResult.Users;
 
-                // Последовательно добавляем названия клубов и групп
                 foreach (var user in users)
                 {
                     if (user.ClubId != null)
@@ -263,6 +262,8 @@ namespace Aikido.Controllers
             {
                 foreach (var club in users.Select(u => u.ClubId))
                 {
+                    if (club == null)
+                        continue;
                     await clubService.GetClubById((long)club);
                 }
             }
@@ -275,6 +276,8 @@ namespace Aikido.Controllers
             {
                 foreach (var group in users.Select(u => u.GroupId))
                 {
+                    if (group == null)
+                        continue;
                     await clubService.GetClubById((long)group);
                 }
             }
@@ -296,7 +299,7 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpPost("update/list")]
+        [HttpPut("update/list")]
         public async Task<IActionResult> UpdateUsersList([FromForm] UserListRequest request)
         {
             List<UserDto> users;
