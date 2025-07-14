@@ -13,20 +13,23 @@ namespace Aikido.Entities
 
         public async Task UpdateFromJson(AttendanceDto attendanceDto)
         {
-            if (attendanceDto.UserId == null)
+            if (attendanceDto.UserId != null)
             {
                 UserId = attendanceDto.UserId;
             }
-            if (attendanceDto.GroupId == null) 
+
+            if (attendanceDto.GroupId != null)
             {
-                GroupId = attendanceDto.GroupId; 
+                GroupId = attendanceDto.GroupId;
             }
-            if (attendanceDto.VisitDate != null) 
+
+            if (attendanceDto.VisitDate != null)
             {
-                VisitDate = attendanceDto.VisitDate;
+                VisitDate = DateTime.SpecifyKind(attendanceDto.VisitDate.Value, DateTimeKind.Utc);
             }
         }
+    
     }
 
-    
+
 }

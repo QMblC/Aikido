@@ -1,6 +1,7 @@
 ﻿using Aikido.Data;
 using Aikido.Dto;
 using Aikido.Entities;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using Microsoft.EntityFrameworkCore;
 
 namespace Aikido.Services
@@ -16,6 +17,12 @@ namespace Aikido.Services
                 throw new KeyNotFoundException($"Клуб с Id = {id} не найден.");
 
             return groupEntity;
+        }
+
+        public async Task<bool> Contains(long id)
+        {
+            var groupEntity = await context.Groups.FindAsync(id);
+            return groupEntity != null;
         }
 
         public async Task<long> CreateGroup(GroupDto groupData)
@@ -65,21 +72,61 @@ namespace Aikido.Services
                 .ToListAsync();
         }
 
+        public async Task AddUserToGroup(long groupId, long userId)
+        {
+            var groupEntity = context.Groups.FindAsync(userId).Result;
+            if (groupEntity == null)
+            {
+                throw new KeyNotFoundException($"Пользователя с Id = {userId} не существует");
+            }
+
+            groupEntity.AddUser(userId);
+
+            await SaveDb();
+        }
+
         public async Task DeleteUserFromGroup(GroupEntity groupEntity, long userId)
         {
-            if (groupEntity.CoachId == userId)
-            {
-                groupEntity.CoachId = null;
-            }
-            if (groupEntity.UserIds.Contains(userId))
-            {
-                groupEntity.UserIds.Remove(userId);
-            }
+            groupEntity.DeleteUser(userId);
+
+            await SaveDb();
         }
 
         public async Task<List<GroupEntity>> GetGroups()
         {
             return await context.Groups.ToListAsync();
+        }
+
+        public async Task<List<long>> GetGroupMemberIds(long groupId)
+        {
+            try
+            {
+                return await context.Groups
+                    .Where(g => g.Id == groupId)
+                    .SelectMany(g => g.UserIds)
+                    .ToListAsync();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                throw new KeyNotFoundException($"Пользователь с Id = {groupId} не найден.");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"{ex.Message}");
+            }
+        }
+
+        public async Task UpdateGroupMembers(long groupId, List<long> memberIds)
+        {
+            var groupEntity = context.Groups.FindAsync(groupId).Result;
+            if (groupEntity == null)
+            {
+                throw new KeyNotFoundException($"Группа с Id = {groupId} не найдена");
+            }
+
+            groupEntity.UserIds = memberIds;
+
+            await SaveDb();
         }
     }
 }

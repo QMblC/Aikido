@@ -1,4 +1,5 @@
-﻿using Aikido.Data;
+﻿using Aikido.AdditionalData;
+using Aikido.Data;
 using Aikido.Dto;
 using Aikido.Entities;
 using Aikido.Entities.Filters;
@@ -13,7 +14,7 @@ namespace Aikido.Services
     public class PagedUserResult
     {
         public int TotalCount { get; set; }
-        public List<UserEntity> Users { get; set; } = [];
+        public List<UserDto> Users { get; set; } = [];
     }
 
     public class UserService : DbService
@@ -25,7 +26,7 @@ namespace Aikido.Services
             try
             {
                 return await context.Users
-                    .Select(u => new UserShortDto { Id = u.Id, Name = u.FullName })
+                    .Select(u => new UserShortDto(u))
                     .ToListAsync();
             }
             catch (Exception ex)
@@ -190,12 +191,15 @@ namespace Aikido.Services
 
             var totalCount = await query.CountAsync();
 
-            var users = await query
+            var usersEntities = await query
                 .OrderBy(u => u.FullName)
                 .Skip(startIndex)
                 .Take(finishIndex - startIndex)
-                .Select(ProjectToUserEntity())
-                .ToListAsync();
+                .ToListAsync(); 
+
+            var users = usersEntities
+                .Select(user => new UserDto(user)) 
+                .ToList();
 
             return new PagedUserResult
             {
@@ -204,27 +208,52 @@ namespace Aikido.Services
             };
         }
 
+
         private IQueryable<UserEntity> ApplyUserFilters(IQueryable<UserEntity> query, UserFilter? filter)
         {
             if (filter == null) return query;
 
             if (filter.Roles?.Any() == true)
-                query = query.Where(u => filter.Roles.Contains(u.Role));
+            {
+                var enumRoles = filter.Roles
+                    .Select(EnumParser.ConvertStringToEnum<Role>)
+                    .ToList();
+
+                query = query.Where(u => enumRoles.Contains(u.Role));
+            }
 
             if (filter.Cities?.Any() == true)
+            {
                 query = query.Where(u => filter.Cities.Contains(u.City));
+            }
 
             if (filter.Grades?.Any() == true)
-                query = query.Where(u => filter.Grades.Contains(u.Grade));
+            {
+                var enumGrades = filter.Grades
+                    .Select(EnumParser.ConvertStringToEnum<Grade>)
+                    .ToList();
+
+                query = query.Where(u => enumGrades.Contains(u.Grade));
+            }
 
             if (filter.ClubIds?.Any() == true)
+            {
                 query = query.Where(u => u.ClubId.HasValue && filter.ClubIds.Contains(u.ClubId.Value));
+            }
 
             if (filter.GroupIds?.Any() == true)
+            {
                 query = query.Where(u => u.GroupId.HasValue && filter.GroupIds.Contains(u.GroupId.Value));
+            }
 
             if (filter.Sexes?.Any() == true)
-                query = query.Where(u => filter.Sexes.Contains(u.Sex));
+            {
+                var enumSexes = filter.Sexes
+                    .Select(EnumParser.ConvertStringToEnum<Sex>)
+                    .ToList();
+
+                query = query.Where(u => enumSexes.Contains(u.Sex));
+            }
 
             if (!string.IsNullOrWhiteSpace(filter.Name))
             {
@@ -235,21 +264,5 @@ namespace Aikido.Services
             return query;
         }
 
-        private static Expression<Func<UserEntity, UserEntity>> ProjectToUserEntity()
-        {
-            return u => new UserEntity
-            {
-                Id = u.Id,
-                FullName = u.FullName,
-                Photo = u.Photo,
-                Login = u.Login,
-                Role = u.Role,
-                City = u.City,
-                Birthday = u.Birthday,
-                Grade = u.Grade,
-                ClubId = u.ClubId,
-                GroupId = u.GroupId
-            };
-        }
     }
 }
