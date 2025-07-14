@@ -85,39 +85,30 @@ namespace Aikido.Controllers
 
         [HttpGet("get/short-list-cut-data/{startIndex}/{finishIndex}")]
         public async Task<IActionResult> GetUserShortListCutData(
-    int startIndex,
-    int finishIndex,
-    [FromQuery] UserFilter filter)
+            int startIndex,
+            int finishIndex,
+            [FromQuery] UserFilter filter)
         {
             try
             {
                 var pagedResult = await userService.GetUserListAlphabetAscending(startIndex, finishIndex, filter);
                 var users = pagedResult.Users;
 
-                var tasks = new List<Task>();
-
+                // Последовательно добавляем названия клубов и групп
                 foreach (var user in users)
                 {
                     if (user.ClubId != null)
                     {
-                        tasks.Add(Task.Run(async () =>
-                        {
-                            var club = await clubService.GetClubById(user.ClubId.Value);
-                            user.AddClubName(club);
-                        }));
+                        var club = await clubService.GetClubById(user.ClubId.Value);
+                        user.AddClubName(club);
                     }
 
                     if (user.GroupId != null)
                     {
-                        tasks.Add(Task.Run(async () =>
-                        {
-                            var group = await groupService.GetGroupById(user.GroupId.Value);
-                            user.AddGroupName(group);
-                        }));
+                        var group = await groupService.GetGroupById(user.GroupId.Value);
+                        user.AddGroupName(group);
                     }
                 }
-
-                await Task.WhenAll(tasks);
 
                 return Ok(new
                 {
@@ -130,7 +121,6 @@ namespace Aikido.Controllers
                 return StatusCode(500, $"Ошибка при получении списка пользователей. {ex.Message}");
             }
         }
-
 
 
         [HttpGet("get/table")]
