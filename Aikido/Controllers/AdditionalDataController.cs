@@ -1,5 +1,6 @@
 ﻿using Aikido.AdditionalData;
 using Microsoft.AspNetCore.Mvc;
+using System.Reflection;
 
 namespace Aikido.Controllers
 {
@@ -8,38 +9,49 @@ namespace Aikido.Controllers
     public class AdditionalDataController : Controller
     {
         [HttpGet("get/enum/{enumName}")]
-        public async Task<IActionResult> GetEnumNamesList(string enumName)
+        public IActionResult GetEnumValuesWithEnumMember(string enumName)
         {
+            var enumType = typeof(Role).Assembly
+                .GetTypes()
+                .FirstOrDefault(t => t.IsEnum &&
+                    t.Namespace == "Aikido.AdditionalData" &&
+                    string.Equals(t.Name, enumName, StringComparison.OrdinalIgnoreCase));
 
-            if (IsNameMatchEnum<Role>(enumName))
-            {
-                return Ok(EnumParser.GetEnumNames<Role>());
-            }
-            else if (IsNameMatchEnum<Sex>(enumName))
-            {
-                return Ok(EnumParser.GetEnumNames<Sex>());
-            }
-            else if (IsNameMatchEnum<Grade>(enumName))
-            {
-                return Ok(EnumParser.GetEnumNames<Grade>());
-            }
-            else if (IsNameMatchEnum<Education>(enumName))
-            {
-                return Ok(EnumParser.GetEnumNames<Education>());
-            }
-            else if (IsNameMatchEnum<ProgramType>(enumName))
-            {
-                return Ok(EnumParser.GetEnumNames<ProgramType>());
-            }
-            else
-            {
-                return BadRequest();
-            }
+            if (enumType == null)
+                return NotFound($"Enum с именем '{enumName}' не найден.");
+
+            var values = enumType
+                .GetFields(BindingFlags.Public | BindingFlags.Static)
+                .Select(f => f.GetCustomAttribute<System.Runtime.Serialization.EnumMemberAttribute>()?.Value)
+                .Where(v => v != null)
+                .ToList();
+
+            return Ok(values);
         }
 
-        private bool IsNameMatchEnum<T>(string enumName)
+        [HttpGet("get/enums")]
+        public IActionResult GetAllEnumValuesWithEnumMember()
         {
-            return enumName == typeof(T).Name || enumName == typeof(T).Name.ToLower();
+            var result = new Dictionary<string, List<string>>();
+
+            var enumTypes = typeof(Role).Assembly
+                .GetTypes()
+                .Where(t => t.IsEnum && t.Namespace == "Aikido.AdditionalData");
+
+            foreach (var enumType in enumTypes)
+            {
+                var values = enumType
+                    .GetFields(BindingFlags.Public | BindingFlags.Static)
+                    .Select(f => f.GetCustomAttribute<System.Runtime.Serialization.EnumMemberAttribute>()?.Value)
+                    .Where(v => v != null)
+                    .ToList();
+
+                result[enumType.Name] = values;
+            }
+
+            return Ok(result);
         }
+
+
     }
 }
