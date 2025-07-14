@@ -9,20 +9,21 @@ namespace Aikido.Requests
 
         public async Task<ClubDto> Parse()
         {
-            using var reader = new StreamReader(ClubDataJson.OpenReadStream());
-            var jsonString = await reader.ReadToEndAsync();
+            //using var reader = new StreamReader(ClubDataJson.OpenReadStream());
+            //var jsonString = await reader.ReadToEndAsync();
 
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
+            //var options = new JsonSerializerOptions
+            //{
+            //    PropertyNameCaseInsensitive = true
+            //};
 
-            var userData = JsonSerializer.Deserialize<ClubDto>(jsonString, options);
+            //var userData = JsonSerializer.Deserialize<ClubDto>(jsonString, options);
 
-            if (userData == null)
-                throw new Exception("Не удалось десериализовать JSON.");
+            //if (userData == null)
+            //    throw new Exception("Не удалось десериализовать JSON.");
 
-            return userData;
+            return await JsonHelper.DeserializeJsonFormFileAsync<ClubDto>(ClubDataJson);
+            
         }
     }
 }

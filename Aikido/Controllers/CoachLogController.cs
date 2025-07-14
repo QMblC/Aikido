@@ -35,6 +35,44 @@ namespace Aikido.Controllers
             this.attendanceService = attendanceService;
         }
 
+        [HttpGet("get/data/student/{userId}")]
+        public async Task<IActionResult> GetUserAttendance(long userId, [FromQuery] string month)
+        {
+            if (!DateTime.TryParseExact(month, "yyyy-MM", null, System.Globalization.DateTimeStyles.None, out var monthInDate))
+                return BadRequest("Неверный формат месяца. Используйте 'yyyy-MM'.");
+
+            var user = await userService.GetUserById(userId);
+            if (user == null)
+                return NotFound($"Пользователь с Id = {userId} не найден.");
+
+            var attendance = await attendanceService.GetUserMonthlyAttendance(user.Id, monthInDate);
+
+            var groupId = user.GroupId;
+            if (groupId == null)
+            {
+                throw new NotImplementedException($"У пользователя {userId} нет группы!");
+            }
+            var schedule = await scheduleService.GetGroupSchedule(groupId.Value);
+            var exclusionDates = await scheduleService.GetGroupExclusionDates(groupId.Value, monthInDate);
+
+            var result = new
+            {
+                User = new UserShortDto
+                {
+                    Id = user.Id,
+                    Name = user.FullName,
+                    Photo = Convert.ToBase64String(user.Photo)
+                },
+                Attendance = attendance,
+                Schedule = schedule,
+                ExtraDates = exclusionDates.Where(x => x.Status == "extra"),
+                MinorDates = exclusionDates.Where(x => x.Status == "minor")
+            };
+
+            return Ok(result);
+        }
+
+
         [HttpGet("get/data/{groupId}/")]
         public async Task<IActionResult> GetData(long groupId, [FromQuery] string month)
         {

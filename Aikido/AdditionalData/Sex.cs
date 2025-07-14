@@ -4,9 +4,9 @@ namespace Aikido.AdditionalData
 {
     public enum Sex
     {
-        [EnumMember(Value = "Male")]
+        [EnumMember(Value = "Мужской")]
         Male,
-        [EnumMember(Value = "Female")]
+        [EnumMember(Value = "Женский")]
         Female
     }
 }

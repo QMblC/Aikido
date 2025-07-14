@@ -20,6 +20,12 @@ namespace Aikido.Services
             return clubEntity;
         }
 
+        public async Task<bool> Contains(long id)
+        {
+            var clubEntity = await context.Clubs.FindAsync(id);
+            return (clubEntity != null);
+        }
+
         public async Task<List<ClubEntity>> GetClubsList()
         {
             return await context.Clubs.OrderBy(club => club.Name)

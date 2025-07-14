@@ -19,6 +19,12 @@ namespace Aikido.Services
             return groupEntity;
         }
 
+        public async Task<bool> Contains(long id)
+        {
+            var groupEntity = await context.Groups.FindAsync(id);
+            return groupEntity != null;
+        }
+
         public async Task<long> CreateGroup(GroupDto groupData)
         {
             var groupEntity = new GroupEntity();

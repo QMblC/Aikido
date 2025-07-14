@@ -1,4 +1,5 @@
-﻿using Aikido.Dto;
+﻿using Aikido.AdditionalData;
+using Aikido.Dto;
 using Aikido.Entities;
 using Aikido.Requests;
 using Aikido.Services;
@@ -116,7 +117,7 @@ namespace Aikido.Controllers
                     Coach = coach == null ? null : new CoachDto
                     {
                         Name = coach.FullName,
-                        Grade = coach.Grade,
+                        Grade = EnumParser.ConvertEnumToString(coach.Grade),
                         Phone = coach.PhoneNumber
                     },
                     Schedule = scheduleDict

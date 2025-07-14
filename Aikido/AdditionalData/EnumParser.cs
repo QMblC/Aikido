@@ -32,5 +32,14 @@ namespace Aikido.AdditionalData
             }
             throw new NotImplementedException($"{typeof(T).Name} не содержит аттрибута");
         }
+
+        public static List<string> GetEnumNames<T>()
+        {
+            return typeof(T)
+                .GetFields(BindingFlags.Public | BindingFlags.Static)
+                .Select(f => f.GetCustomAttribute<EnumMemberAttribute>().Value.ToString())       
+                .Where(v => v != null)
+                .ToList();
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Aikido.Data;
+﻿using Aikido.AdditionalData;
+using Aikido.Data;
 using Aikido.Dto;
 using Aikido.Entities;
 using Aikido.Entities.Filters;
@@ -37,7 +38,26 @@ namespace Aikido.Controllers
             try
             {
                 var user = await userService.GetUserById(id);
-                return Ok(user);
+                
+                if (user.ClubId == null && user.GroupId == null)
+                {
+                    var club = await clubService.GetClubById(user.ClubId.Value);
+                    return Ok(new UserDto(user));
+                }
+                if (user.ClubId != null && user.GroupId == null)
+                {
+                    var club = await clubService.GetClubById(user.ClubId.Value);
+                    return Ok(new UserDto(user, club));
+                }
+                if (user.ClubId != null && user.GroupId != null)
+                {
+                    var club = await clubService.GetClubById(user.ClubId.Value);
+                    var group = await groupService.GetGroupById(user.GroupId.Value);
+
+                    return Ok(new UserDto(user, club, group));
+                }
+                return BadRequest();
+
             }
             catch (KeyNotFoundException ex)
             {
@@ -73,7 +93,24 @@ namespace Aikido.Controllers
             {
                 var pagedResult = await userService.GetUserListAlphabetAscending(startIndex, finishIndex, filter);
 
-                var usersResponse = ParseUserToBaseResponse(pagedResult.Users);
+                var userTasks = pagedResult.Users.Select(async user =>
+                {
+                    if (user.ClubId != null)
+                    {
+                        var club = await clubService.GetClubById(user.ClubId.Value);
+                        user.AddClubName(club);
+                    }
+
+                    if (user.GroupId != null)
+                    {
+                        var group = await groupService.GetGroupById(user.GroupId.Value);
+                        user.AddGroupName(group);
+                    }
+
+                    return user;
+                });
+
+                var usersResponse = await Task.WhenAll(userTasks); 
 
                 return Ok(new
                 {
@@ -83,43 +120,10 @@ namespace Aikido.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Ошибка при получении списка пользователей.");
+                return StatusCode(500, $"Ошибка при получении списка пользователей. {ex.Message}");
             }
         }
 
-        private async Task<List<UserBaseResponseDto>> ParseUserToBaseResponse(List<UserEntity> users)
-        {
-            var usersResponse = new List<UserBaseResponseDto>();
-
-            foreach (var user in users)
-            {
-                var newResponse = new UserBaseResponseDto
-                {
-                    Id = user.Id,
-                    Role = user.Role.ToString(),
-                    Login = user.Login,
-                    FullName = user.FullName,
-                    Photo = Convert.ToBase64String(user.Photo),
-                    Birthday = user.Birthday,
-                    City = user.City,
-                    Grade = user.Grade,
-                    ClubId = null,
-                    ClubName = null
-                };
-
-                if (user.ClubId != 0 && user.ClubId != null)
-                {
-                    var club = await clubService.GetClubById((long)user.ClubId);
-
-                    newResponse.ClubId = user.ClubId;
-                    newResponse.ClubName = club.Name;
-                }
-
-                usersResponse.Add(newResponse);
-            }
-
-            return usersResponse;
-        }
 
         [HttpGet("get/table")]
         public async Task<IActionResult> ExportUsers()
@@ -150,6 +154,16 @@ namespace Aikido.Controllers
 
             try
             {
+                if (userData.ClubId != null && !await clubService.Contains(userData.ClubId.Value))
+                {
+                    return BadRequest($"Клуба с Id = {userData.ClubId} не существует");
+                }
+
+                if (userData.GroupId != null && !await clubService.Contains(userData.GroupId.Value))
+                {
+                    return BadRequest($"Группы с Id = {userData.GroupId} не существует");
+                }
+
                 userId = await userService.CreateUser(userData);
 
                 if (userData.GroupId != null)
@@ -162,7 +176,7 @@ namespace Aikido.Controllers
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
 
-            return Ok(new { id =  userId}); //ToDo Тут возможно нужно возвращать JWT
+            return Ok(new { id =  userId});
         }
 
         [HttpDelete("delete/{id}")]
@@ -206,6 +220,16 @@ namespace Aikido.Controllers
 
             try
             {
+                if (userData.ClubId != null && !await clubService.Contains(userData.ClubId.Value))
+                {
+                    return BadRequest($"Клуба с Id = {userData.ClubId} не существует");
+                }
+
+                if (userData.GroupId != null && !await clubService.Contains(userData.GroupId.Value))
+                {
+                    return BadRequest($"Группы с Id = {userData.GroupId} не существует");
+                }
+
                 await userService.UpdateUser(id, userData);
             }
             catch (KeyNotFoundException ex)
@@ -295,47 +319,6 @@ namespace Aikido.Controllers
             {
                 await userService.UpdateUsers(users);
                 return Ok(new { Message = "Пользователи успешно обновлены." });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Ошибка при обновлении пользователей.", Details = ex.Message });
-            }
-        }
-
-
-        [HttpPost("create/from-table")]
-        public async Task<IActionResult> ImportUsersFromExcel([FromForm] TableRequest request)
-        {
-            if (request.File == null || request.File.Length == 0)
-            {
-                return BadRequest("Файл не был предоставлен или он пустой.");
-            }
-
-            try
-            {
-                using var stream = request.File.OpenReadStream();
-                await tableService.ImportUsersFromExcelAsync(stream);
-                return Ok(new { Message = "Импорт пользователей выполнен успешно." });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Ошибка при импорте пользователей.", Details = ex.Message });
-            }
-        }
-
-        [HttpPut("update/from-table")]
-        public async Task<IActionResult> UpdateUsersFromExcel([FromForm] TableRequest request)
-        {
-            if (request.File == null || request.File.Length == 0)
-            {
-                return BadRequest("Файл не был предоставлен или он пустой.");
-            }
-
-            try
-            {
-                using var stream = request.File.OpenReadStream();
-                await tableService.UpdateUsersFromExcelAsync(stream);
-                return Ok(new { Message = "Обновление пользователей выполнено успешно." });
             }
             catch (Exception ex)
             {
