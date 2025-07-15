@@ -3,11 +3,7 @@ using Aikido.Data;
 using Aikido.Dto;
 using Aikido.Entities;
 using Aikido.Entities.Filters;
-using ClosedXML.Excel;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Linq.Expressions;
 
 namespace Aikido.Services
 {
@@ -195,10 +191,10 @@ namespace Aikido.Services
                 .OrderBy(u => u.FullName)
                 .Skip(startIndex)
                 .Take(finishIndex - startIndex)
-                .ToListAsync(); 
+                .ToListAsync();
 
             var users = usersEntities
-                .Select(user => new UserDto(user)) 
+                .Select(user => new UserDto(user))
                 .ToList();
 
             return new PagedUserResult
@@ -263,6 +259,5 @@ namespace Aikido.Services
 
             return query;
         }
-
     }
 }

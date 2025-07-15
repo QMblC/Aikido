@@ -5,7 +5,7 @@
 namespace Aikido.Migrations
 {
     /// <inheritdoc />
-    public partial class Refactoring2 : Migration
+    public partial class FixSeminars : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

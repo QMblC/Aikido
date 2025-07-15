@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Aikido.Migrations
 {
     /// <inheritdoc />
-    public partial class Refactoring1 : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -71,7 +71,7 @@ namespace Aikido.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     GroupId = table.Column<long>(type: "bigint", nullable: false),
                     Date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Status = table.Column<string>(type: "text", nullable: true)
+                    Status = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -118,7 +118,8 @@ namespace Aikido.Migrations
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     UserId = table.Column<long>(type: "bigint", nullable: false),
-                    GradeAttestation = table.Column<string>(type: "text", nullable: false),
+                    AttestationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    AttestationGrade = table.Column<int>(type: "integer", nullable: false),
                     GradeConfirmationStatus = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
@@ -135,12 +136,14 @@ namespace Aikido.Migrations
                     Name = table.Column<string>(type: "text", nullable: true),
                     Date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Location = table.Column<string>(type: "text", nullable: true),
+                    Contacts = table.Column<string>(type: "text", nullable: true),
+                    Description = table.Column<string>(type: "text", nullable: false),
                     PriceSeminarInRubles = table.Column<decimal>(type: "numeric", nullable: true),
                     PriceAnnualFeeRubles = table.Column<decimal>(type: "numeric", nullable: true),
                     PriceBudoPassportRubles = table.Column<decimal>(type: "numeric", nullable: true),
-                    PriceAttestation5to2KyuInRubles = table.Column<decimal>(type: "numeric", nullable: true),
-                    PriceAttestation1KyuInRubles = table.Column<decimal>(type: "numeric", nullable: true),
-                    PriceAttestationBlackBeltInRubles = table.Column<decimal>(type: "numeric", nullable: true),
+                    Price5to2KyuAttestationInRubles = table.Column<decimal>(type: "numeric", nullable: true),
+                    Price1KyuAttestationInRubles = table.Column<decimal>(type: "numeric", nullable: true),
+                    PriceDanAttestationInRubles = table.Column<decimal>(type: "numeric", nullable: true),
                     FinalStatementFile = table.Column<byte[]>(type: "bytea", nullable: true)
                 },
                 constraints: table =>

@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Aikido.AdditionalData;
+using Aikido.Dto;
+using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities
 {
@@ -10,6 +12,24 @@ namespace Aikido.Entities
         public DateTime Date { get; set; }
         //public TimeSpan StartTime { get; set; }
         //public TimeSpan EndTime { get; set; }
-        public string? Status { get; set; }
+        public ExclusiveDateType Status { get; set; }
+
+        public ExclusionDateEntity() { }
+
+        public ExclusionDateEntity(ExclusionDateDto exclusionDate)
+        {
+            if (exclusionDate.GroupId != null)
+            {
+                GroupId = exclusionDate.GroupId.Value;
+            }
+            if (exclusionDate.Date != null)
+            {
+                Date = exclusionDate.Date;
+            }
+            if (exclusionDate.Status != null)
+            {
+                Status = EnumParser.ConvertStringToEnum<ExclusiveDateType>(exclusionDate.Status);
+            }
+        }
     }
 }

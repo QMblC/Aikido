@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Aikido.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250714105403_Refactoring2")]
-    partial class Refactoring2
+    [Migration("20250715081921_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -123,8 +123,8 @@ namespace Aikido.Migrations
                     b.Property<long>("GroupId")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("Status")
-                        .HasColumnType("text");
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -193,8 +193,15 @@ namespace Aikido.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<string>("Contacts")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("Date")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<byte[]>("FinalStatementFile")
                         .HasColumnType("bytea");
@@ -205,19 +212,19 @@ namespace Aikido.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
+                    b.Property<decimal?>("Price1KyuAttestationInRubles")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("Price5to2KyuAttestationInRubles")
+                        .HasColumnType("numeric");
+
                     b.Property<decimal?>("PriceAnnualFeeRubles")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal?>("PriceAttestation1KyuInRubles")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal?>("PriceAttestation5to2KyuInRubles")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal?>("PriceAttestationBlackBeltInRubles")
-                        .HasColumnType("numeric");
-
                     b.Property<decimal?>("PriceBudoPassportRubles")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("PriceDanAttestationInRubles")
                         .HasColumnType("numeric");
 
                     b.Property<decimal?>("PriceSeminarInRubles")
@@ -236,9 +243,11 @@ namespace Aikido.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("GradeAttestation")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<DateTime>("AttestationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("AttestationGrade")
+                        .HasColumnType("integer");
 
                     b.Property<bool>("GradeConfirmationStatus")
                         .HasColumnType("boolean");

@@ -1,4 +1,5 @@
-﻿using Aikido.Dto;
+﻿using Aikido.AdditionalData;
+using Aikido.Dto;
 using Aikido.Entities;
 using Aikido.Requests;
 using Aikido.Services;
@@ -55,8 +56,11 @@ namespace Aikido.Controllers
             var schedule = await scheduleService.GetGroupSchedule(groupId.Value);
             var exclusionDates = await scheduleService.GetGroupExclusionDates(groupId.Value, monthInDate);
 
+            var group = await groupService.GetGroupById(groupId.Value);
+
             var result = new
             {
+                Group = group,
                 User = new UserShortDto
                 {
                     Id = user.Id,
@@ -65,8 +69,8 @@ namespace Aikido.Controllers
                 },
                 Attendance = attendance,
                 Schedule = schedule,
-                ExtraDates = exclusionDates.Where(x => x.Status == "extra"),
-                MinorDates = exclusionDates.Where(x => x.Status == "minor")
+                ExtraDates = exclusionDates.Where(x => x.Status == ExclusiveDateType.Extra),
+                MinorDates = exclusionDates.Where(x => x.Status == ExclusiveDateType.Minor)
             };
 
             return Ok(result);
@@ -114,8 +118,8 @@ namespace Aikido.Controllers
                 Group = group,
                 Students = groupStudents,
                 Schedule = schedule,
-                ExtraDates = exclusionDates.Where(x => x.Status == "extra"),
-                MinorDates = exclusionDates.Where(x => x.Status == "minor")
+                ExtraDates = exclusionDates.Where(x => x.Status == ExclusiveDateType.Extra),
+                MinorDates = exclusionDates.Where(x => x.Status == ExclusiveDateType.Minor)
             };
 
             return Ok(result);
