@@ -1,4 +1,5 @@
-﻿using Aikido.Dto;
+﻿using Aikido.AdditionalData;
+using Aikido.Dto;
 using Aikido.Requests;
 using Aikido.Services;
 using DocumentFormat.OpenXml.InkML;
@@ -120,8 +121,8 @@ namespace Aikido.Controllers
                     allDates.AddRange(groupData.ExtraDates.Select(d => new ExclusionDateDto
                     {
                         GroupId = groupId,
-                        DateTime = d.ToString("yyyy-MM-dd"),
-                        status = "extra"
+                        Date = d,
+                        Status = "Extra"
                     }));
                 }
 
@@ -130,8 +131,8 @@ namespace Aikido.Controllers
                     allDates.AddRange(groupData.MinorDates.Select(d => new ExclusionDateDto
                     {
                         GroupId = groupId,
-                        DateTime = d.ToString("yyyy-MM-dd"),
-                        status = "minor"
+                        Date = d,
+                        Status = "Minor"
                     }));
                 }
 
@@ -209,8 +210,8 @@ namespace Aikido.Controllers
                     exclusions.AddRange(groupData.ExtraDates.Select(date => new ExclusionDateDto
                     {
                         GroupId = id,
-                        DateTime = date.ToString("yyyy-MM-dd"),
-                        status = "extra"
+                        Date = date,
+                        Status = "Extra"
                     }));
                 }
 
@@ -219,8 +220,8 @@ namespace Aikido.Controllers
                     exclusions.AddRange(groupData.MinorDates.Select(date => new ExclusionDateDto
                     {
                         GroupId = id,
-                        DateTime = date.ToString("yyyy-MM-dd"),
-                        status = "minor"
+                        Date = date,
+                        Status = "Minor"
                     }));
                 }
 
@@ -370,12 +371,12 @@ namespace Aikido.Controllers
 
             var exclusionDates = await scheduleService.GetGroupExclusionDates(groupId, DateTime.Now);
             groupInfo.ExtraDates = exclusionDates
-                .Where(d => d.Status == "extra")
+                .Where(d => d.Status == ExclusiveDateType.Extra)
                 .Select(d => d.Date.Date)
                 .ToList();
 
             groupInfo.MinorDates = exclusionDates
-                .Where(d => d.Status == "minor")
+                .Where(d => d.Status == ExclusiveDateType.Minor)
                 .Select(d => d.Date.Date)
                 .ToList();
 

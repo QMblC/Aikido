@@ -11,18 +11,18 @@ namespace Aikido.Services
         {
         }
 
-        public async Task<SeminarEntity> Get(long id)
+        public async Task<SeminarEntity> GetSeminar(long id)
         {
             var seminarEntity = context.Seminars.FindAsync(id).Result;
             if (seminarEntity == null)
             {
-                throw new KeyNotFoundException($"Семинар с Id = {id} не найдет");
+                throw new KeyNotFoundException($"Семинар с Id = {id} не найден");
             }
 
             return seminarEntity;
         }
 
-        public async Task<long> Create(SeminarDto seminarData)
+        public async Task<long> CreateSeminar(SeminarDto seminarData)
         {
             var seminarEntity = new SeminarEntity(seminarData);
 
@@ -33,20 +33,58 @@ namespace Aikido.Services
             return seminarEntity.Id;
         }
 
-        public async Task Delete(long id)
+        public async Task DeleteSeminar(long id)
         {
-            var seminarEntity = await Get(id);
+            var seminarEntity = await GetSeminar(id);
 
             context.Seminars.Remove(seminarEntity);
 
             await SaveDb();
         }
 
-        public async Task Update(long id, SeminarDto seminarData)
+        public async Task UpdateSeminar(long id, SeminarDto seminarData)
         {
-            var seminarEntity = await Get(id);
+            var seminarEntity = await GetSeminar(id);
 
             seminarEntity.UpdateFromJson(seminarData);
+
+            await SaveDb();
+        }
+
+        public async Task<SeminarMemberEntity> GetSeminarMember(long memberId)
+        {
+            var memberEntity = await context.SeminarMembers.FindAsync(memberId);
+            if (memberEntity == null)
+                throw new KeyNotFoundException($"Участник семинара с Id = {memberId} не найден");
+
+            return memberEntity;
+        }
+
+        public async Task<long> CreateSeminarMember(SeminarMemberDto seminarMemberDto)
+        {
+            var memberEntity = new SeminarMemberEntity(seminarMemberDto);
+
+            await context.SeminarMembers.AddAsync(memberEntity);
+
+            await SaveDb();
+
+            return memberEntity.Id;
+        }
+
+        public async Task DeleteSeminarMember(long memberId)
+        {
+            var memberEntity = await GetSeminarMember(memberId);
+
+            context.SeminarMembers.Remove(memberEntity);
+
+            await SaveDb();
+        }
+
+        public async Task UpdateSeminarMember(long memberId, SeminarMemberDto memberDto)
+        {
+            var memberEntity = await GetSeminarMember(memberId);
+
+            memberEntity.UpdateFromJson(memberDto);
 
             await SaveDb();
         }
