@@ -33,13 +33,16 @@ namespace Aikido.AdditionalData
             throw new NotImplementedException($"{typeof(T).Name} не содержит аттрибута");
         }
 
-        public static List<string> GetEnumNames<T>()
+        public static Dictionary<string, string> GetEnumNames<T>() where T : Enum
         {
             return typeof(T)
                 .GetFields(BindingFlags.Public | BindingFlags.Static)
-                .Select(f => f.GetCustomAttribute<EnumMemberAttribute>().Value.ToString())       
-                .Where(v => v != null)
-                .ToList();
+                .Where(f => f.GetCustomAttribute<EnumMemberAttribute>() != null)
+                .ToDictionary(
+                    f => f.Name,
+                    f => f.GetCustomAttribute<EnumMemberAttribute>()!.Value!
+                );
         }
+
     }
 }

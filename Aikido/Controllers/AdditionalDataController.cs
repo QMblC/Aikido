@@ -1,6 +1,7 @@
 ﻿using Aikido.AdditionalData;
 using Microsoft.AspNetCore.Mvc;
 using System.Reflection;
+using System.Runtime.Serialization;
 
 namespace Aikido.Controllers
 {
@@ -32,7 +33,7 @@ namespace Aikido.Controllers
         [HttpGet("get/enums")]
         public IActionResult GetAllEnumValuesWithEnumMember()
         {
-            var result = new Dictionary<string, List<string>>();
+            var result = new Dictionary<string, Dictionary<string, string>>();
 
             var enumTypes = typeof(Role).Assembly
                 .GetTypes()
@@ -40,18 +41,18 @@ namespace Aikido.Controllers
 
             foreach (var enumType in enumTypes)
             {
-                var values = enumType
+                var dict = enumType
                     .GetFields(BindingFlags.Public | BindingFlags.Static)
-                    .Select(f => f.GetCustomAttribute<System.Runtime.Serialization.EnumMemberAttribute>()?.Value)
-                    .Where(v => v != null)
-                    .ToList();
+                    .Where(f => f.GetCustomAttribute<EnumMemberAttribute>() != null)
+                    .ToDictionary(
+                        f => f.Name,
+                        f => f.GetCustomAttribute<EnumMemberAttribute>()!.Value!
+                    );
 
-                result[enumType.Name] = values;
+                result[enumType.Name] = dict;
             }
 
             return Ok(result);
         }
-
-
     }
 }

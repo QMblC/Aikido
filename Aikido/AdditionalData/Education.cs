@@ -4,7 +4,7 @@ namespace Aikido.AdditionalData
 {
     public enum Education
     {
-        [EnumMember(Value = "")]
+        [EnumMember(Value = "Неизвестно")]
         None,
         [EnumMember(Value = "1 класс")]
         SchoolClass1,
