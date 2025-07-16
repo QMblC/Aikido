@@ -7,30 +7,17 @@ namespace Aikido.AdditionalData
     {
         public static T ConvertStringToEnum<T>(string value) where T : Enum
         {
-            foreach (var field in typeof(T).GetFields(BindingFlags.Public | BindingFlags.Static))
+            if (Enum.TryParse(typeof(T), value, ignoreCase: true, out var result))
             {
-                var attribute = field.GetCustomAttribute<EnumMemberAttribute>();
-                if (attribute != null && attribute.Value == value)
-                {
-                    return (T)field.GetValue(null);
-                }
+                return (T)result!;
             }
 
-            throw new Exception($"Данные о {typeof(T).Name} из json некорректны. На вход подаётся - {value}");
+            throw new Exception($"Данные о {typeof(T).Name} из строки некорректны. Входное значение: {value}");
         }
 
         public static string ConvertEnumToString<T>(T enumValue) where T : Enum
         {
-            var memberInfo = typeof(T).GetMember(enumValue.ToString());
-            if (memberInfo.Length > 0)
-            {
-                var attribute = memberInfo[0].GetCustomAttribute<EnumMemberAttribute>();
-                if(attribute != null)
-                {
-                    return attribute.Value;
-                }
-            }
-            throw new NotImplementedException($"{typeof(T).Name} не содержит аттрибута");
+            return enumValue.ToString();
         }
 
         public static Dictionary<string, string> GetEnumNames<T>() where T : Enum
