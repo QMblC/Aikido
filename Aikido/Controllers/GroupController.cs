@@ -286,7 +286,7 @@ namespace Aikido.Controllers
 
             groupInfo.Id = group.Id;
             groupInfo.Name = group.Name;
-            groupInfo.AgeGroup = group.AgeGroup;
+            groupInfo.AgeGroup = EnumParser.ConvertEnumToString(group.AgeGroup);
             groupInfo.ClubId = group.ClubId;
 
             if (group.ClubId != null)
