@@ -155,9 +155,15 @@ namespace Aikido.Controllers
                     return BadRequest($"Клуба с Id = {userData.ClubId} не существует");
                 }
 
-                if (userData.GroupId != null && !await clubService.Contains(userData.GroupId.Value))
+                if (userData.GroupId != null && !await groupService.Contains(userData.GroupId.Value))
                 {
                     return BadRequest($"Группы с Id = {userData.GroupId} не существует");
+                }
+
+                if (userData.ClubId != null)
+                {
+                    var club = await clubService.GetClubById(userData.ClubId.Value);
+                    userData.City = club.City;
                 }
 
                 userId = await userService.CreateUser(userData);
@@ -224,6 +230,11 @@ namespace Aikido.Controllers
                 if (userData.GroupId != null && !await groupService.Contains(userData.GroupId.Value))
                 {
                     return BadRequest($"Группы с Id = {userData.GroupId} не существует");
+                }
+                if (userData.ClubId != null)
+                {
+                    var club = await clubService.GetClubById(userData.ClubId.Value);
+                    userData.City = club.City;
                 }
 
                 await userService.UpdateUser(id, userData);
