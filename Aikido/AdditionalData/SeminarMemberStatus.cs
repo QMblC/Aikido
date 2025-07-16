@@ -8,6 +8,8 @@ namespace Aikido.AdditionalData
         Waiting,
         [EnumMember(Value = "Пропуск")]
         Missed,
+        [EnumMember(Value = ("Тренировка"))]
+        Training,
         [EnumMember(Value = "Не аттестован")]
         NotCertified,
         [EnumMember(Value = "Аттестован")]

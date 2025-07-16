@@ -18,7 +18,7 @@ namespace Aikido.Entities
         public string? PhoneNumber { get; set; }
         public DateTime? Birthday { get; set; }
         public Grade Grade { get; set; } = Grade.None;
-        public ProgramType ProgramType = ProgramType.None;
+        public ProgramType ProgramType { get; set; } = ProgramType.None;
         public Education Education { get; set; } = Education.None;
 
         public List<DateTime> CertificationDates { get; private set; } = [];

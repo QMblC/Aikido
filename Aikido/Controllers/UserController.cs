@@ -41,7 +41,6 @@ namespace Aikido.Controllers
                 
                 if (user.ClubId == null && user.GroupId == null)
                 {
-                    var club = await clubService.GetClubById(user.ClubId.Value);
                     return Ok(new UserDto(user));
                 }
                 if (user.ClubId != null && user.GroupId == null)
@@ -222,7 +221,7 @@ namespace Aikido.Controllers
                     return BadRequest($"Клуба с Id = {userData.ClubId} не существует");
                 }
 
-                if (userData.GroupId != null && !await clubService.Contains(userData.GroupId.Value))
+                if (userData.GroupId != null && !await groupService.Contains(userData.GroupId.Value))
                 {
                     return BadRequest($"Группы с Id = {userData.GroupId} не существует");
                 }
