@@ -88,5 +88,10 @@ namespace Aikido.Services
 
             await SaveDb();
         }
+
+        public async Task<List<SeminarMemberEntity>> GetMembersBySeminarId(long seminarId)
+        {
+            var seminarDate = GetSeminar(seminarId).Result.Date;
+        }
     }
 }

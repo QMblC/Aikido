@@ -7,6 +7,11 @@ namespace Aikido.AdditionalData
     {
         public static T ConvertStringToEnum<T>(string value) where T : Enum
         {
+            if (value == null || value == "")
+            {
+                value = "None";
+            }
+
             if (Enum.TryParse(typeof(T), value, ignoreCase: true, out var result))
             {
                 return (T)result!;
