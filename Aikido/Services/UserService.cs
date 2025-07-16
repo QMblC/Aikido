@@ -178,6 +178,13 @@ namespace Aikido.Services
             await SaveDb();
         }
 
+        public async Task<List<UserEntity>> GetClubMembers(long clubId)
+        {
+            return await context.Users
+                .Where(user => user.ClubId == clubId)
+                .ToListAsync();
+        }
+
         public async Task<PagedUserResult> GetUserListAlphabetAscending(
             int startIndex,
             int finishIndex,
