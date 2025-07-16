@@ -52,9 +52,6 @@ namespace Aikido.Entities
 
         public void UpdateFromJson(UserDto userNewData)
         {
-            if (userNewData.Id != null)
-                Id = (long)userNewData.Id;
-
             if (userNewData.Role != null)
                 Role = EnumParser.ConvertStringToEnum<Role>(userNewData.Role);
 
@@ -85,8 +82,7 @@ namespace Aikido.Entities
 
             PhoneNumber = userNewData.PhoneNumber;
 
-            if (userNewData.ProgramType != null)
-                ProgramType = EnumParser.ConvertStringToEnum<ProgramType>(userNewData.ProgramType);
+            ProgramType = EnumParser.ConvertStringToEnum<ProgramType>(userNewData.ProgramType);
 
             if (userNewData.Birthday != null)
                 Birthday = DateTime.SpecifyKind(userNewData.Birthday.Value, DateTimeKind.Utc);
@@ -95,11 +91,12 @@ namespace Aikido.Entities
 
             City = userNewData.City;
 
-            if (userNewData.Grade != null)
-                Grade = EnumParser.ConvertStringToEnum<Grade>(userNewData.Grade);
+            Grade = EnumParser.ConvertStringToEnum<Grade>(userNewData.Grade);
 
             if (userNewData.CertificationDates != null)
                 CertificationDates = userNewData.CertificationDates;
+            else
+                CertificationDates = [];
 
             if (userNewData.Sex != null)
                 Sex = EnumParser.ConvertStringToEnum<Sex>(userNewData.Sex);

@@ -188,5 +188,11 @@ namespace Aikido.Controllers
             }
         }
 
+        [HttpGet("members/get/list-by-seminar/{seminarId}")]
+        public async Task<IActionResult> GetSeminarMembersList(long seminarId)
+        {
+            return Ok(await seminarService.GetMembersBySeminarId(seminarId));
+        }
+
     }
 }

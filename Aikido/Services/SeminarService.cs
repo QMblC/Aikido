@@ -2,6 +2,7 @@
 using Aikido.Dto;
 using Aikido.Entities;
 using DocumentFormat.OpenXml.Office2010.Excel;
+using Microsoft.EntityFrameworkCore;
 
 namespace Aikido.Services
 {
@@ -92,6 +93,18 @@ namespace Aikido.Services
         public async Task<List<SeminarMemberEntity>> GetMembersBySeminarId(long seminarId)
         {
             var seminarDate = GetSeminar(seminarId).Result.Date;
+
+            return await context.SeminarMembers
+                .Where(member => member.AttestationDate.Equals(seminarDate))
+                .ToListAsync();
+        }
+
+        public async Task CreateSeminarMember(List<SeminarMemberDto> members)
+        {
+            foreach (var member in members)
+            {
+                await CreateSeminarMember(member);
+            }
         }
     }
 }
