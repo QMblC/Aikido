@@ -9,8 +9,9 @@ namespace Aikido.Entities
         [Key]
         public long Id { get; set; }
         public long UserId { get; set; }
-        public DateTime AttestationDate { get; set; }
-        public Grade AttestationGrade { get; set; }
+        public DateTime CertificationDate { get; set; }
+        public Grade OldGrade { get; set; }
+        public Grade CertificationGrade { get; set; }
         public bool GradeConfirmationStatus { get; set; } = false;
         public SeminarMemberStatus ResultStatus { get; set; }
 
@@ -27,11 +28,12 @@ namespace Aikido.Entities
             {
                 UserId = memberDto.UserId.Value;
             }
-            if (memberDto.AttestationDate != null)
+            if (memberDto.CertificationDate != null)
             {
-                AttestationDate = memberDto.AttestationDate.Value;
+                CertificationDate = memberDto.CertificationDate.Value;
             }
-            AttestationGrade = EnumParser.ConvertStringToEnum<Grade>(memberDto.Grade);
+            OldGrade = EnumParser.ConvertStringToEnum<Grade>(memberDto.OldGrade);
+            CertificationGrade = EnumParser.ConvertStringToEnum<Grade>(memberDto.CertificationGrade);
             GradeConfirmationStatus = memberDto.GradeConfirmationStatus;
             ResultStatus = EnumParser.ConvertStringToEnum<SeminarMemberStatus>(memberDto.ResultStatus);
         }
