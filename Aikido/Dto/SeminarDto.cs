@@ -8,8 +8,8 @@ namespace Aikido.Dto
         public string? Name { get; set; }
         public DateTime? Date { get; set; }
         public string? Location { get; set; }
-        public string? Schedule { get; set; }
-        public string? Contacts { get; set; }
+        public List<string>? Schedule { get; set; }
+        public List<string>? Contacts { get; set; }
         public string? Description { get; set; }
         public decimal? PriceSeminarInRubles { get; set; }
         public decimal? PriceAnnualFeeRubles { get; set; }
@@ -17,7 +17,8 @@ namespace Aikido.Dto
         public decimal? Price5to2KyuCertificationInRubles { get; set; }
         public decimal? Price1KyuCertificationInRubles { get; set; }
         public decimal? PriceDanCertificationInRubles { get; set; }
-        public byte[]? FinalStatementFile { get; set; }
+        public string? FinalStatementFile { get; set; }
+        public DateTime? CreationDate { get; set; }
 
         public SeminarDto() { }
 
@@ -32,9 +33,12 @@ namespace Aikido.Dto
             Description = entity.Description;
             PriceSeminarInRubles = entity.PriceSeminarInRubles;
             PriceAnnualFeeRubles = entity.PriceAnnualFeeRubles;
+            PriceBudoPassportRubles = entity.PriceBudoPassportRubles;
             Price5to2KyuCertificationInRubles = entity.Price5to2KyuCertificationInRubles;
             Price1KyuCertificationInRubles = entity.Price1KyuCertificationInRubles;
             PriceDanCertificationInRubles = entity.PriceDanCertificationInRubles;
+            FinalStatementFile = Convert.ToBase64String(entity.FinalStatementFile);
+            CreationDate = entity.CreationDate;
         }
     }
 }
