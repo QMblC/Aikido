@@ -23,6 +23,11 @@ namespace Aikido.Services
             return seminarEntity;
         }
 
+        public async Task<List<SeminarEntity>> GetSeminarList()
+        {
+            return await context.Seminars.ToListAsync();
+        }
+
         public async Task<long> CreateSeminar(SeminarDto seminarData)
         {
             var seminarEntity = new SeminarEntity(seminarData);
