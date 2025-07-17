@@ -35,7 +35,7 @@ namespace Aikido.Controllers
             try
             {
                 var group = await groupService.GetGroupById(id);
-                return Ok(group);
+                return Ok(new GroupDto(group));
             }
             catch (KeyNotFoundException ex)
             {
@@ -52,7 +52,7 @@ namespace Aikido.Controllers
         {
             var groups = await groupService.GetGroupsByClubId(clubId);
 
-            return Ok(groups);
+            return Ok(groups.Select(group => new GroupDto(group)));
         }
 
         [HttpPost("create")]
@@ -88,7 +88,7 @@ namespace Aikido.Controllers
                     AgeGroup = groupData.AgeGroup,
                     CoachId = groupData.CoachId,
                     ClubId = groupData.ClubId,
-                    UserIds = groupData.GroupMembers?.Select(m => m.Id).ToList()
+                    GroupMembers = groupData.GroupMembers?.Select(m => m.Id).ToList()
                 };
 
                 groupId = await groupService.CreateGroup(groupDto);
@@ -173,7 +173,7 @@ namespace Aikido.Controllers
                     AgeGroup = groupData.AgeGroup,
                     CoachId = groupData.CoachId,
                     ClubId = groupData.ClubId,
-                    UserIds = (groupData.GroupMembers != null && groupData.GroupMembers.Any())
+                    GroupMembers = (groupData.GroupMembers != null && groupData.GroupMembers.Any())
                         ? groupData.GroupMembers.Select(m => m.Id).ToList()
                         : null
                 };

@@ -5,6 +5,7 @@ using Aikido.Entities;
 using Aikido.Entities.Filters;
 using Aikido.Requests;
 using Aikido.Services;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Text.Json;
@@ -190,7 +191,7 @@ namespace Aikido.Controllers
 
                 foreach (var group in userGroups)
                 {
-                    await groupService.DeleteUserFromGroup(group, id);
+                    await groupService.DeleteUserFromGroup(group.Id, id);
                 }
 
                 await userService.DeleteUser(id);
@@ -238,6 +239,12 @@ namespace Aikido.Controllers
                 }
 
                 await userService.UpdateUser(id, userData);
+
+                if (userData.GroupId != null)
+                {
+                    await groupService.DeleteUserFromGroup(userData.GroupId.Value, id);
+                    await groupService.AddUserToGroup((long)userData.GroupId, id);
+                }
             }
             catch (KeyNotFoundException ex)
             {

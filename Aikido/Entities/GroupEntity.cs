@@ -19,8 +19,8 @@ namespace Aikido.Entities
             if (groupNewData.CoachId != null)
                 CoachId = (long)groupNewData.CoachId;
 
-            if (groupNewData.UserIds != null)
-                UserIds = new List<long>(groupNewData.UserIds);
+            if (groupNewData.GroupMembers != null)
+                UserIds = new List<long>(groupNewData.GroupMembers);
 
             if (groupNewData.ClubId != null)
                 ClubId = (long)groupNewData.ClubId;
@@ -50,22 +50,11 @@ namespace Aikido.Entities
                 AgeGroup = EnumParser.ConvertStringToEnum<AgeGroup>(groupNewData.AgeGroup);
         }
 
-        public void AddUser(long userId, string role = "User")
+        public void AddUser(long userId, Role role = Role.User)
         {
-            if (role == "User")
+            if (role == Role.User)
             {
                 UserIds.Add(userId);
-            }
-            else
-            {
-                if (CoachId != null)
-                {
-                    CoachId = userId;
-                }
-                else
-                {
-                    throw new Exception("Группа уже имеет тренера!");
-                }
             }
         }
 

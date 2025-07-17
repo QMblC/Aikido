@@ -95,7 +95,7 @@ namespace Aikido.Services
             var seminarDate = GetSeminar(seminarId).Result.Date;
 
             return await context.SeminarMembers
-                .Where(member => member.AttestationDate.Equals(seminarDate))
+                .Where(member => member.CertificationDate.Equals(seminarDate))
                 .ToListAsync();
         }
 

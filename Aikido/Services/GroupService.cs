@@ -74,7 +74,8 @@ namespace Aikido.Services
 
         public async Task AddUserToGroup(long groupId, long userId)
         {
-            var groupEntity = context.Groups.FindAsync(userId).Result;
+            var groupEntity = await context.Groups.FindAsync(groupId);
+
             if (groupEntity == null)
             {
                 throw new KeyNotFoundException($"Пользователя с Id = {userId} не существует");
@@ -85,8 +86,15 @@ namespace Aikido.Services
             await SaveDb();
         }
 
-        public async Task DeleteUserFromGroup(GroupEntity groupEntity, long userId)
+        public async Task DeleteUserFromGroup(long groupId, long userId)
         {
+            var groupEntity = await context.Groups.FindAsync(groupId);
+
+            if (groupEntity == null)
+            {
+                throw new KeyNotFoundException($"Пользователя с Id = {userId} не существует");
+            }
+
             groupEntity.DeleteUser(userId);
 
             await SaveDb();
