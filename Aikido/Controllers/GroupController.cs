@@ -272,7 +272,7 @@ namespace Aikido.Controllers
         {
             var groups = await groupService.GetGroups();
 
-            return Ok(groups);
+            return Ok(groups.Select(group => new GroupDto(group)));
         }
 
         [HttpGet("get/info/{groupId}")]

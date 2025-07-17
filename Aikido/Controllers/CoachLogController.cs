@@ -98,7 +98,7 @@ namespace Aikido.Controllers
 
             var result = new
             {
-                Group = group,
+                Group = new GroupDto(group),
                 Coach = coach,
                 Club = new ClubDto(club),
                 Attendance = attendance,

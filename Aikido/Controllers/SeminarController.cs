@@ -45,6 +45,14 @@ namespace Aikido.Controllers
             }
         }
 
+        [HttpGet("get/list")]
+        public async Task<IActionResult> GetSeminarList()
+        {
+            var seminars = await seminarService.GetSeminarList();
+
+            return Ok(seminars.Select(seminar => new SeminarDto(seminar)));
+        }
+
         [HttpPost("create")]
         public async Task<IActionResult> CreateSeminar([FromForm] SeminarRequest request)
         {
