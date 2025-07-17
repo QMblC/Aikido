@@ -19,6 +19,8 @@ namespace Aikido.Dto
         public decimal? PriceDanCertificationInRubles { get; set; }
         public string? FinalStatementFile { get; set; }
         public DateTime? CreationDate { get; set; }
+        public long? CreatorId { get; set; }
+        public UserShortDto Creator { get; set; }
 
         public SeminarDto() { }
 
@@ -39,6 +41,7 @@ namespace Aikido.Dto
             PriceDanCertificationInRubles = entity.PriceDanCertificationInRubles;
             FinalStatementFile = Convert.ToBase64String(entity.FinalStatementFile);
             CreationDate = entity.CreationDate;
+            CreatorId = entity.CreatorId;
         }
     }
 }

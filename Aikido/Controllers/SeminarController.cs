@@ -32,8 +32,15 @@ namespace Aikido.Controllers
             try
             {
                 var seminar = await seminarService.GetSeminar(seminarId);
+                var seminarDto = new SeminarDto(seminar);
 
-                return(Ok(new SeminarDto(seminar)));
+                if (seminarDto.CreatorId != null)
+                {
+                    var creator = await userService.GetUserById(seminarId);
+                    seminarDto.Creator = new UserShortDto(creator);
+                }       
+
+                return Ok(seminarDto);
             }
             catch(KeyNotFoundException ex)
             {

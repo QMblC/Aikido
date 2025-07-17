@@ -21,6 +21,7 @@ namespace Aikido.Entities
         public decimal? PriceDanCertificationInRubles { get; set; }
         public byte[]? FinalStatementFile { get; set; }
         public DateTime? CreationDate { get; set; }
+        public long? CreatorId { get; set; }
 
         public SeminarEntity() { }
 
@@ -42,6 +43,7 @@ namespace Aikido.Entities
             PriceDanCertificationInRubles = dto.PriceDanCertificationInRubles ?? 0;
             FinalStatementFile = Convert.FromBase64String(dto.FinalStatementFile);
             CreationDate = dto.CreationDate ?? null;
+            CreatorId = dto.CreatorId ?? null;
         }
 
         public void UpdateFromJson(SeminarDto seminarNewData)
@@ -86,6 +88,8 @@ namespace Aikido.Entities
 
             if (seminarNewData.CreationDate != null)
                 CreationDate = seminarNewData.CreationDate;
+
+            CreatorId = seminarNewData.CreatorId
         }
     }
 }
