@@ -47,6 +47,7 @@ namespace Aikido.Dto
             CreationDate = entity.CreationDate;
             CreatorId = entity.CreatorId;
             Regulation = Convert.ToBase64String(entity.Regulation);
+            CoachStatements = [];
             //
         }
 

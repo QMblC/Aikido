@@ -264,7 +264,8 @@ namespace Aikido.Controllers
             return File(
                 fileContents: tableStream.ToArray(),
                 contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                fileDownloadName: "Ведомость.xlsx"
+                fileDownloadName: $"{coach.FullName.Split(" ")[0]} ведомость " +
+                $"семинара {seminar.Date.Day}.{seminar.Date.Month}.{seminar.Date.Year}.xlsx"
             );
         }
 
