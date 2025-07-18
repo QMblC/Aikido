@@ -9,17 +9,23 @@ namespace Aikido.Entities
         public long Id { get; set; }
         public string? Name { get; set; }
         public DateTime Date { get; set; }
+
         public string? Location { get; set; }
         public List<string>? Schedule { get; set; } = [];
         public List<string>? Contacts { get; set; } = [];
         public string? Description { get; set; } = "";
+
         public decimal? PriceSeminarInRubles { get; set; }
         public decimal? PriceAnnualFeeRubles { get; set; }
         public decimal? PriceBudoPassportRubles { get; set; }
         public decimal? Price5to2KyuCertificationInRubles { get; set; }
         public decimal? Price1KyuCertificationInRubles { get; set; }
         public decimal? PriceDanCertificationInRubles { get; set; }
+
+        public long[] CoachStatementIds { get; set; } = [];
+        public byte[]? Regulation { get; set; }
         public byte[]? FinalStatementFile { get; set; }
+
         public DateTime? CreationDate { get; set; }
         public long? CreatorId { get; set; }
 
@@ -89,7 +95,7 @@ namespace Aikido.Entities
             if (seminarNewData.CreationDate != null)
                 CreationDate = seminarNewData.CreationDate;
 
-            CreatorId = seminarNewData.CreatorId
+            CreatorId = seminarNewData.CreatorId;
         }
     }
 }

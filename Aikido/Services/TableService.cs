@@ -131,12 +131,124 @@ namespace Aikido.Services
             }
         }
 
-        private bool IsLoginDuplicate(string? login, List<string> existingLogins, List<UserEntity> usersToAdd)
+        public async Task<MemoryStream> CreateCoachStatement(
+            UserEntity coach,
+            List<UserEntity> members,
+            List<ClubEntity> clubs,
+            List<GroupEntity> groups,
+            SeminarEntity seminar)
         {
-            if (string.IsNullOrEmpty(login))
-                return false;
+            var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Ведомость");
 
-            return existingLogins.Contains(login) || usersToAdd.Any(u => u.Login == login);
+            // Верхняя часть: Информация о семинаре
+            worksheet.Range("A1:O1").Merge();
+            worksheet.Cell("A1").Value = seminar.Name;
+            worksheet.Cell("A1").Style.Font.Bold = true;
+            worksheet.Cell("A1").Style.Font.FontSize = 24;
+            worksheet.Cell("A1").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+
+            worksheet.Range("A2:O2").Merge();
+            worksheet.Cell("A2").Value = seminar.Date.ToString("dd-MM-yyyy");
+            worksheet.Cell("A2").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+            worksheet.Range("A3:O3").Merge();
+            worksheet.Cell("A3").Value = seminar.Location;
+            worksheet.Cell("A3").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+
+            var offset = 6; // Смещение таблицы вниз на 6 строк
+
+            // Заголовки объединённых ячеек
+            worksheet.Range(offset + 1, 2, offset + 1, 8).Merge().Value = "Данные участника";
+            worksheet.Range(offset + 1, 9, offset + 1, 10).Merge().Value = "Распределение";
+            worksheet.Range(offset + 1, 11, offset + 1, 14).Merge().Value = "Платёжная ведомость";
+            worksheet.Cell(offset + 1, 15).Value = "Примечания";
+
+            var darkBlue = XLColor.DarkBlue;
+            worksheet.Range(offset + 1, 2, offset + 1, 15).Style.Fill.BackgroundColor = darkBlue;
+            worksheet.Range(offset + 1, 2, offset + 1, 15).Style.Font.FontColor = XLColor.White;
+            worksheet.Range(offset + 1, 2, offset + 1, 15).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            worksheet.Range(offset + 1, 2, offset + 1, 15).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+            worksheet.Range(offset + 1, 2, offset + 1, 15).Style.Font.Bold = true;
+
+            // Подзаголовки
+            var headers = new[]
+            {
+                "№", "ID", "ФИО", "Степень кю/дан", "Aттестуется", "Тренер", "Клуб", "Город",
+                "Возрастная группа", "Программа",
+                "Годовой взнос", "Семинар", "Аттестация", "Паспорт",
+                ""
+            };
+
+            for (int i = 0; i < headers.Length; i++)
+            {
+                worksheet.Cell(offset + 2, i + 1).Value = headers[i];
+            }
+
+            var lightBlue = XLColor.LightBlue;
+            worksheet.Range(offset + 2, 1, offset + 2, 15).Style.Fill.BackgroundColor = lightBlue;
+            worksheet.Range(offset + 2, 1, offset + 2, 15).Style.Font.Bold = true;
+            worksheet.Range(offset + 2, 1, offset + 2, 15).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+            // Данные участников
+            var row = offset + 3;
+            foreach (var member in members)
+            {
+                var club = clubs.FirstOrDefault(c => c.Id == member.ClubId);
+                var group = groups.FirstOrDefault(g => g.Id == member.GroupId);
+
+                worksheet.Cell(row, 1).Value = row - (offset + 2);            // №
+                worksheet.Cell(row, 2).Value = member.Id;                     // ID (будет скрыт)
+                worksheet.Cell(row, 3).Value = member.FullName;
+                worksheet.Cell(row, 4).Value = EnumParser.GetEnumMemberValue(member.Grade);
+                // Аттестуется — пропущено (5)
+                worksheet.Cell(row, 6).Value = coach.FullName;
+                worksheet.Cell(row, 7).Value = club?.Name ?? "";
+                worksheet.Cell(row, 8).Value = member.City ?? "";
+                worksheet.Cell(row, 9).Value = EnumParser.GetEnumMemberValue(group.AgeGroup);
+                worksheet.Cell(row, 10).Value = EnumParser.GetEnumMemberValue(member.ProgramType);
+
+                // Финансовые поля пока нули
+                worksheet.Cell(row, 11).Value = 0;
+                worksheet.Cell(row, 12).Value = 0;
+                worksheet.Cell(row, 13).Value = 0;
+                worksheet.Cell(row, 14).Value = 0;
+
+                row++;
+            }
+
+            var totalsRow = row + 1;
+
+            // "Итого" в колонке "ФИО"
+            worksheet.Cell(totalsRow, 3).Value = "Итого";
+            worksheet.Cell(totalsRow, 3).Style.Font.Bold = true;
+            worksheet.Cell(totalsRow, 3).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+
+            // Суммы по платёжной ведомости (столбцы K, L, M, N = 11–14)
+            for (int col = 11; col <= 14; col++)
+            {
+                var colLetter = XLHelper.GetColumnLetterFromNumber(col);
+                worksheet.Cell(totalsRow, col).FormulaA1 = $"SUM({colLetter}{offset + 3}:{colLetter}{row - 1})";
+                worksheet.Cell(totalsRow, col).Style.Font.Bold = true;
+            }
+
+            // Итоговая сумма в "Примечаниях" (столбец O = 15)
+            worksheet.Cell(totalsRow, 15).FormulaA1 = $"SUM(K{totalsRow}:N{totalsRow})";
+            worksheet.Cell(totalsRow, 15).Style.Font.Bold = true;
+
+
+            // Скрытие ID
+            worksheet.Column(2).Hide();
+
+            worksheet.Columns().AdjustToContents();
+
+            var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
+            return stream;
         }
+
     }
 }

@@ -40,6 +40,15 @@ namespace Aikido.Services
             return userEntity;
         }
 
+        public async Task<List<UserEntity>> GetUsers(List<long> ids)
+        {
+            var users = await context.Users
+                .Where(user => ids.Contains(user.Id))
+                .ToListAsync();
+
+            return users;
+        }
+
         public async Task<long> CreateUser(UserDto userData)
         {
             await EnsureLoginIsUnique(userData.Login);
@@ -81,8 +90,6 @@ namespace Aikido.Services
             foreach (var userData in usersData)
             {
                 var userEntity = new UserEntity();
-
-
 
                 userEntity.UpdateFromJson(userData);
                 context.Users.Add(userEntity);
@@ -266,5 +273,7 @@ namespace Aikido.Services
 
             return query;
         }
+
+
     }
 }
