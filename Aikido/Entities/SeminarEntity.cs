@@ -50,6 +50,8 @@ namespace Aikido.Entities
             FinalStatementFile = Convert.FromBase64String(dto.FinalStatementFile);
             CreationDate = dto.CreationDate ?? null;
             CreatorId = dto.CreatorId ?? null;
+            Regulation = Convert.FromBase64String(dto.Regulation);
+            CoachStatementIds = [];
         }
 
         public void UpdateFromJson(SeminarDto seminarNewData)
