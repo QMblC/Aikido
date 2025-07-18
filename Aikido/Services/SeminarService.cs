@@ -111,5 +111,13 @@ namespace Aikido.Services
                 await CreateSeminarMember(member);
             }
         }
+        
+        public List<StatementEntity> GetSeminarCoachStatements(long seminarId)
+        {
+            var statements = context.Statements
+                .ToList();
+
+            return statements;
+        }
     }
 }

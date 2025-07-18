@@ -17,10 +17,14 @@ namespace Aikido.Dto
         public decimal? Price5to2KyuCertificationInRubles { get; set; }
         public decimal? Price1KyuCertificationInRubles { get; set; }
         public decimal? PriceDanCertificationInRubles { get; set; }
-        public string? FinalStatementFile { get; set; }
+        
         public DateTime? CreationDate { get; set; }
         public long? CreatorId { get; set; }
         public UserShortDto Creator { get; set; }
+        public string Regulation { get; set; }
+        public string[] CoachStatements { get; set; }
+        public string? FinalStatementFile { get; set; }
+
 
         public SeminarDto() { }
 
@@ -42,6 +46,10 @@ namespace Aikido.Dto
             FinalStatementFile = Convert.ToBase64String(entity.FinalStatementFile);
             CreationDate = entity.CreationDate;
             CreatorId = entity.CreatorId;
+            Regulation = Convert.ToBase64String(entity.Regulation);
+            //
         }
+
+
     }
 }

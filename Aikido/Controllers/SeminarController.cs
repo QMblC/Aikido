@@ -13,17 +13,20 @@ namespace Aikido.Controllers
         private readonly ClubService clubService;
         private readonly GroupService groupService;
         private readonly SeminarService seminarService;
+        private readonly TableService tableService;
 
         public SeminarController(
             UserService userService,
             ClubService clubService,
             GroupService groupService,
-            SeminarService seminarService)
+            SeminarService seminarService,
+            TableService tableService)
         {
             this.userService = userService;
             this.clubService = clubService;
             this.groupService = groupService;
             this.seminarService = seminarService;
+            this.tableService = tableService;
         }
 
         [HttpGet("get/{seminarId}")]
@@ -207,6 +210,62 @@ namespace Aikido.Controllers
         public async Task<IActionResult> GetSeminarMembersList(long seminarId)
         {
             return Ok(await seminarService.GetMembersBySeminarId(seminarId));
+        }
+
+        [HttpGet("get/statements/{seminarId}")]
+        public async Task<IActionResult> GetSeminarStatements(long seminarId)
+        {
+            var coachStatements = seminarService
+                .GetSeminarCoachStatements(seminarId)
+                .Select(statement => new StatementDto(statement))
+                .ToList();
+
+            var seminar = await seminarService.GetSeminar(seminarId);
+            var finalStatement = seminar.FinalStatementFile != null ? Convert.ToBase64String(seminar.FinalStatementFile) : null;
+
+            var result = new
+            {
+                coachStatements,
+                finalStatement
+            };
+
+            return Ok(result);
+        }
+
+        [HttpPost("statement/create")]
+        public async Task<IActionResult> CreateCoachStatement(
+            [FromQuery] long seminarId,
+            [FromQuery] long coachId)
+        {
+            var coach = await userService.GetUserById(coachId);
+            var seminar = await seminarService.GetSeminar(seminarId);
+
+            var coachStudentIds = await groupService.GetCoachStudentsIds(coachId);
+            var coachStudents = await userService.GetUsers(coachStudentIds);
+
+            var clubs = await Task.WhenAll(
+                coachStudents
+                    .Select(u => u.ClubId)
+                    .Where(id => id.HasValue)
+                    .Distinct()
+                    .Select(id => clubService.GetClubById(id.Value))
+            );
+
+            var groups = await Task.WhenAll(
+                coachStudents
+                    .Select(u => u.GroupId)
+                    .Where(id => id.HasValue)
+                    .Distinct()
+                    .Select(id => groupService.GetGroupById(id.Value))
+            );
+
+            var tableStream = await tableService.CreateCoachStatement(coach, coachStudents, clubs.ToList(), groups.ToList(), seminar);
+
+            return File(
+                fileContents: tableStream.ToArray(),
+                contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                fileDownloadName: "Ведомость.xlsx"
+            );
         }
 
     }

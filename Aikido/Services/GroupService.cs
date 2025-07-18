@@ -136,5 +136,19 @@ namespace Aikido.Services
 
             await SaveDb();
         }
+
+        public async Task<List<long>> GetCoachStudentsIds(long coachId)
+        {
+            var coachGroups = await context.Groups
+                .Where(group => group.CoachId == coachId)
+                .ToListAsync();
+
+            var userIds = coachGroups
+                .SelectMany(group => group.UserIds ?? new List<long>())
+                .Distinct()
+                .ToList();
+
+            return userIds;
+        }
     }
 }
