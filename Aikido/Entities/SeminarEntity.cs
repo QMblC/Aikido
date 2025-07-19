@@ -22,7 +22,7 @@ namespace Aikido.Entities
         public decimal? Price1KyuCertificationInRubles { get; set; }
         public decimal? PriceDanCertificationInRubles { get; set; }
 
-        public long[] CoachStatementIds { get; set; } = [];
+        public long[]? CoachStatementIds { get; set; } = [];
         public byte[]? Regulation { get; set; }
         public byte[]? FinalStatementFile { get; set; }
 
@@ -36,7 +36,10 @@ namespace Aikido.Entities
             ArgumentNullException.ThrowIfNull(dto);
 
             Name = dto.Name;
-            Date = dto.Date ?? DateTime.MinValue;
+
+            if (dto.Date.HasValue)
+                Date = DateTime.SpecifyKind(dto.Date.Value, DateTimeKind.Utc);
+
             Location = dto.Location ?? "";
             Schedule = dto.Schedule ?? [];
             Contacts = dto.Contacts ?? [];
@@ -47,10 +50,13 @@ namespace Aikido.Entities
             Price5to2KyuCertificationInRubles = dto.Price5to2KyuCertificationInRubles ?? 0;
             Price1KyuCertificationInRubles = dto.Price1KyuCertificationInRubles ?? 0;
             PriceDanCertificationInRubles = dto.PriceDanCertificationInRubles ?? 0;
-            FinalStatementFile = Convert.FromBase64String(dto.FinalStatementFile);
-            CreationDate = dto.CreationDate ?? null;
+            FinalStatementFile = dto.FinalStatementFile != null ? Convert.FromBase64String(dto.FinalStatementFile) : null;
+
+            if (dto.CreationDate.HasValue)
+                CreationDate = DateTime.SpecifyKind(dto.CreationDate.Value, DateTimeKind.Utc);
+
             CreatorId = dto.CreatorId ?? null;
-            Regulation = Convert.FromBase64String(dto.Regulation);
+            Regulation = dto.Regulation != null ? Convert.FromBase64String(dto.Regulation) : null;
             CoachStatementIds = [];
         }
 

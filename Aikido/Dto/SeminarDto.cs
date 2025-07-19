@@ -20,9 +20,9 @@ namespace Aikido.Dto
         
         public DateTime? CreationDate { get; set; }
         public long? CreatorId { get; set; }
-        public UserShortDto Creator { get; set; }
-        public string Regulation { get; set; }
-        public string[] CoachStatements { get; set; }
+        public UserShortDto? Creator { get; set; }
+        public string? Regulation { get; set; }
+        public string[]? CoachStatements { get; set; }
         public string? FinalStatementFile { get; set; }
 
 

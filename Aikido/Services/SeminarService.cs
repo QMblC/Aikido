@@ -3,6 +3,7 @@ using Aikido.Dto;
 using Aikido.Entities;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace Aikido.Services
 {
@@ -114,10 +115,73 @@ namespace Aikido.Services
         
         public List<StatementEntity> GetSeminarCoachStatements(long seminarId)
         {
-            var statements = context.Statements
+            var statement = context.Statements
+                .Where(statement => statement.SeminarId == seminarId)
                 .ToList();
 
-            return statements;
+            return statement;
         }
+
+        public bool Contains(long seminarId, long coachId)
+        {
+            return context.Statements
+                .Where(statement => statement.SeminarId == seminarId
+                && statement.CoachId == coachId)
+                .FirstOrDefault() != null;
+        }
+
+        public async Task<StatementEntity> GetCoachStatement(long seminarId, long coachId)
+        {
+            var statement =  await context.Statements
+                .Where(statement => statement.SeminarId == seminarId
+                && statement.CoachId == coachId)
+                .FirstOrDefaultAsync();
+
+            if (statement == null)
+                throw new NotImplementedException("Значение ведомости не найдено в базе данных");
+
+            return statement;
+        }
+
+        public async Task CreateSeminarCoachStatement(
+            SeminarEntity seminar,
+            UserEntity coach,
+            MemoryStream table)
+        {
+            var statement = new StatementEntity(seminar, coach, table);
+
+            context.Add(statement);
+
+            await SaveDb();
+        }
+
+        public async Task DeleteSeminarCoachStatement(long seminarId, long coachId)
+        {
+            var statement = await context.Statements
+                .Where(statement => statement.SeminarId == seminarId
+                && statement.CoachId== coachId)
+                .FirstOrDefaultAsync();
+
+            context.Statements.Remove(statement);
+
+            await SaveDb();
+        }
+
+        public async Task UpdateSeminarCoachStatement(
+            long seminarId,
+            long coachId, 
+            byte[] table)
+        {
+            var statement = await context.Statements
+                .Where(statement => statement.SeminarId == seminarId
+                && statement.CoachId == coachId)
+                .FirstOrDefaultAsync();
+
+            statement.UpdateStatement(table);
+
+            await SaveDb();
+        }
+
+
     }
 }
