@@ -237,8 +237,24 @@ namespace Aikido.Controllers
             [FromQuery] long seminarId,
             [FromQuery] long coachId)
         {
+            byte[] fileBytes;
+
             var coach = await userService.GetUserById(coachId);
             var seminar = await seminarService.GetSeminar(seminarId);
+
+            if (seminarService.Contains(seminarId, coachId))
+            {
+                var statement = await seminarService.GetCoachStatement(seminarId, coachId);
+
+                fileBytes = statement.StatementFile.ToArray();
+
+                return File(
+                    fileContents: fileBytes,
+                    contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    fileDownloadName: $"{coach.FullName.Split(" ")[0]} ведомость " +
+                    $"семинара {seminar.Date.Day}.{seminar.Date.Month}.{seminar.Date.Year}.xlsx"
+                );
+            }
 
             var coachStudentIds = await groupService.GetCoachStudentsIds(coachId);
             var coachStudents = await userService.GetUsers(coachStudentIds);
@@ -261,13 +277,58 @@ namespace Aikido.Controllers
 
             var tableStream = await tableService.CreateCoachStatement(coach, coachStudents, clubs.ToList(), groups.ToList(), seminar);
 
-            return File(
+            fileBytes = tableStream.ToArray();
+
+            var file = File(
                 fileContents: tableStream.ToArray(),
                 contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 fileDownloadName: $"{coach.FullName.Split(" ")[0]} ведомость " +
                 $"семинара {seminar.Date.Day}.{seminar.Date.Month}.{seminar.Date.Year}.xlsx"
             );
+
+            return file;
         }
 
+        [HttpDelete("statement/delete")]
+        public async Task<IActionResult> DeleteCoachStatement([FromQuery] long seminarId, [FromQuery] long coachId)
+        {
+            try
+            {
+                await seminarService.DeleteSeminarCoachStatement(seminarId, coachId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpPut("statement/update")]
+        public async Task<IActionResult> UpdateCoachStatement(
+            [FromQuery] long seminarId,
+            [FromQuery] long coachId,
+            [FromForm] IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("Файл не передан или пуст.");
+
+            byte[] table;
+            using (var memoryStream = new MemoryStream())
+            {
+                await file.CopyToAsync(memoryStream);
+                table = memoryStream.ToArray();
+            }
+
+
+            try
+            {
+                await seminarService.UpdateSeminarCoachStatement(seminarId, coachId, table);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
 }
