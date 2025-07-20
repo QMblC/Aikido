@@ -108,7 +108,7 @@ namespace Aikido.Controllers
             return Ok(result);
         }
 
-        [HttpGet("get/data/{groupId}/")]
+        [HttpGet("get/data/{groupId}")]
         public async Task<IActionResult> GetData(long groupId, [FromQuery] string month)
         {
             var group = await groupService.GetGroupById(groupId);
