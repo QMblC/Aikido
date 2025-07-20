@@ -43,10 +43,10 @@ namespace Aikido.Dto
             Price5to2KyuCertificationInRubles = entity.Price5to2KyuCertificationInRubles;
             Price1KyuCertificationInRubles = entity.Price1KyuCertificationInRubles;
             PriceDanCertificationInRubles = entity.PriceDanCertificationInRubles;
-            FinalStatementFile = Convert.ToBase64String(entity.FinalStatementFile);
+            FinalStatementFile = entity.FinalStatementFile != null ? Convert.ToBase64String(entity.FinalStatementFile) : null;
             CreationDate = entity.CreationDate;
             CreatorId = entity.CreatorId;
-            Regulation = Convert.ToBase64String(entity.Regulation);
+            Regulation = entity.Regulation != null ? Convert.ToBase64String(entity.Regulation) : null;
             CoachStatements = [];
             //
         }

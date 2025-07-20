@@ -39,7 +39,7 @@ namespace Aikido.Controllers
 
                 if (seminarDto.CreatorId != null)
                 {
-                    var creator = await userService.GetUserById(seminarId);
+                    var creator = await userService.GetUserById(seminarDto.CreatorId.Value);
                     seminarDto.Creator = new UserShortDto(creator);
                 }       
 
