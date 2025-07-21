@@ -372,13 +372,13 @@ namespace Aikido.Services
                 worksheet.Cell(row, 1).Value = row - (offset + 2);        // №
                 worksheet.Cell(row, 2).Value = member.Id;                 // ID
                 worksheet.Cell(row, 3).Value = member.Name;
-                worksheet.Cell(row, 4).Value = member.Grade;
-                worksheet.Cell(row, 5).Value = member.CertificationGrade;
+                worksheet.Cell(row, 4).Value = EnumParser.GetEnumMemberValue(EnumParser.ConvertStringToEnum<Grade>(member.Grade));
+                worksheet.Cell(row, 5).Value = EnumParser.GetEnumMemberValue(EnumParser.ConvertStringToEnum<Grade>(member.CertificationGrade));
                 worksheet.Cell(row, 6).Value = member.CoachName;
                 worksheet.Cell(row, 7).Value = member.ClubName;
                 worksheet.Cell(row, 8).Value = member.City;
-                worksheet.Cell(row, 9).Value = member.AgeGroup;
-                worksheet.Cell(row, 10).Value = member.ProgramType;
+                worksheet.Cell(row, 9).Value = EnumParser.GetEnumMemberValue(EnumParser.ConvertStringToEnum<AgeGroup>(member.AgeGroup));
+                worksheet.Cell(row, 10).Value = EnumParser.GetEnumMemberValue(EnumParser.ConvertStringToEnum<ProgramType>(member.ProgramType));
 
                 worksheet.Cell(row, 11).Value = member.AnnualPrice ?? 0;
                 worksheet.Cell(row, 12).Value = member.SeminarPrice ?? 0;
