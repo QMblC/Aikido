@@ -5,6 +5,7 @@ using Aikido.Entities;
 using Aikido.Entities.Filters;
 using Aikido.Requests;
 using Aikido.Services;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -83,6 +84,52 @@ namespace Aikido.Controllers
             }
         }
 
+        [HttpGet("find")]
+        public async Task<IActionResult> FindUsers([FromQuery] UserFilter filter)
+        {
+            try
+            {
+                var result = await userService.GetUserListAlphabetAscending(0, 100, filter);
+                var shortUsers = result.Users
+                    .Select(user => new UserShortDto(){ Id = user.Id.Value, Name = user.Name })
+                    .ToList();
+
+                return Ok(shortUsers);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet("get/user/seminar-data/{userId}")]
+        public async Task<IActionResult> GetUserSeminarData(long userId)
+        {
+            try
+            {
+                var user = await userService.GetUserById(userId);
+                ClubEntity club = null;
+                GroupEntity group = null;
+
+                if(user.ClubId == null && user.GroupId == null)
+                {
+                    return StatusCode(500, "Недостаточно информации о клубе или группе");
+                }
+
+                club = await clubService.GetClubById(user.ClubId.Value);
+                group = await groupService.GetGroupById(user.GroupId.Value);
+                var coach = await userService.GetUserById(group.CoachId.Value);
+                return Ok(new CoachStatementMemberDto(user,club,group,coach));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+
+            throw new NotImplementedException();
+        }
+
+
         [HttpGet("get/short-list-cut-data/{startIndex}/{finishIndex}")]
         public async Task<IActionResult> GetUserShortListCutData(
             int startIndex,
@@ -120,7 +167,6 @@ namespace Aikido.Controllers
                 return StatusCode(500, $"Ошибка при получении списка пользователей. {ex.Message}");
             }
         }
-
 
         [HttpGet("get/table")]
         public async Task<IActionResult> ExportUsers()
