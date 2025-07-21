@@ -295,13 +295,13 @@ namespace Aikido.Services
                 {
                     Id = id,
                     Name = worksheet.Cell(startRow, 3).GetValue<string>(),
-                    Grade = worksheet.Cell(startRow, 4).GetValue<string>(),
-                    CertificationGrade = worksheet.Cell(startRow, 5).GetValue<string>(),
+                    Grade = EnumParser.GetEnumMemberValue<Grade>(worksheet.Cell(startRow, 4).GetValue<string>()).ToString(),
+                    CertificationGrade = EnumParser.GetEnumMemberValue<Grade>(worksheet.Cell(startRow, 5).GetValue<string>()).ToString(),
                     CoachName = worksheet.Cell(startRow, 6).GetValue<string>(),
                     ClubName = worksheet.Cell(startRow, 7).GetValue<string>(),
                     City = worksheet.Cell(startRow, 8).GetValue<string>(),
-                    AgeGroup = worksheet.Cell(startRow, 9).GetValue<string>(),
-                    ProgramType = worksheet.Cell(startRow, 10).GetValue<string>(),
+                    AgeGroup = EnumParser.GetEnumMemberValue<AgeGroup>(worksheet.Cell(startRow, 9).GetValue<string>()).ToString(),
+                    ProgramType = EnumParser.GetEnumMemberValue<ProgramType>(worksheet.Cell(startRow, 10).GetValue<string>()).ToString(),
                 };
 
                 var annual = worksheet.Cell(startRow, 11).GetValue<string>();

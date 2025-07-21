@@ -50,7 +50,7 @@ namespace Aikido.Entities
             Price5to2KyuCertificationInRubles = dto.Price5to2KyuCertificationInRubles ?? 0;
             Price1KyuCertificationInRubles = dto.Price1KyuCertificationInRubles ?? 0;
             PriceDanCertificationInRubles = dto.PriceDanCertificationInRubles ?? 0;
-            FinalStatementFile = dto.FinalStatementFile != null ? Convert.FromBase64String(dto.FinalStatementFile) : null;
+            //FinalStatementFile = dto.FinalStatementFile != null ? Convert.FromBase64String(dto.FinalStatementFile) : null;
 
             if (dto.CreationDate.HasValue)
                 CreationDate = DateTime.SpecifyKind(dto.CreationDate.Value, DateTimeKind.Utc);
@@ -98,8 +98,8 @@ namespace Aikido.Entities
             if (seminarNewData.PriceDanCertificationInRubles.HasValue)
                 PriceDanCertificationInRubles = seminarNewData.PriceDanCertificationInRubles.Value;
 
-            if (seminarNewData.FinalStatementFile != null)
-                FinalStatementFile = Convert.FromBase64String(seminarNewData.FinalStatementFile);
+            //if (seminarNewData.FinalStatementFile != null)
+            //    FinalStatementFile = Convert.FromBase64String(seminarNewData.FinalStatementFile);
 
             if (seminarNewData.CreationDate != null)
                 CreationDate = seminarNewData.CreationDate;

@@ -1,4 +1,5 @@
 ﻿using Aikido.Dto;
+using Aikido.Entities;
 using Aikido.Requests;
 using Aikido.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -217,6 +218,7 @@ namespace Aikido.Controllers
         {
             var coachStatements = seminarService
                 .GetSeminarCoachStatements(seminarId)
+                .Result
                 .Select(statement => new StatementDto(statement))
                 .ToList();
 
@@ -307,7 +309,16 @@ namespace Aikido.Controllers
 
             try
             {
-                await seminarService.CreateSeminarCoachStatement(seminarId, coachId, table);
+                if (seminarService.Contains(seminarId, coachId))
+                {
+                    await seminarService.UpdateSeminarCoachStatement(seminarId, coachId, table);
+                }
+                else
+                {
+                    await seminarService.CreateSeminarCoachStatement(seminarId, coachId, table);
+                }
+
+                    
                 return Ok();
             }
             catch (Exception ex)
@@ -440,6 +451,43 @@ namespace Aikido.Controllers
             {
                 return StatusCode(500, ex.Message);
             }
+
+            throw new NotImplementedException();
+        }
+
+        [HttpGet("get/final-statement/{seminarId}")]
+        public async Task<IActionResult> GetFinalStatement(long seminarId)
+        {
+            SeminarEntity seminar;
+
+            try
+            {
+                seminar = await seminarService.GetSeminar(seminarId);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+
+            if (seminar.FinalStatementFile != null)
+            {
+                return Ok(seminar.FinalStatementFile);
+            }
+
+            var statements = await seminarService.GetSeminarCoachStatements(seminarId);
+            var members = new List<CoachStatementMemberDto>();
+
+            foreach (var statement in statements)
+            {
+                var currentMembers = tableService.ParseCoachStatement(statement.StatementFile);
+                members.AddRange(currentMembers);
+            }
+
+            members = members
+                .Distinct()
+                .ToList();
+
+            return Ok(members);
 
             throw new NotImplementedException();
         }
