@@ -144,11 +144,11 @@ namespace Aikido.Services
         }
 
         public async Task CreateSeminarCoachStatement(
-            SeminarEntity seminar,
-            UserEntity coach,
-            MemoryStream table)
+            long seminarId,
+            long coachId,
+            byte[] table)
         {
-            var statement = new StatementEntity(seminar, coach, table);
+            var statement = new StatementEntity(seminarId, coachId, table);
 
             context.Add(statement);
 

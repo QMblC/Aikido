@@ -33,11 +33,11 @@ namespace Aikido.Entities
             }
         }
 
-        public StatementEntity(SeminarEntity seminar, UserEntity coach, MemoryStream table)
+        public StatementEntity(long seminarId, long coachId, byte[] table)
         {
-            SeminarId = seminar.Id;
-            CoachId = coach.Id;
-            StatementFile = table.ToArray();
+            SeminarId = seminarId;
+            CoachId = coachId;
+            StatementFile = table;
         }
 
         public void UpdateStatement(byte[] table)

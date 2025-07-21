@@ -78,6 +78,7 @@ namespace Aikido.Entities
                 Contacts = seminarNewData.Contacts;
 
             if (seminarNewData.Description != null)
+                Description = seminarNewData.Description;
 
             if (seminarNewData.PriceSeminarInRubles.HasValue)
                 PriceSeminarInRubles = seminarNewData.PriceSeminarInRubles.Value;
@@ -104,6 +105,9 @@ namespace Aikido.Entities
                 CreationDate = seminarNewData.CreationDate;
 
             CreatorId = seminarNewData.CreatorId;
+
+
+            Regulation = seminarNewData.Regulation != null ? Convert.FromBase64String(seminarNewData.Regulation) : null;
         }
     }
 }
