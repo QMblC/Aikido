@@ -113,13 +113,13 @@ namespace Aikido.Services
             }
         }
         
-        public List<StatementEntity> GetSeminarCoachStatements(long seminarId)
+        public async Task<List<StatementEntity>> GetSeminarCoachStatements(long seminarId)
         {
-            var statement = context.Statements
+            var statements = await context.Statements
                 .Where(statement => statement.SeminarId == seminarId)
-                .ToList();
+                .ToListAsync();
 
-            return statement;
+            return statements;
         }
 
         public bool Contains(long seminarId, long coachId)

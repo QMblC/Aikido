@@ -272,7 +272,5 @@ namespace Aikido.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
-
-
     }
 }

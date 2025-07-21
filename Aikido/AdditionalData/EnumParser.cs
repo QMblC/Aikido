@@ -44,4 +44,22 @@ public static class EnumParser
         var attr = field.GetCustomAttribute<EnumMemberAttribute>();
         return attr?.Value;
     }
+
+    public static T? GetEnumMemberValue<T>(string enumValue) where T : Enum
+    {
+        var type = typeof(T);
+        if (enumValue == null || enumValue == "")
+            enumValue = "None";
+
+        foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.Static))
+        {
+            var attr = field.GetCustomAttribute<EnumMemberAttribute>();
+            if (attr?.Value == enumValue)
+                return (T)field.GetValue(null)!;
+
+            if (field.Name == enumValue)
+                return (T)field.GetValue(null)!;
+        }
+        throw new NotImplementedException($"Не найден такой enum {enumValue}");
+    }
 }
