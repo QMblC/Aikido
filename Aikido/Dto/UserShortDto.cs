@@ -10,11 +10,15 @@ namespace Aikido.Dto
 
         public UserShortDto() { }
 
-        public UserShortDto(UserEntity userEntity)
+        public UserShortDto(UserEntity userEntity, bool addPhoto = true)
         {
             Id = userEntity.Id;
             Name = userEntity.FullName;
-            Photo = Convert.ToBase64String(userEntity.Photo);
+            if (addPhoto)
+            {
+                Photo = Convert.ToBase64String(userEntity.Photo);
+            }
+            
         }
     }
 }

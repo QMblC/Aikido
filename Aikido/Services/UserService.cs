@@ -22,7 +22,7 @@ namespace Aikido.Services
             try
             {
                 return await context.Users
-                    .Select(u => new UserShortDto(u))
+                    .Select(u => new UserShortDto(u, true))
                     .ToListAsync();
             }
             catch (Exception ex)
