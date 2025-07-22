@@ -148,11 +148,13 @@ namespace Aikido.Controllers
 
             var seminar = await seminarService.GetSeminar(seminarId);
             var finalStatement = seminar.FinalStatementFile != null ? Convert.ToBase64String(seminar.FinalStatementFile) : null;
+            var isFinalStatementApplied = seminar.IsFinalStatementApplied;
 
             var result = new
             {
                 coachStatements,
-                finalStatement
+                finalStatement,
+                isFinalStatementApplied
             };
 
             return Ok(result);
@@ -554,6 +556,7 @@ namespace Aikido.Controllers
             {
                 var seminar = await seminarService.GetSeminar(seminarId);
 
+
                 var members = tableService.ParseStatement(seminar.FinalStatementFile);
 
                 foreach (var member in members)
@@ -561,6 +564,8 @@ namespace Aikido.Controllers
                     await paymentService.CreatePayment(member, seminar);
                     await userService.ApplySeminarResults(member, seminar);
                 }
+
+                await seminarService.UpdateAppliement(seminarId, true);
 
                 return Ok();
             }
@@ -583,6 +588,8 @@ namespace Aikido.Controllers
                     await paymentService.DeletePayment(member, seminar);
                     await userService.DiscardSeminarResult(member, seminar);
                 }
+
+                await seminarService.UpdateAppliement(seminarId, false);
 
                 return Ok();
             }

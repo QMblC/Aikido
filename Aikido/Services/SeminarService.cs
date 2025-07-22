@@ -201,5 +201,14 @@ namespace Aikido.Services
 
             await SaveDb();
         }
+
+        public async Task UpdateAppliement(long seminarId, bool value)
+        {
+            var seminar = await GetSeminar(seminarId);
+
+            seminar.IsFinalStatementApplied = value;
+
+            await SaveDb();
+        }
     }
 }
