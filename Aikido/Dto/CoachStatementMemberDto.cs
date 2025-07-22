@@ -1,4 +1,5 @@
 ﻿using Aikido.Entities;
+using Aikido.Services;
 
 namespace Aikido.Dto
 {
@@ -6,24 +7,29 @@ namespace Aikido.Dto
     {
         public long? Id { get; set; }
         public string? Name { get; set; }
+
         public string? Grade { get; set; }
         public string? CertificationGrade { get; set; }
+
         public string? CoachName { get; set; }
         public string? ClubName { get; set; }
         public string? City { get; set; }
-        public string? AgeGroup { get; set; }
+        public string? SeminarGroup { get; set; }
         public string? ProgramType { get; set; }
-        public decimal? AnnualPrice { get; set; }
+
+        public decimal? AnnualFee { get; set; }
         public decimal? SeminarPrice { get; set; }
         public decimal? CertificationPrice { get; set; }
         public decimal? BudoPassportPrice { get; set; }
+
+        public bool IsBudoPassportPayed { get; set; }
+        public bool IsAnnualFeePayed { get; set; }
 
         public CoachStatementMemberDto() { }
 
         public CoachStatementMemberDto(
             UserEntity user,
             ClubEntity club,
-            GroupEntity group,
             UserEntity coach)
         {
             Id = user.Id;
@@ -33,8 +39,27 @@ namespace Aikido.Dto
             CertificationGrade = null;
             ClubName = club.Name;
             City = club.City;
-            AgeGroup = EnumParser.ConvertEnumToString(group.AgeGroup);
+            SeminarGroup = "";
             ProgramType = EnumParser.ConvertEnumToString(user.ProgramType);
+            IsBudoPassportPayed = user.HasBudoPassport;
+        }
+
+        public CoachStatementMemberDto(
+            UserEntity user,
+            ClubEntity club,
+            SeminarEntity seminar,
+            UserEntity coach)
+        {
+            Id = user.Id;
+            Name = user.FullName;
+            Grade = EnumParser.ConvertEnumToString(user.Grade);
+            CoachName = coach.FullName;
+            CertificationGrade = null;
+            ClubName = club.Name;
+            City = club.City;
+            SeminarGroup = seminar.Groups[0];
+            ProgramType = EnumParser.ConvertEnumToString(user.ProgramType);
+            IsBudoPassportPayed = user.HasBudoPassport;
         }
 
         public void AddPrices(
@@ -43,7 +68,7 @@ namespace Aikido.Dto
             decimal? certificationPrice,
             decimal? budoPassportPrice)
         {
-            AnnualPrice = annualPrice;
+            AnnualFee = annualPrice;
             SeminarPrice = seminarPrice;
             CertificationPrice = certificationPrice;
             BudoPassportPrice = budoPassportPrice;

@@ -185,6 +185,39 @@ namespace Aikido.Services
             await SaveDb();
         }
 
+        public async Task ApplySeminarResults(CoachStatementMemberDto seminarMember, SeminarEntity seminar)
+        {
+            var user = await GetUserById(seminarMember.Id.Value);
+
+            var newGrade = EnumParser.ConvertStringToEnum<Grade>(seminarMember.CertificationGrade);
+
+            if (newGrade != Grade.None)
+            {
+                user.Grade = newGrade;
+                user.CertificationDates.Add(seminar.Date);
+                if (!seminarMember.CertificationGrade.Contains("Child"))
+                {
+                    user.ProgramType = ProgramType.Adult;
+                }
+            }
+
+            await SaveDb();
+        }
+
+        public async Task DiscardSeminarResult(CoachStatementMemberDto seminarMember, SeminarEntity seminar)
+        {
+            var user = await GetUserById(seminarMember.Id.Value);
+
+            user.Grade = EnumParser.ConvertStringToEnum<Grade>(seminarMember.Grade);
+            user.CertificationDates.Remove(seminar.Date);
+            if (seminarMember.Grade.Contains("Child"))
+            {
+                user.ProgramType = ProgramType.Child;
+            }
+
+            await SaveDb();
+        }
+
         public async Task<List<UserEntity>> GetClubMembers(long clubId)
         {
             return await context.Users

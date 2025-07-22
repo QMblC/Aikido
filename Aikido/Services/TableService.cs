@@ -134,7 +134,7 @@ namespace Aikido.Services
             }
         }
 
-        public async Task<MemoryStream> CreateCoachStatement(
+        public async Task<MemoryStream> CreateStatement(
             UserEntity coach,
             List<UserEntity> members,
             List<ClubEntity> clubs,
@@ -151,7 +151,7 @@ namespace Aikido.Services
 
             AddTableHeaders(worksheet, offset);
 
-            var totalsRow = AddMembersData(worksheet, offset, members, coach, clubs, groups);
+            var totalsRow = AddMembersData(worksheet, offset, members, coach, clubs, groups, seminar);
             var row = totalsRow - 1;
 
             // "Итого" в колонке "ФИО"
@@ -221,7 +221,7 @@ namespace Aikido.Services
             var headers = new[]
             {
                 "№", "ID", "ФИО", "Степень кю/дан", "Аттестуется", "Тренер", "Клуб", "Город",
-                "Возрастная группа", "Программа",
+                "Группа семинара", "Программа",
                 "Годовой взнос", "Семинар", "Аттестация", "Паспорт",
                 ""
             };
@@ -242,31 +242,32 @@ namespace Aikido.Services
             List<UserEntity> members,
             UserEntity coach,
             List<ClubEntity> clubs,
-            List<GroupEntity> groups)
+            List<GroupEntity> groups,
+            SeminarEntity seminar)
         {
             // Данные участников
+
             var row = offset + 3;
             foreach (var member in members)
             {
                 var club = clubs.FirstOrDefault(c => c.Id == member.ClubId);
                 var group = groups.FirstOrDefault(g => g.Id == member.GroupId);
 
-                worksheet.Cell(row, 1).Value = row - (offset + 2);            // №
-                worksheet.Cell(row, 2).Value = member.Id;                     // ID (будет скрыт)
+                worksheet.Cell(row, 1).Value = row - (offset + 2);            
+                worksheet.Cell(row, 2).Value = member.Id;                     
                 worksheet.Cell(row, 3).Value = member.FullName;
                 worksheet.Cell(row, 4).Value = EnumParser.GetEnumMemberValue(member.Grade);
-                // Аттестуется — пропущено (5)
+
                 worksheet.Cell(row, 6).Value = coach.FullName;
                 worksheet.Cell(row, 7).Value = club?.Name ?? "";
                 worksheet.Cell(row, 8).Value = member.City ?? "";
-                worksheet.Cell(row, 9).Value = EnumParser.GetEnumMemberValue(group.AgeGroup);
+                worksheet.Cell(row, 9).Value = seminar.Groups[0];
                 worksheet.Cell(row, 10).Value = EnumParser.GetEnumMemberValue(member.ProgramType);
 
-                // Финансовые поля пока нули
                 worksheet.Cell(row, 11).Value = 0;
-                worksheet.Cell(row, 12).Value = 0;
-                worksheet.Cell(row, 13).Value = 0;
-                worksheet.Cell(row, 14).Value = 0;
+                worksheet.Cell(row, 12).Value = seminar.PriceSeminarInRubles;
+                worksheet.Cell(row, 13).Value = 0; //
+                worksheet.Cell(row, 14).Value = member.HasBudoPassport? 0 : seminar.PriceBudoPassportRubles;
 
                 row++;
             }
@@ -274,7 +275,7 @@ namespace Aikido.Services
             return row + 1;
         }
 
-        public List<CoachStatementMemberDto> ParseCoachStatement(byte[] table)
+        public List<CoachStatementMemberDto> ParseStatement(byte[] table)
         {
             var result = new List<CoachStatementMemberDto>();
 
@@ -300,7 +301,7 @@ namespace Aikido.Services
                     CoachName = worksheet.Cell(startRow, 6).GetValue<string>(),
                     ClubName = worksheet.Cell(startRow, 7).GetValue<string>(),
                     City = worksheet.Cell(startRow, 8).GetValue<string>(),
-                    AgeGroup = EnumParser.GetEnumMemberValue<AgeGroup>(worksheet.Cell(startRow, 9).GetValue<string>()).ToString(),
+                    SeminarGroup = worksheet.Cell(startRow, 9).GetValue<string>(),
                     ProgramType = EnumParser.GetEnumMemberValue<ProgramType>(worksheet.Cell(startRow, 10).GetValue<string>()).ToString(),
                 };
 
@@ -369,18 +370,21 @@ namespace Aikido.Services
             var row = offset + 3;
             foreach (var member in members)
             {
-                worksheet.Cell(row, 1).Value = row - (offset + 2);        // №
-                worksheet.Cell(row, 2).Value = member.Id;                 // ID
+                var grade = EnumParser.ConvertStringToEnum<Grade>(member.Grade);
+                var certificationGrade = EnumParser.ConvertStringToEnum<Grade>(member.CertificationGrade);
+
+                worksheet.Cell(row, 1).Value = row - (offset + 2);
+                worksheet.Cell(row, 2).Value = member.Id;
                 worksheet.Cell(row, 3).Value = member.Name;
-                worksheet.Cell(row, 4).Value = EnumParser.GetEnumMemberValue(EnumParser.ConvertStringToEnum<Grade>(member.Grade));
-                worksheet.Cell(row, 5).Value = EnumParser.GetEnumMemberValue(EnumParser.ConvertStringToEnum<Grade>(member.CertificationGrade));
+                worksheet.Cell(row, 4).Value = EnumParser.GetEnumMemberValue(grade);
+                worksheet.Cell(row, 5).Value = certificationGrade == Grade.None ? "" : EnumParser.GetEnumMemberValue(certificationGrade);
                 worksheet.Cell(row, 6).Value = member.CoachName;
                 worksheet.Cell(row, 7).Value = member.ClubName;
                 worksheet.Cell(row, 8).Value = member.City;
-                worksheet.Cell(row, 9).Value = EnumParser.GetEnumMemberValue(EnumParser.ConvertStringToEnum<AgeGroup>(member.AgeGroup));
+                worksheet.Cell(row, 9).Value = member.SeminarGroup;
                 worksheet.Cell(row, 10).Value = EnumParser.GetEnumMemberValue(EnumParser.ConvertStringToEnum<ProgramType>(member.ProgramType));
 
-                worksheet.Cell(row, 11).Value = member.AnnualPrice ?? 0;
+                worksheet.Cell(row, 11).Value = member.AnnualFee ?? 0;
                 worksheet.Cell(row, 12).Value = member.SeminarPrice ?? 0;
                 worksheet.Cell(row, 13).Value = member.CertificationPrice ?? 0;
                 worksheet.Cell(row, 14).Value = member.BudoPassportPrice ?? 0;

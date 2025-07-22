@@ -182,6 +182,22 @@ namespace Aikido.Services
             await SaveDb();
         }
 
+        public async Task CreateFinalStatement(long seminarId, byte[] table)
+        {
+            var seminar = await GetSeminar(seminarId);
 
+            seminar.FinalStatementFile = table;
+
+            await SaveDb();
+        }
+
+        public async Task DeleteFinalStatement(long seminarId)
+        {
+            var seminar = await GetSeminar(seminarId);
+
+            seminar.FinalStatementFile = null;
+
+            await SaveDb();
+        }
     }
 }

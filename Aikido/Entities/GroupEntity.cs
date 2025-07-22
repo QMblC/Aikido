@@ -64,10 +64,7 @@ namespace Aikido.Entities
             {
                 CoachId = null;
             }
-            if (UserIds.Contains(userId))
-            {
-                UserIds.Remove(userId);
-            }
+            UserIds.Remove(userId);
         }
     }
 }

@@ -13,6 +13,18 @@ namespace Aikido.Dto
 
         public PaymentDto() { }
 
+        public PaymentDto(
+            long? userId,
+            DateTime? date,
+            PaymentType type,
+            long? amount)
+        {
+            UserId = userId;
+            Date = date;
+            Type = EnumParser.ConvertEnumToString(type);
+            Amount = amount;
+        }
+
         public PaymentDto(PaymentEntity paymentEntity)
         {
             Id = paymentEntity.Id;

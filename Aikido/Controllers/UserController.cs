@@ -119,7 +119,7 @@ namespace Aikido.Controllers
                 club = await clubService.GetClubById(user.ClubId.Value);
                 group = await groupService.GetGroupById(user.GroupId.Value);
                 var coach = await userService.GetUserById(group.CoachId.Value);
-                return Ok(new CoachStatementMemberDto(user,club,group,coach));
+                return Ok(new CoachStatementMemberDto(user,club,coach));
             }
             catch (Exception ex)
             {
@@ -284,13 +284,21 @@ namespace Aikido.Controllers
                     userData.City = club.City;
                 }
 
-                await userService.UpdateUser(id, userData);
+                var user = await userService.GetUserById(id);
+                var userOldGroupId = user.GroupId;
 
+                
+
+                await userService.UpdateUser(id, userData);
+                if (userOldGroupId != null)
+                {
+                    await groupService.DeleteUserFromGroup(userOldGroupId.Value, id);
+                }
                 if (userData.GroupId != null)
                 {
-                    await groupService.DeleteUserFromGroup(userData.GroupId.Value, id);
-                    await groupService.AddUserToGroup((long)userData.GroupId, id);
+                    await groupService.AddUserToGroup((long)userData.GroupId, id);   
                 }
+                
             }
             catch (KeyNotFoundException ex)
             {

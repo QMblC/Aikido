@@ -6,8 +6,6 @@ namespace Aikido.AdditionalData
     {
         [EnumMember(Value = "Нет")]
         None,
-        [EnumMember(Value = "6 Кю (детский)")]
-        Kyu6Child,
         [EnumMember(Value = "5 Кю (детский)")]
         Kyu5Child,
         [EnumMember(Value = "4 Кю (детский)")]
@@ -18,8 +16,6 @@ namespace Aikido.AdditionalData
         Kyu2Child,
         [EnumMember(Value = "1 Кю (детский)")]
         Kyu1Child,
-        [EnumMember(Value = "6 Кю")]
-        Kyu6,
         [EnumMember(Value = "5 Кю")]
         Kyu5,
         [EnumMember(Value = "4 Кю")]
