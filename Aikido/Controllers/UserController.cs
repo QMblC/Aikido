@@ -287,8 +287,6 @@ namespace Aikido.Controllers
                 var user = await userService.GetUserById(id);
                 var userOldGroupId = user.GroupId;
 
-                
-
                 await userService.UpdateUser(id, userData);
                 if (userOldGroupId != null)
                 {

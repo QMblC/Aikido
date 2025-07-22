@@ -146,9 +146,10 @@ namespace Aikido.Services
         public async Task CreateSeminarCoachStatement(
             long seminarId,
             long coachId,
-            byte[] table)
+            byte[] table,
+            string name)
         {
-            var statement = new StatementEntity(seminarId, coachId, table);
+            var statement = new StatementEntity(seminarId, coachId, table, name);
 
             context.Add(statement);
 
@@ -170,14 +171,15 @@ namespace Aikido.Services
         public async Task UpdateSeminarCoachStatement(
             long seminarId,
             long coachId, 
-            byte[] table)
+            byte[] table,
+            string name)
         {
             var statement = await context.Statements
                 .Where(statement => statement.SeminarId == seminarId
                 && statement.CoachId == coachId)
                 .FirstOrDefaultAsync();
 
-            statement.UpdateStatement(table);
+            statement.UpdateStatement(table, name);
 
             await SaveDb();
         }
@@ -196,6 +198,15 @@ namespace Aikido.Services
             var seminar = await GetSeminar(seminarId);
 
             seminar.FinalStatementFile = null;
+
+            await SaveDb();
+        }
+
+        public async Task UpdateAppliement(long seminarId, bool value)
+        {
+            var seminar = await GetSeminar(seminarId);
+
+            seminar.IsFinalStatementApplied = value;
 
             await SaveDb();
         }
