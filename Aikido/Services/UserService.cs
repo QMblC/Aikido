@@ -191,6 +191,11 @@ namespace Aikido.Services
 
             var newGrade = EnumParser.ConvertStringToEnum<Grade>(seminarMember.CertificationGrade);
 
+            if(seminarMember.BudoPassportPrice > 0)
+            {
+                user.HasBudoPassport = true;
+            }
+
             if (newGrade != Grade.None)
             {
                 user.Grade = newGrade;
@@ -207,6 +212,11 @@ namespace Aikido.Services
         public async Task DiscardSeminarResult(CoachStatementMemberDto seminarMember, SeminarEntity seminar)
         {
             var user = await GetUserById(seminarMember.Id.Value);
+
+            if (seminarMember.BudoPassportPrice > 0)
+            {
+                user.HasBudoPassport = false;
+            }
 
             user.Grade = EnumParser.ConvertStringToEnum<Grade>(seminarMember.Grade);
             user.CertificationDates.Remove(seminar.Date);

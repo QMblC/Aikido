@@ -135,10 +135,7 @@ namespace Aikido.Services
         }
 
         public async Task<MemoryStream> CreateStatement(
-            UserEntity coach,
-            List<UserEntity> members,
-            List<ClubEntity> clubs,
-            List<GroupEntity> groups,
+            List<CoachStatementMemberDto> members,
             SeminarEntity seminar)
         {
             var workbook = new XLWorkbook();
@@ -151,7 +148,7 @@ namespace Aikido.Services
 
             AddTableHeaders(worksheet, offset);
 
-            var totalsRow = AddMembersData(worksheet, offset, members, coach, clubs, groups, seminar);
+            var totalsRow = AddMembersData(worksheet, offset, members, seminar);
             var row = totalsRow - 1;
 
             // "Итого" в колонке "ФИО"
@@ -239,10 +236,7 @@ namespace Aikido.Services
 
         private int AddMembersData(IXLWorksheet worksheet,
             int offset,
-            List<UserEntity> members,
-            UserEntity coach,
-            List<ClubEntity> clubs,
-            List<GroupEntity> groups,
+            List<CoachStatementMemberDto> members,
             SeminarEntity seminar)
         {
             // Данные участников
@@ -250,24 +244,24 @@ namespace Aikido.Services
             var row = offset + 3;
             foreach (var member in members)
             {
-                var club = clubs.FirstOrDefault(c => c.Id == member.ClubId);
-                var group = groups.FirstOrDefault(g => g.Id == member.GroupId);
+                var grade = EnumParser.ConvertStringToEnum<Grade>(member.Grade);
+                var programType = EnumParser.ConvertStringToEnum<ProgramType>(member.ProgramType);
 
                 worksheet.Cell(row, 1).Value = row - (offset + 2);            
                 worksheet.Cell(row, 2).Value = member.Id;                     
-                worksheet.Cell(row, 3).Value = member.FullName;
-                worksheet.Cell(row, 4).Value = EnumParser.GetEnumMemberValue(member.Grade);
+                worksheet.Cell(row, 3).Value = member.Name;
+                worksheet.Cell(row, 4).Value = EnumParser.GetEnumMemberValue(grade);
 
-                worksheet.Cell(row, 6).Value = coach.FullName;
-                worksheet.Cell(row, 7).Value = club?.Name ?? "";
+                worksheet.Cell(row, 6).Value = member.CoachName;
+                worksheet.Cell(row, 7).Value = member.ClubName ?? "";
                 worksheet.Cell(row, 8).Value = member.City ?? "";
                 worksheet.Cell(row, 9).Value = seminar.Groups[0];
-                worksheet.Cell(row, 10).Value = EnumParser.GetEnumMemberValue(member.ProgramType);
+                worksheet.Cell(row, 10).Value = EnumParser.GetEnumMemberValue(programType);
 
                 worksheet.Cell(row, 11).Value = 0;
                 worksheet.Cell(row, 12).Value = seminar.PriceSeminarInRubles;
-                worksheet.Cell(row, 13).Value = 0; //
-                worksheet.Cell(row, 14).Value = member.HasBudoPassport? 0 : seminar.PriceBudoPassportRubles;
+                worksheet.Cell(row, 13).Value = member.IsAnnualFeePayed ? 0 : seminar.PriceAnnualFeeRubles;
+                worksheet.Cell(row, 14).Value = member.IsBudoPassportPayed ? 0 : seminar.PriceBudoPassportRubles;
 
                 row++;
             }

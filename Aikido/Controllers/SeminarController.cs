@@ -205,7 +205,7 @@ namespace Aikido.Controllers
                 .Select(m => m.Result)
                 .ToList();
 
-            var tableStream = await tableService.CreateStatement(coach, coachStudents, clubs.ToList(), groups.ToList(), seminar);
+            var tableStream = await tableService.CreateStatement(members, seminar);
 
             fileBytes = tableStream.ToArray();       
 
