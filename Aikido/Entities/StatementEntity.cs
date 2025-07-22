@@ -7,6 +7,7 @@ namespace Aikido.Entities
     {
         [Key]
         public long Id { get; set; }
+        public string? Name { get; set; }
         public long SeminarId { get; set; }
         public long CoachId { get; set; }
         public byte[]? StatementFile { get; set; }  
@@ -31,18 +32,21 @@ namespace Aikido.Entities
             {
                 StatementFile = null;
             }
+            Name = statementDto.Name;
         }
 
-        public StatementEntity(long seminarId, long coachId, byte[] table)
+        public StatementEntity(long seminarId, long coachId, byte[] table, string name)
         {
             SeminarId = seminarId;
             CoachId = coachId;
             StatementFile = table;
+            Name = name;
         }
 
-        public void UpdateStatement(byte[] table)
+        public void UpdateStatement(byte[] table, string name)
         {
             StatementFile = table;
+            Name = name;
         }
     }
 }

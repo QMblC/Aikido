@@ -5,6 +5,7 @@ namespace Aikido.Dto
     public class StatementDto
     {
         public long? Id { get; set; }
+        public string? Name { get; set; }
         public long? SeminarId { get; set; }
         public long? CoachId { get; set; }
         public string? File { get; set; }
@@ -14,6 +15,7 @@ namespace Aikido.Dto
         public StatementDto(StatementEntity entity)
         {
             Id = entity.Id;
+            Name = entity.Name;
             SeminarId = entity.SeminarId;
             CoachId = entity.CoachId;
 

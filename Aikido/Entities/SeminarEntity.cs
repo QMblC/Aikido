@@ -25,7 +25,9 @@ namespace Aikido.Entities
 
         public long[]? CoachStatementIds { get; set; } = [];
         public byte[]? Regulation { get; set; }
+
         public byte[]? FinalStatementFile { get; set; }
+        public bool IsFinalStatementApplied { get; set; }
 
         public DateTime? CreationDate { get; set; }
         public long? CreatorId { get; set; }
@@ -64,6 +66,8 @@ namespace Aikido.Entities
             CreatorId = dto.CreatorId ?? null;
             Regulation = dto.Regulation != null ? Convert.FromBase64String(dto.Regulation) : null;
             CoachStatementIds = [];
+
+            IsFinalStatementApplied = dto.IsFinalStatementApplied == null ? false : dto.IsFinalStatementApplied.Value;
         }
 
         public void UpdateFromJson(SeminarDto seminarNewData)
@@ -106,6 +110,8 @@ namespace Aikido.Entities
 
             if (seminarNewData.CreationDate != null)
                 CreationDate = seminarNewData.CreationDate;
+
+            IsFinalStatementApplied = seminarNewData.IsFinalStatementApplied != null ? false : seminarNewData.IsFinalStatementApplied.Value;
 
             CreatorId = seminarNewData.CreatorId;
 
