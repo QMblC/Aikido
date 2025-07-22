@@ -7,10 +7,14 @@ namespace Aikido.Dto
         public long? Id { get; set; }
         public string? Name { get; set; }
         public DateTime? Date { get; set; }
+
         public string? Location { get; set; }
         public List<string>? Schedule { get; set; }
         public List<string>? Contacts { get; set; }
         public string? Description { get; set; }
+        public List<string>? Groups { get; set; }
+
+
         public decimal? PriceSeminarInRubles { get; set; }
         public decimal? PriceAnnualFeeRubles { get; set; }
         public decimal? PriceBudoPassportRubles { get; set; }
@@ -21,6 +25,7 @@ namespace Aikido.Dto
         public DateTime? CreationDate { get; set; }
         public long? CreatorId { get; set; }
         public UserShortDto? Creator { get; set; }
+
         public string? Regulation { get; set; }
         public string[]? CoachStatements { get; set; }
         public string? FinalStatementFile { get; set; }
@@ -33,24 +38,25 @@ namespace Aikido.Dto
             Id = entity.Id;
             Name = entity.Name;
             Date = entity.Date;
+
             Location = entity.Location;
             Schedule = entity.Schedule;
             Contacts = entity.Contacts;
             Description = entity.Description;
+            Groups = entity.Groups;
+
             PriceSeminarInRubles = entity.PriceSeminarInRubles;
             PriceAnnualFeeRubles = entity.PriceAnnualFeeRubles;
             PriceBudoPassportRubles = entity.PriceBudoPassportRubles;
             Price5to2KyuCertificationInRubles = entity.Price5to2KyuCertificationInRubles;
             Price1KyuCertificationInRubles = entity.Price1KyuCertificationInRubles;
             PriceDanCertificationInRubles = entity.PriceDanCertificationInRubles;
-            FinalStatementFile = entity.FinalStatementFile != null ? Convert.ToBase64String(entity.FinalStatementFile) : null;
+
+            FinalStatementFile = null;
             CreationDate = entity.CreationDate;
             CreatorId = entity.CreatorId;
             Regulation = entity.Regulation != null ? Convert.ToBase64String(entity.Regulation) : null;
             CoachStatements = [];
-            //
         }
-
-
     }
 }

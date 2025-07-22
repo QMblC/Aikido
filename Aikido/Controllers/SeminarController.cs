@@ -15,19 +15,22 @@ namespace Aikido.Controllers
         private readonly GroupService groupService;
         private readonly SeminarService seminarService;
         private readonly TableService tableService;
+        private readonly PaymentService paymentService;
 
         public SeminarController(
             UserService userService,
             ClubService clubService,
             GroupService groupService,
             SeminarService seminarService,
-            TableService tableService)
+            TableService tableService,
+            PaymentService paymentService)
         {
             this.userService = userService;
             this.clubService = clubService;
             this.groupService = groupService;
             this.seminarService = seminarService;
             this.tableService = tableService;
+            this.paymentService = paymentService;
         }
 
         [HttpGet("get/{seminarId}")]
@@ -127,86 +130,6 @@ namespace Aikido.Controllers
 
         }
 
-        [HttpGet("member/get/{memberId}")]
-        public async Task<IActionResult> GetSeminarMember(long memberId)
-        {
-            try
-            {
-                var member = await seminarService.GetSeminarMember(memberId);
-                return Ok(new SeminarMemberDto(member));
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
-
-        [HttpPost("member/create")]
-        public async Task<IActionResult> CreateSeminarMember([FromForm] SeminarMemberRequest request)
-        {
-            SeminarMemberDto memberDto;
-            try
-            {
-                memberDto = await request.Parse();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при разборе JSON участника: {ex.Message}");
-            }
-
-            try
-            {
-                var memberId = await seminarService.CreateSeminarMember(memberDto);
-                return Ok(memberId);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Ошибка при создании участника: {ex.Message}");
-            }
-        }
-
-        [HttpPut("member/update/{memberId}")]
-        public async Task<IActionResult> UpdateSeminarMember(long memberId, [FromForm] SeminarMemberRequest request)
-        {
-            SeminarMemberDto memberDto;
-            try
-            {
-                memberDto = await request.Parse();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при разборе JSON участника: {ex.Message}");
-            }
-
-            try
-            {
-                await seminarService.UpdateSeminarMember(memberId, memberDto);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Ошибка при обновлении участника: {ex.Message}");
-            }
-        }
-
-        [HttpDelete("member/delete/{memberId}")]
-        public async Task<IActionResult> DeleteSeminarMember(long memberId)
-        {
-            try
-            {
-                await seminarService.DeleteSeminarMember(memberId);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при удалении участника: {ex.Message}");
-            }
-        }
-
         [HttpGet("members/get/list-by-seminar/{seminarId}")]
         public async Task<IActionResult> GetSeminarMembersList(long seminarId)
         {
@@ -277,7 +200,12 @@ namespace Aikido.Controllers
                     .Select(id => groupService.GetGroupById(id.Value))
             );
 
-            var tableStream = await tableService.CreateCoachStatement(coach, coachStudents, clubs.ToList(), groups.ToList(), seminar);
+            var members = coachStudents.Select(async student => new CoachStatementMemberDto(student,
+                await clubService.GetClubById(student.ClubId.Value), seminar, coach))
+                .Select(m => m.Result)
+                .ToList();
+
+            var tableStream = await tableService.CreateStatement(members, seminar);
 
             fileBytes = tableStream.ToArray();       
 
@@ -295,17 +223,9 @@ namespace Aikido.Controllers
         public async Task<IActionResult> CreateCoachStatement(
             [FromQuery] long seminarId,
             [FromQuery] long coachId,
-            [FromForm] IFormFile file)
+            [FromForm] TableRequest request)
         {
-            if (file == null || file.Length == 0)
-                return BadRequest("Файл не передан или пуст.");
-
-            byte[] table;
-            using (var memoryStream = new MemoryStream())
-            {
-                await file.CopyToAsync(memoryStream);
-                table = memoryStream.ToArray();
-            }
+            var table = await request.Parse();
 
             try
             {
@@ -348,17 +268,9 @@ namespace Aikido.Controllers
         public async Task<IActionResult> UpdateCoachStatement(
             [FromQuery] long seminarId,
             [FromQuery] long coachId,
-            [FromForm] IFormFile file)
+            [FromForm] TableRequest request)
         {
-            if (file == null || file.Length == 0)
-                return BadRequest("Файл не передан или пуст.");
-
-            byte[] table;
-            using (var memoryStream = new MemoryStream())
-            {
-                await file.CopyToAsync(memoryStream);
-                table = memoryStream.ToArray();
-            }
+            var table = await request.Parse(); 
 
             try
             {
@@ -384,7 +296,7 @@ namespace Aikido.Controllers
             if (seminarService.Contains(seminarId, coachId))
             {
                 var statement = await seminarService.GetCoachStatement(seminarId, coachId);
-                members = tableService.ParseCoachStatement(statement.StatementFile);
+                members = tableService.ParseStatement(statement.StatementFile);
                 return Ok(members);
             }
 
@@ -398,7 +310,12 @@ namespace Aikido.Controllers
                 var club = await clubService.GetClubById(student.ClubId.Value);
                 var group = await groupService.GetGroupById(student.GroupId.Value);
 
-                var member = new CoachStatementMemberDto(student, club, group, coach);
+                var member = new CoachStatementMemberDto(student, club, seminar, coach);
+
+                member.SeminarPrice = seminar.PriceSeminarInRubles;
+                member.BudoPassportPrice = member.IsBudoPassportPayed ? 0 : seminar.PriceBudoPassportRubles;
+                member.AnnualFee = member.IsAnnualFeePayed ? 0 : seminar.PriceAnnualFeeRubles;
+
                 members.Add(member);
 
             }
@@ -441,8 +358,7 @@ namespace Aikido.Controllers
                 }
                 else
                 {
-                    await seminarService.CreateSeminarCoachStatement(seminarId, coachId, table.ToArray());
-                    
+                    await seminarService.CreateSeminarCoachStatement(seminarId, coachId, table.ToArray());                    
                 }
 
                 return Ok();
@@ -451,11 +367,9 @@ namespace Aikido.Controllers
             {
                 return StatusCode(500, ex.Message);
             }
-
-            throw new NotImplementedException();
         }
 
-        [HttpGet("get/final-statement/{seminarId}")]
+        [HttpGet("get/final-statement/members/{seminarId}")]
         public async Task<IActionResult> GetFinalStatement(long seminarId)
         {
             SeminarEntity seminar;
@@ -469,17 +383,20 @@ namespace Aikido.Controllers
                 return StatusCode(500, ex.Message);
             }
 
+            var members = new List<CoachStatementMemberDto>();
+
             if (seminar.FinalStatementFile != null)
             {
-                return Ok(seminar.FinalStatementFile);
+                members = tableService.ParseStatement(seminar.FinalStatementFile);
+                return Ok(members);
             }
 
             var statements = await seminarService.GetSeminarCoachStatements(seminarId);
-            var members = new List<CoachStatementMemberDto>();
+            
 
             foreach (var statement in statements)
             {
-                var currentMembers = tableService.ParseCoachStatement(statement.StatementFile);
+                var currentMembers = tableService.ParseStatement(statement.StatementFile);
                 members.AddRange(currentMembers);
             }
 
@@ -491,5 +408,191 @@ namespace Aikido.Controllers
 
             throw new NotImplementedException();
         }
+
+        [HttpPost("create/final-statement/members/{seminarId}")]
+        public async Task<IActionResult> CreateFinalStatement(long seminarId, CoachStatementMembersRequest request)
+        {
+            List<CoachStatementMemberDto> members;
+
+            try
+            {
+                members = await request.Parse();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            try
+            {
+                var seminar = await seminarService.GetSeminar(seminarId);
+
+                var table = await tableService.CreateCoachStatement(members, seminar);
+
+                if (table == null)
+                {
+                    return StatusCode(500, "Не удалось создать таблицу");
+                }
+
+                if (seminar.FinalStatementFile != null)
+                {
+                    var oldMembers = tableService.ParseStatement(seminar.FinalStatementFile);
+
+                    await seminarService.CreateFinalStatement(seminarId, table.ToArray());
+
+                    foreach (var member in oldMembers)
+                    {
+                        await paymentService.DeletePayment(member, seminar);
+                        await userService.DiscardSeminarResult(member, seminar);
+                    }
+                    foreach (var member in members)
+                    {
+                        await paymentService.CreatePayment(member, seminar);
+                        await userService.ApplySeminarResults(member, seminar);
+                    }
+                }
+                else
+                {
+                    await seminarService.CreateFinalStatement(seminarId, table.ToArray());
+                    foreach (var member in members)
+                    {
+                        await paymentService.CreatePayment(member, seminar);
+                        await userService.ApplySeminarResults(member, seminar);
+                    }
+                }                   
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpDelete("delete/final-statement/{seminarId}")]
+        public async Task<IActionResult> DeleteFinalStatement(long seminarId)
+        {
+            try
+            {
+                var seminar = await seminarService.GetSeminar(seminarId);
+
+                var oldMembers = tableService.ParseStatement(seminar.FinalStatementFile);
+                await seminarService.DeleteFinalStatement(seminarId);
+
+                foreach (var member in oldMembers)
+                {
+                    await paymentService.DeletePayment(member, seminar);
+                    await userService.DiscardSeminarResult(member, seminar);
+                }
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet("get/final-statement/{seminarId}")]
+        public async Task<IActionResult> GetFinalStatementTable(long seminarId)
+        {
+            SeminarEntity seminar;
+
+            try
+            {
+                seminar = await seminarService.GetSeminar(seminarId);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+
+            try
+            {
+                if (seminar.FinalStatementFile != null)
+                {
+                    return File(
+                        fileContents: seminar.FinalStatementFile,
+                        contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        fileDownloadName: $"Итоговая ведомость " +
+                        $"семинара {seminar.Date.Day}.{seminar.Date.Month}.{seminar.Date.Year}.xlsx");
+                }
+
+                var members = new List<CoachStatementMemberDto>();
+
+                var statements = await seminarService.GetSeminarCoachStatements(seminarId);
+
+
+                foreach (var statement in statements)
+                {
+                    var currentMembers = tableService.ParseStatement(statement.StatementFile);
+                    members.AddRange(currentMembers);
+                }
+
+                members = members
+                    .Distinct()
+                    .ToList();
+
+                var table = await tableService.CreateCoachStatement(members, seminar);
+
+                return File(
+                        fileContents: table.ToArray(),
+                        contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        fileDownloadName: $"Итоговая ведомость " +
+                        $"семинара {seminar.Date.Day}.{seminar.Date.Month}.{seminar.Date.Year}.xlsx");
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Не удалось отправить таблицу");
+            }         
+        }
+
+        [HttpPost("create/final-statement/{seminarId}")]
+        public async Task<IActionResult> CreateFinalStatementTable(long seminarId,
+            [FromForm] TableRequest request)
+        {
+
+            var table = await request.Parse();
+            var seminar = await seminarService.GetSeminar(seminarId);
+            var members = tableService.ParseStatement(table);
+
+            try
+            {
+                if (seminar.FinalStatementFile != null)
+                {
+                    var oldMembers = tableService.ParseStatement(seminar.FinalStatementFile);            
+
+                    await seminarService.CreateFinalStatement(seminarId, table);
+
+                    foreach (var member in oldMembers)
+                    {
+                        await paymentService.DeletePayment(member, seminar);
+                        await userService.DiscardSeminarResult(member, seminar);
+                    }
+
+                    foreach (var member in members)
+                    {
+                        await paymentService.CreatePayment(member, seminar);
+                        await userService.ApplySeminarResults(member, seminar);
+                    }
+                }
+                else
+                {
+                    await seminarService.CreateFinalStatement(seminarId, table);
+                    foreach (var member in members)
+                    {
+                        await paymentService.CreatePayment(member, seminar);
+                        await userService.ApplySeminarResults(member, seminar);
+                    }
+                }
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
     }
 }

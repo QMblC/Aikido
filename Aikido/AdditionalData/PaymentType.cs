@@ -10,11 +10,10 @@ namespace Aikido.AdditionalData
         BudoPassport,
         [EnumMember(Value = "Ежегодный взнос")]
         AnnualFee,
-        [EnumMember(Value = "Аттестация с 5 по 2 Кю")]
-        Certification5to2Kyu,
-        [EnumMember(Value = "Аттестация на 1 Кю")]
-        Certification1Kyu,
-        [EnumMember(Value = "Аттестация на Дан")]
-        CertificationDan
+        [EnumMember(Value = "Семинар")]
+        Seminar,
+        [EnumMember(Value = "Аттестация")]
+        Certification,
+
     }
 }

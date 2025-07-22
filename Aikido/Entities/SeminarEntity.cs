@@ -14,6 +14,7 @@ namespace Aikido.Entities
         public List<string>? Schedule { get; set; } = [];
         public List<string>? Contacts { get; set; } = [];
         public string? Description { get; set; } = "";
+        public List<string>? Groups { get; set; } = [""];
 
         public decimal? PriceSeminarInRubles { get; set; }
         public decimal? PriceAnnualFeeRubles { get; set; }
@@ -44,13 +45,18 @@ namespace Aikido.Entities
             Schedule = dto.Schedule ?? [];
             Contacts = dto.Contacts ?? [];
             Description = dto.Description ?? "";
+            Groups = new() { "" };
+            if (dto.Groups != null)
+            {
+                Groups.AddRange(dto.Groups);
+            }
+
             PriceSeminarInRubles = dto.PriceSeminarInRubles ?? 0;
             PriceAnnualFeeRubles = dto.PriceAnnualFeeRubles ?? 0;
             PriceBudoPassportRubles = dto.PriceBudoPassportRubles ?? 0;
             Price5to2KyuCertificationInRubles = dto.Price5to2KyuCertificationInRubles ?? 0;
             Price1KyuCertificationInRubles = dto.Price1KyuCertificationInRubles ?? 0;
             PriceDanCertificationInRubles = dto.PriceDanCertificationInRubles ?? 0;
-            //FinalStatementFile = dto.FinalStatementFile != null ? Convert.FromBase64String(dto.FinalStatementFile) : null;
 
             if (dto.CreationDate.HasValue)
                 CreationDate = DateTime.SpecifyKind(dto.CreationDate.Value, DateTimeKind.Utc);
@@ -98,14 +104,10 @@ namespace Aikido.Entities
             if (seminarNewData.PriceDanCertificationInRubles.HasValue)
                 PriceDanCertificationInRubles = seminarNewData.PriceDanCertificationInRubles.Value;
 
-            //if (seminarNewData.FinalStatementFile != null)
-            //    FinalStatementFile = Convert.FromBase64String(seminarNewData.FinalStatementFile);
-
             if (seminarNewData.CreationDate != null)
                 CreationDate = seminarNewData.CreationDate;
 
             CreatorId = seminarNewData.CreatorId;
-
 
             Regulation = seminarNewData.Regulation != null ? Convert.FromBase64String(seminarNewData.Regulation) : null;
         }
