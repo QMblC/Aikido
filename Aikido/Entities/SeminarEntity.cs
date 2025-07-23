@@ -87,6 +87,9 @@ namespace Aikido.Entities
             if (seminarNewData.Contacts != null)
                 Contacts = seminarNewData.Contacts;
 
+            if (seminarNewData.Groups != null)
+                Groups = seminarNewData.Groups;
+
             if (seminarNewData.Description != null)
                 Description = seminarNewData.Description;
 

@@ -178,7 +178,7 @@ namespace Aikido.Controllers
 
                 return File(
                     fileContents: fileBytes,
-                    contentType: statement.Name,
+                    contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     fileDownloadName: $"{coach.FullName.Split(" ")[0]} ведомость " +
                     $"семинара {seminar.Date.Day}.{seminar.Date.Month}.{seminar.Date.Year}.xlsx"
                 );
@@ -297,8 +297,6 @@ namespace Aikido.Controllers
 
             var coachStudentIds = await groupService.GetCoachStudentsIds(coachId);
             var coachStudents = await userService.GetUsers(coachStudentIds);
-
-            
 
             foreach (var student in coachStudents)
             {
@@ -575,6 +573,7 @@ namespace Aikido.Controllers
             }
         }
 
+        [HttpDelete("discard/final-statement/{seminarId}")]
         public async Task<IActionResult> DiscardChanges(long seminarId)
         {
             try
