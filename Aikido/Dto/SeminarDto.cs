@@ -30,7 +30,6 @@ namespace Aikido.Dto
         public string[]? CoachStatements { get; set; }
 
         public string? FinalStatementFile { get; set; }
-        public bool? IsFinalStatementApplied { get; set; }
 
 
         public SeminarDto() { }
@@ -55,7 +54,6 @@ namespace Aikido.Dto
             PriceDanCertificationInRubles = entity.PriceDanCertificationInRubles;
 
             FinalStatementFile = null;
-            IsFinalStatementApplied = entity.IsFinalStatementApplied;
 
             CreationDate = entity.CreationDate;
             CreatorId = entity.CreatorId;
