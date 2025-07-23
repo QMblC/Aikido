@@ -57,7 +57,7 @@ namespace Aikido.Dto
             CertificationGrade = null;
             ClubName = club.Name;
             City = club.City;
-            SeminarGroup = seminar.Groups[0];
+            SeminarGroup = "";
             ProgramType = EnumParser.ConvertEnumToString(user.ProgramType);
             IsBudoPassportPayed = user.HasBudoPassport;
         }

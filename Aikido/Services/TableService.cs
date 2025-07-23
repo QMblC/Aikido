@@ -255,7 +255,7 @@ namespace Aikido.Services
                 worksheet.Cell(row, 6).Value = member.CoachName;
                 worksheet.Cell(row, 7).Value = member.ClubName ?? "";
                 worksheet.Cell(row, 8).Value = member.City ?? "";
-                worksheet.Cell(row, 9).Value = seminar.Groups[0];
+                worksheet.Cell(row, 9).Value = "";
                 worksheet.Cell(row, 10).Value = EnumParser.GetEnumMemberValue(programType);
 
                 worksheet.Cell(row, 11).Value = 0;

@@ -14,7 +14,7 @@ namespace Aikido.Entities
         public List<string>? Schedule { get; set; } = [];
         public List<string>? Contacts { get; set; } = [];
         public string? Description { get; set; } = "";
-        public List<string>? Groups { get; set; } = [""];
+        public List<string>? Groups { get; set; } = [];
 
         public decimal? PriceSeminarInRubles { get; set; }
         public decimal? PriceAnnualFeeRubles { get; set; }
@@ -47,11 +47,7 @@ namespace Aikido.Entities
             Schedule = dto.Schedule ?? [];
             Contacts = dto.Contacts ?? [];
             Description = dto.Description ?? "";
-            Groups = new() { "" };
-            if (dto.Groups != null)
-            {
-                Groups.AddRange(dto.Groups);
-            }
+            Groups = dto.Groups ?? [];
 
             PriceSeminarInRubles = dto.PriceSeminarInRubles ?? 0;
             PriceAnnualFeeRubles = dto.PriceAnnualFeeRubles ?? 0;
@@ -66,8 +62,6 @@ namespace Aikido.Entities
             CreatorId = dto.CreatorId ?? null;
             Regulation = dto.Regulation != null ? Convert.FromBase64String(dto.Regulation) : null;
             CoachStatementIds = [];
-
-            IsFinalStatementApplied = dto.IsFinalStatementApplied == null ? false : dto.IsFinalStatementApplied.Value;
         }
 
         public void UpdateFromJson(SeminarDto seminarNewData)
@@ -113,8 +107,6 @@ namespace Aikido.Entities
 
             if (seminarNewData.CreationDate != null)
                 CreationDate = seminarNewData.CreationDate;
-
-            IsFinalStatementApplied = seminarNewData.IsFinalStatementApplied != null ? false : seminarNewData.IsFinalStatementApplied.Value;
 
             CreatorId = seminarNewData.CreatorId;
 
