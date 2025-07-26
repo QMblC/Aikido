@@ -1,4 +1,5 @@
-﻿using Aikido.Dto;
+﻿using Aikido.AdditionalData;
+using Aikido.Dto;
 using Aikido.Entities;
 using Aikido.Requests;
 using Aikido.Services;
@@ -116,7 +117,7 @@ namespace Aikido.Controllers
                     Coach = coach == null ? null : new CoachDto
                     {
                         Name = coach.FullName,
-                        Grade = coach.Grade,
+                        Grade = EnumParser.ConvertEnumToString(coach.Grade),
                         Phone = coach.PhoneNumber
                     },
                     Schedule = scheduleDict
@@ -218,6 +219,13 @@ namespace Aikido.Controllers
         {
             try
             {   var groupsDelete = clubService.GetClubById(id).Result.Groups;
+
+                var isClubEmpty = userService.GetClubMembers(id)
+                    .Result
+                    .FirstOrDefault() == null;
+
+                if (!isClubEmpty)
+                    return StatusCode(500, "Пользователи привязаны к клубу");
 
                 foreach (var group in groupsDelete)
                 {

@@ -1,13 +1,17 @@
-﻿using Aikido.Data;
+﻿using Aikido.AdditionalData;
+using Aikido.Data;
+using Aikido.Dto;
 using Aikido.Entities;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Drawing;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 using System.Linq;
-using System;
+using System.Threading.Tasks;
 
 namespace Aikido.Services
 {
@@ -32,17 +36,21 @@ namespace Aikido.Services
                 var row = i + 2;
 
                 worksheet.Cell(row, 1).Value = user.Id;
-                worksheet.Cell(row, 2).Value = user.Role;
+                worksheet.Cell(row, 2).Value = EnumParser.ConvertEnumToString(user.Role);
                 worksheet.Cell(row, 3).Value = user.Login;
                 // Пароль не выгружается
                 worksheet.Cell(row, 5).Value = user.FullName;
                 worksheet.Cell(row, 6).Value = user.PhoneNumber;
                 worksheet.Cell(row, 7).Value = user.Birthday?.ToString("yyyy-MM-dd");
                 worksheet.Cell(row, 8).Value = user.City;
-                worksheet.Cell(row, 9).Value = user.Grade;
-                worksheet.Cell(row, 10).Value = user.CertificationDate?.ToString("yyyy-MM-dd");
-                worksheet.Cell(row, 11).Value = user.AnnualFee;
-                worksheet.Cell(row, 12).Value = user.Sex;
+                worksheet.Cell(row, 9).Value = EnumParser.ConvertEnumToString(user.Grade);
+                worksheet.Cell(row, 10).Value = user.CertificationDates != null && user.CertificationDates.Any()
+                    ? user.CertificationDates.Last().ToString("yyyy-MM-dd")
+                    : null;
+                worksheet.Cell(row, 11).Value = user.PaymentDates != null && user.PaymentDates.Any()
+                    ? user.PaymentDates.Last().ToString("yyyy-MM-dd")
+                    : null;
+                worksheet.Cell(row, 12).Value = EnumParser.ConvertEnumToString(user.Sex);
                 worksheet.Cell(row, 13).Value = user.ClubId;
                 worksheet.Cell(row, 14).Value = user.ClubId.HasValue && clubs.TryGetValue(user.ClubId.Value, out var clubName)
                     ? clubName
@@ -51,9 +59,9 @@ namespace Aikido.Services
                 worksheet.Cell(row, 16).Value = user.GroupId.HasValue && groups.TryGetValue(user.GroupId.Value, out var groupName)
                     ? groupName
                     : null;
-                worksheet.Cell(row, 17).Value = user.SchoolClass;
+                worksheet.Cell(row, 17).Value = EnumParser.ConvertEnumToString(user.Education);
                 worksheet.Cell(row, 18).Value = user.ParentFullName;
-                worksheet.Cell(row, 19).Value = user.ParentFullNumber;
+                worksheet.Cell(row, 19).Value = user.ParentPhoneNumber;
                 worksheet.Cell(row, 20).Value = user.RegistrationDate?.ToString("yyyy-MM-dd");
             }
 
@@ -64,69 +72,7 @@ namespace Aikido.Services
             stream.Position = 0;
 
             return stream;
-        }
-
-        public async Task ImportUsersFromExcelAsync(Stream excelStream)
-        {
-            using var workbook = new XLWorkbook(excelStream);
-            var worksheet = workbook.Worksheets.First();
-
-            var existingLogins = await GetExistingLoginsAsync();
-
-            foreach (var row in worksheet.RowsUsed().Skip(1))
-            {
-                ValidateRequiredFields(row);
-
-                var login = row.Cell(3).GetString()?.Trim();
-
-                if (IsLoginDuplicate(login, existingLogins, context.Users.Local.ToList()))
-                {
-                    throw new Exception($"Логин '{login}' уже существует (строка {row.RowNumber()})");
-                }
-
-                var user = CreateUserFromRow(row);
-                context.Users.Add(user);
-            }
-
-            try
-            {
-                await context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                var innerException = ex.InnerException?.Message ?? "нет внутренней ошибки";
-                throw new Exception($"Ошибка при сохранении в БД: {ex.Message}. Внутренняя ошибка: {innerException}");
-            }
-        }
-
-        public async Task UpdateUsersFromExcelAsync(Stream excelStream)
-        {
-            using var workbook = new XLWorkbook(excelStream);
-            var worksheet = workbook.Worksheets.First();
-
-            foreach (var row in worksheet.RowsUsed().Skip(1))
-            {
-                ValidateRequiredFields(row);
-
-                var id = TryParseLong(row.Cell(1).GetString());
-                if (id == null)
-                {
-                    throw new Exception($"Некорректный ID пользователя (строка {row.RowNumber()})");
-                }
-
-                var user = await context.Users.FindAsync(id.Value);
-                if (user == null)
-                {
-                    throw new Exception($"Пользователь с ID {id} не найден (строка {row.RowNumber()})");
-                }
-
-                UpdateUserFromRow(user, row);
-
-                context.Users.Update(user);
-            }
-
-            await context.SaveChangesAsync();
-        }
+        }      
 
         public async Task<MemoryStream> GenerateUserUpdateTemplateExcelAsync()
         {
@@ -148,8 +94,8 @@ namespace Aikido.Services
             var headers = new[]
             {
                 "ID", "Роль", "Логин", "Пароль", "ФИО", "Телефон", "Дата рождения", "Город",
-                "Кю/Дан", "Дата аттестации", "Взнос", "Пол", "Клуб ID", "Клуб", "Группа ID",
-                "Группа", "Класс", "ФИО родителя", "Телефон родителя", "Дата регистрации"
+                "Кю/Дан", "Дата аттестации", "Дата последнего взноса", "Пол", "Клуб ID", "Клуб", "Группа ID",
+                "Группа", "Образование", "ФИО родителя", "Телефон родителя", "Дата регистрации"
             };
 
             for (int i = 0; i < headers.Length; i++)
@@ -188,108 +134,269 @@ namespace Aikido.Services
             }
         }
 
-
-        private async Task<List<string>> GetExistingLoginsAsync()
+        public async Task<MemoryStream> CreateStatement(
+            List<CoachStatementMemberDto> members,
+            SeminarEntity seminar)
         {
-            return await context.Users
-                .Where(u => u.Login != null)
-                .Select(u => u.Login!)
-                .ToListAsync();
-        }
+            var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Ведомость");
 
-        private void ValidateRequiredFields(IXLRow row)
-        {
-            if (string.IsNullOrWhiteSpace(row.Cell(3).GetString()?.Trim()) ||
-                string.IsNullOrWhiteSpace(row.Cell(4).GetString()?.Trim()) ||
-                string.IsNullOrWhiteSpace(row.Cell(2).GetString()?.Trim()) ||
-                string.IsNullOrWhiteSpace(row.Cell(5).GetString()?.Trim()))
+            AddSeminarData(worksheet, seminar);
+
+
+            var offset = 6; // Смещение таблицы вниз на 6 строк
+
+            AddTableHeaders(worksheet, offset);
+
+            var totalsRow = AddMembersData(worksheet, offset, members, seminar);
+            var row = totalsRow - 1;
+
+            // "Итого" в колонке "ФИО"
+            worksheet.Cell(totalsRow, 3).Value = "Итого";
+            worksheet.Cell(totalsRow, 3).Style.Font.Bold = true;
+            worksheet.Cell(totalsRow, 3).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+
+            // Суммы по платёжной ведомости (столбцы K, L, M, N = 11–14)
+            for (int col = 11; col <= 14; col++)
             {
-                throw new Exception($"Не указаны обязательные поля в строке {row.RowNumber()}");
+                var colLetter = XLHelper.GetColumnLetterFromNumber(col);
+                worksheet.Cell(totalsRow, col).FormulaA1 = $"SUM({colLetter}{offset + 3}:{colLetter}{row - 1})";
+                worksheet.Cell(totalsRow, col).Style.Font.Bold = true;
             }
+
+            // Итоговая сумма в "Примечаниях" (столбец O = 15)
+            worksheet.Cell(totalsRow, 15).FormulaA1 = $"SUM(K{totalsRow}:N{totalsRow})";
+            worksheet.Cell(totalsRow, 15).Style.Font.Bold = true;
+
+
+            // Скрытие ID
+            worksheet.Column(2).Hide();
+
+            worksheet.Columns().AdjustToContents();
+
+            var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
+            return stream;
         }
 
-        private bool IsLoginDuplicate(string? login, List<string> existingLogins, List<UserEntity> usersToAdd)
+        private void AddSeminarData(IXLWorksheet worksheet, SeminarEntity seminar)
         {
-            if (string.IsNullOrEmpty(login))
-                return false;
+            // Верхняя часть: Информация о семинаре
+            worksheet.Range("A1:O1").Merge();
+            worksheet.Cell("A1").Value = seminar.Name;
+            worksheet.Cell("A1").Style.Font.Bold = true;
+            worksheet.Cell("A1").Style.Font.FontSize = 24;
+            worksheet.Cell("A1").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-            return existingLogins.Contains(login) || usersToAdd.Any(u => u.Login == login);
+
+            worksheet.Range("A2:O2").Merge();
+            worksheet.Cell("A2").Value = seminar.Date.ToString("dd-MM-yyyy");
+            worksheet.Cell("A2").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+            worksheet.Range("A3:O3").Merge();
+            worksheet.Cell("A3").Value = seminar.Location;
+            worksheet.Cell("A3").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
         }
 
-        private UserEntity CreateUserFromRow(IXLRow row)
+        private void AddTableHeaders(IXLWorksheet worksheet, int offset)
         {
-            return new UserEntity
+            // Заголовки объединённых ячеек
+            worksheet.Range(offset + 1, 1, offset + 1, 8).Merge().Value = "Данные участника";
+            worksheet.Range(offset + 1, 9, offset + 1, 10).Merge().Value = "Распределение";
+            worksheet.Range(offset + 1, 11, offset + 1, 14).Merge().Value = "Платёжная ведомость";
+            worksheet.Cell(offset + 1, 15).Value = "Примечания";
+
+            var darkBlue = XLColor.DarkBlue;
+            worksheet.Range(offset + 1, 1, offset + 1, 15).Style.Fill.BackgroundColor = XLColor.BlueGray;
+            worksheet.Range(offset + 1, 1, offset + 1, 15).Style.Font.FontColor = XLColor.White;
+            worksheet.Range(offset + 1, 1, offset + 1, 15).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            worksheet.Range(offset + 1, 1, offset + 1, 15).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+            worksheet.Range(offset + 1, 1, offset + 1, 15).Style.Font.Bold = true;
+
+            // Подзаголовки
+            var headers = new[]
             {
-                Role = row.Cell(2).GetString(),
-                Login = row.Cell(3).GetString()?.Trim(),
-                // Пароль в Excel не используется, генерировать отдельно при создании
-                FullName = row.Cell(5).GetString(),
-                PhoneNumber = row.Cell(6).GetString(),
-                Birthday = ConvertToUtc(TryParseDate(row.Cell(7).GetString())),
-                City = row.Cell(8).GetString(),
-                Grade = row.Cell(9).GetString(),
-                CertificationDate = ConvertToUtc(TryParseDate(row.Cell(10).GetString())),
-                AnnualFee = TryParseInt(row.Cell(11).GetString()),
-                Sex = row.Cell(12).GetString(),
-                ClubId = TryParseLong(row.Cell(13).GetString()),
-                GroupId = TryParseLong(row.Cell(15).GetString()),
-                SchoolClass = TryParseInt(row.Cell(17).GetString()),
-                ParentFullName = row.Cell(18).GetString(),
-                ParentFullNumber = row.Cell(19).GetString(),
-                RegistrationDate = ConvertToUtc(TryParseDate(row.Cell(20).GetString()))
+                "№", "ID", "ФИО", "Степень кю/дан", "Аттестуется", "Тренер", "Клуб", "Город",
+                "Группа семинара", "Программа",
+                "Годовой взнос", "Семинар", "Аттестация", "Паспорт",
+                ""
             };
+
+            for (int i = 0; i < headers.Length; i++)
+            {
+                worksheet.Cell(offset + 2, i + 1).Value = headers[i];
+            }
+
+            var lightBlue = XLColor.LightBlue;
+            worksheet.Range(offset + 2, 1, offset + 2, 15).Style.Fill.BackgroundColor = lightBlue;
+            worksheet.Range(offset + 2, 1, offset + 2, 15).Style.Font.Bold = true;
+            worksheet.Range(offset + 2, 1, offset + 2, 15).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
         }
 
-        private void UpdateUserFromRow(UserEntity user, IXLRow row)
+        private int AddMembersData(IXLWorksheet worksheet,
+            int offset,
+            List<CoachStatementMemberDto> members,
+            SeminarEntity seminar)
         {
-            user.Role = row.Cell(2).GetString();
-            user.Login = row.Cell(3).GetString()?.Trim();
-            // Пароль не обновляем из Excel
-            user.FullName = row.Cell(5).GetString();
-            user.PhoneNumber = row.Cell(6).GetString();
-            user.Birthday = ConvertToUtc(TryParseDate(row.Cell(7).GetString()));
-            user.City = row.Cell(8).GetString();
-            user.Grade = row.Cell(9).GetString();
-            user.CertificationDate = ConvertToUtc(TryParseDate(row.Cell(10).GetString()));
-            user.AnnualFee = TryParseInt(row.Cell(11).GetString());
-            user.Sex = row.Cell(12).GetString();
-            user.ClubId = TryParseLong(row.Cell(13).GetString());
-            user.GroupId = TryParseLong(row.Cell(15).GetString());
-            user.SchoolClass = TryParseInt(row.Cell(17).GetString());
-            user.ParentFullName = row.Cell(18).GetString();
-            user.ParentFullNumber = row.Cell(19).GetString();
-            user.RegistrationDate = ConvertToUtc(TryParseDate(row.Cell(20).GetString()));
+            // Данные участников
+
+            var row = offset + 3;
+            foreach (var member in members)
+            {
+                var grade = EnumParser.ConvertStringToEnum<Grade>(member.Grade);
+                var programType = EnumParser.ConvertStringToEnum<ProgramType>(member.ProgramType);
+
+                worksheet.Cell(row, 1).Value = row - (offset + 2);            
+                worksheet.Cell(row, 2).Value = member.Id;                     
+                worksheet.Cell(row, 3).Value = member.Name;
+                worksheet.Cell(row, 4).Value = EnumParser.GetEnumMemberValue(grade);
+
+                worksheet.Cell(row, 6).Value = member.CoachName;
+                worksheet.Cell(row, 7).Value = member.ClubName ?? "";
+                worksheet.Cell(row, 8).Value = member.City ?? "";
+                worksheet.Cell(row, 9).Value = "";
+                worksheet.Cell(row, 10).Value = EnumParser.GetEnumMemberValue(programType);
+
+                worksheet.Cell(row, 11).Value = 0;
+                worksheet.Cell(row, 12).Value = seminar.PriceSeminarInRubles;
+                worksheet.Cell(row, 13).Value = member.IsAnnualFeePayed ? 0 : seminar.PriceAnnualFeeRubles;
+                worksheet.Cell(row, 14).Value = member.IsBudoPassportPayed ? 0 : seminar.PriceBudoPassportRubles;
+
+                row++;
+            }
+
+            return row + 1;
         }
 
-        private DateTime? TryParseDate(string? input)
+        public List<CoachStatementMemberDto> ParseStatement(byte[] table)
         {
-            return DateTime.TryParseExact(input, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var result)
-                ? result
-                : null;
+            var result = new List<CoachStatementMemberDto>();
+
+            using var stream = new MemoryStream(table);
+            using var workbook = new XLWorkbook(stream);
+            var worksheet = workbook.Worksheet("Ведомость");
+
+            var offset = 6;
+            var startRow = offset + 3;
+
+            while (true)
+            {
+                var idCell = worksheet.Cell(startRow, 2);
+                if (idCell.IsEmpty() || !long.TryParse(idCell.GetValue<string>(), out var id))
+                    break;
+
+                var dto = new CoachStatementMemberDto
+                {
+                    Id = id,
+                    Name = worksheet.Cell(startRow, 3).GetValue<string>(),
+                    Grade = EnumParser.GetEnumMemberValue<Grade>(worksheet.Cell(startRow, 4).GetValue<string>()).ToString(),
+                    CertificationGrade = EnumParser.GetEnumMemberValue<Grade>(worksheet.Cell(startRow, 5).GetValue<string>()).ToString(),
+                    CoachName = worksheet.Cell(startRow, 6).GetValue<string>(),
+                    ClubName = worksheet.Cell(startRow, 7).GetValue<string>(),
+                    City = worksheet.Cell(startRow, 8).GetValue<string>(),
+                    SeminarGroup = worksheet.Cell(startRow, 9).GetValue<string>(),
+                    ProgramType = EnumParser.GetEnumMemberValue<ProgramType>(worksheet.Cell(startRow, 10).GetValue<string>()).ToString(),
+                };
+
+                var annual = worksheet.Cell(startRow, 11).GetValue<string>();
+                var seminar = worksheet.Cell(startRow, 12).GetValue<string>();
+                var certification = worksheet.Cell(startRow, 13).GetValue<string>();
+                var passport = worksheet.Cell(startRow, 14).GetValue<string>();
+
+                dto.AddPrices(
+                    ParseDecimal(annual),
+                    ParseDecimal(seminar),
+                    ParseDecimal(certification),
+                    ParseDecimal(passport)
+                );
+
+                result.Add(dto);
+                startRow++;
+            }
+
+            return result;
         }
 
-        private DateTime? ConvertToUtc(DateTime? date)
+        public async Task<MemoryStream> CreateCoachStatement(
+            List<CoachStatementMemberDto> members,
+            SeminarEntity seminar)
         {
-            if (!date.HasValue) return null;
+            var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Ведомость");
 
-            var dt = date.Value;
-            if (dt.Kind == DateTimeKind.Unspecified)
-                return DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+            AddSeminarData(worksheet, seminar);
 
-            if (dt.Kind == DateTimeKind.Local)
-                return dt.ToUniversalTime();
+            var offset = 6;
+            AddTableHeaders(worksheet, offset);
 
-            return dt; // уже UTC
+            var totalsRow = AddMembersData(worksheet, offset, members);
+            var row = totalsRow - 1;
+
+            // "Итого" в колонке "ФИО"
+            worksheet.Cell(totalsRow, 3).Value = "Итого";
+            worksheet.Cell(totalsRow, 3).Style.Font.Bold = true;
+            worksheet.Cell(totalsRow, 3).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+
+            // Суммы по платёжной ведомости (столбцы K, L, M, N = 11–14)
+            for (int col = 11; col <= 14; col++)
+            {
+                var colLetter = XLHelper.GetColumnLetterFromNumber(col);
+                worksheet.Cell(totalsRow, col).FormulaA1 = $"SUM({colLetter}{offset + 3}:{colLetter}{row - 1})";
+                worksheet.Cell(totalsRow, col).Style.Font.Bold = true;
+            }
+
+            // Итоговая сумма в "Примечаниях" (столбец O = 15)
+            worksheet.Cell(totalsRow, 15).FormulaA1 = $"SUM(K{totalsRow}:N{totalsRow})";
+            worksheet.Cell(totalsRow, 15).Style.Font.Bold = true;
+
+            worksheet.Column(2).Hide();
+            worksheet.Columns().AdjustToContents();
+
+            var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
+            return stream;
         }
 
-        private int? TryParseInt(string? input)
+        private int AddMembersData(IXLWorksheet worksheet, int offset, List<CoachStatementMemberDto> members)
         {
-            return int.TryParse(input, out var result) ? result : null;
+            var row = offset + 3;
+            foreach (var member in members)
+            {
+                var grade = EnumParser.ConvertStringToEnum<Grade>(member.Grade);
+                var certificationGrade = EnumParser.ConvertStringToEnum<Grade>(member.CertificationGrade);
+
+                worksheet.Cell(row, 1).Value = row - (offset + 2);
+                worksheet.Cell(row, 2).Value = member.Id;
+                worksheet.Cell(row, 3).Value = member.Name;
+                worksheet.Cell(row, 4).Value = EnumParser.GetEnumMemberValue(grade);
+                worksheet.Cell(row, 5).Value = certificationGrade == Grade.None ? "" : EnumParser.GetEnumMemberValue(certificationGrade);
+                worksheet.Cell(row, 6).Value = member.CoachName;
+                worksheet.Cell(row, 7).Value = member.ClubName;
+                worksheet.Cell(row, 8).Value = member.City;
+                worksheet.Cell(row, 9).Value = member.SeminarGroup;
+                worksheet.Cell(row, 10).Value = EnumParser.GetEnumMemberValue(EnumParser.ConvertStringToEnum<ProgramType>(member.ProgramType));
+
+                worksheet.Cell(row, 11).Value = member.AnnualFee ?? 0;
+                worksheet.Cell(row, 12).Value = member.SeminarPrice ?? 0;
+                worksheet.Cell(row, 13).Value = member.CertificationPrice ?? 0;
+                worksheet.Cell(row, 14).Value = member.BudoPassportPrice ?? 0;
+
+                row++;
+            }
+
+            return row + 1;
         }
 
-        private long? TryParseLong(string? input)
+
+        private decimal? ParseDecimal(string value)
         {
-            return long.TryParse(input, out var result) ? result : null;
+            if (decimal.TryParse(value, out var result))
+                return result;
+            return null;
         }
+
+
     }
 }

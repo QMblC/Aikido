@@ -1,4 +1,5 @@
-﻿using Aikido.Data;
+﻿using Aikido.AdditionalData;
+using Aikido.Data;
 using Aikido.Dto;
 using Aikido.Entities;
 using DocumentFormat.OpenXml.InkML;
@@ -84,16 +85,14 @@ namespace Aikido.Services
 
             foreach (var dto in dates)
             {
-                if (!System.DateTime.TryParse(dto.DateTime, out var parsedDate))
-                    continue;
 
-                var utcDate = DateTime.SpecifyKind(parsedDate.Date, DateTimeKind.Utc);
+                var utcDate = DateTime.SpecifyKind(dto.Date, DateTimeKind.Utc);
 
                 var entity = new ExclusionDateEntity
                 {
                     GroupId = groupId,
                     Date = utcDate,
-                    Status = dto.status
+                    Status = EnumParser.ConvertStringToEnum<ExclusiveDateType>(dto.Status)
                 };
 
                 context.ExclusionDates.Add(entity);

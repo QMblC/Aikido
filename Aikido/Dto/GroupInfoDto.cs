@@ -1,4 +1,7 @@
-﻿namespace Aikido.Dto
+﻿using Aikido.AdditionalData;
+using Aikido.Entities;
+
+namespace Aikido.Dto
 {
     public class GroupInfoDto
     {
@@ -13,5 +16,6 @@
         public List<DateTime>? ExtraDates { get; set; }
         public List<DateTime>? MinorDates { get; set; }
         public List<UserShortDto>? GroupMembers { get; set; }
+
     }
 }

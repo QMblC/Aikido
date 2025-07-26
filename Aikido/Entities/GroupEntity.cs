@@ -1,4 +1,5 @@
-﻿using Aikido.Dto;
+﻿using Aikido.AdditionalData;
+using Aikido.Dto;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities
@@ -11,15 +12,15 @@ namespace Aikido.Entities
         public List<long> UserIds { get; set; } = new();
         public long? ClubId { get; set; }
         public string? Name { get; set; }
-        public string? AgeGroup { get; set; }
+        public AgeGroup AgeGroup { get; set; } = AgeGroup.Adult;
 
         public void UpdateFromJson(GroupDto groupNewData)
         {
             if (groupNewData.CoachId != null)
                 CoachId = (long)groupNewData.CoachId;
 
-            if (groupNewData.UserIds != null)
-                UserIds = new List<long>(groupNewData.UserIds);
+            if (groupNewData.GroupMembers != null)
+                UserIds = new List<long>(groupNewData.GroupMembers);
 
             if (groupNewData.ClubId != null)
                 ClubId = (long)groupNewData.ClubId;
@@ -28,7 +29,7 @@ namespace Aikido.Entities
                 Name = groupNewData.Name;
 
             if (!string.IsNullOrEmpty(groupNewData.AgeGroup))
-                AgeGroup = groupNewData.AgeGroup;
+                AgeGroup = EnumParser.ConvertStringToEnum<AgeGroup>(groupNewData.AgeGroup);
         }
 
         public void UpdateFromJson(GroupInfoDto groupNewData)
@@ -46,25 +47,14 @@ namespace Aikido.Entities
                 Name = groupNewData.Name;
 
             if (!string.IsNullOrEmpty(groupNewData.AgeGroup))
-                AgeGroup = groupNewData.AgeGroup;
+                AgeGroup = EnumParser.ConvertStringToEnum<AgeGroup>(groupNewData.AgeGroup);
         }
 
-        public void AddUser(long userId, string role = "User")
+        public void AddUser(long userId, Role role = Role.User)
         {
-            if (role == "User")
+            if (role == Role.User)
             {
                 UserIds.Add(userId);
-            }
-            else
-            {
-                if (CoachId != null)
-                {
-                    CoachId = userId;
-                }
-                else
-                {
-                    throw new Exception("Группа уже имеет тренера!");
-                }
             }
         }
 
@@ -74,10 +64,7 @@ namespace Aikido.Entities
             {
                 CoachId = null;
             }
-            if (UserIds.Contains(userId))
-            {
-                UserIds.Remove(userId);
-            }
+            UserIds.Remove(userId);
         }
     }
 }

@@ -1,36 +1,65 @@
 ﻿using System.Reflection;
 using System.Runtime.Serialization;
 
-namespace Aikido.AdditionalData
+public static class EnumParser
 {
-    public static class EnumParser
+    public static T ConvertStringToEnum<T>(string value) where T : Enum
     {
-        public static T ConvertStringToEnum<T>(string value) where T : Enum
+        if (value == null || value == "")
         {
-            foreach (var field in typeof(T).GetFields(BindingFlags.Public | BindingFlags.Static))
-            {
-                var attribute = field.GetCustomAttribute<EnumMemberAttribute>();
-                if (attribute != null && attribute.Value == value)
-                {
-                    return (T)field.GetValue(null);
-                }
-            }
-
-            throw new Exception($"Данные о {typeof(T).Name} из json некорректны. На вход подаётся - {value}");
+            value = "None";
         }
 
-        public static string ConvertEnumToString<T>(T enumValue) where T : Enum
+        if (Enum.TryParse(typeof(T), value, ignoreCase: true, out var result))
         {
-            var memberInfo = typeof(T).GetMember(enumValue.ToString());
-            if (memberInfo.Length > 0)
-            {
-                var attribute = memberInfo[0].GetCustomAttribute<EnumMemberAttribute>();
-                if(attribute != null)
-                {
-                    return attribute.Value;
-                }
-            }
-            throw new NotImplementedException($"{typeof(T).Name} не содержит аттрибута");
+            return (T)result!;
         }
+
+        throw new Exception($"Данные о {typeof(T).Name} из строки некорректны. Входное значение: {value}");
+    }
+
+    public static string ConvertEnumToString<T>(T enumValue) where T : Enum
+    {
+        return enumValue.ToString();
+    }
+
+    public static Dictionary<string, string> GetEnumNames<T>() where T : Enum
+    {
+        return typeof(T)
+            .GetFields(BindingFlags.Public | BindingFlags.Static)
+            .Where(f => f.GetCustomAttribute<EnumMemberAttribute>() != null)
+            .ToDictionary(
+                f => f.Name,
+                f => f.GetCustomAttribute<EnumMemberAttribute>()!.Value!
+            );
+    }
+
+    public static string? GetEnumMemberValue<T>(T enumValue) where T : Enum
+    {
+        var type = typeof(T);
+        var name = enumValue.ToString();
+        var field = type.GetField(name);
+        if (field == null) return null;
+
+        var attr = field.GetCustomAttribute<EnumMemberAttribute>();
+        return attr?.Value;
+    }
+
+    public static T? GetEnumMemberValue<T>(string enumValue) where T : Enum
+    {
+        var type = typeof(T);
+        if (enumValue == null || enumValue == "")
+            enumValue = "None";
+
+        foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.Static))
+        {
+            var attr = field.GetCustomAttribute<EnumMemberAttribute>();
+            if (attr?.Value == enumValue)
+                return (T)field.GetValue(null)!;
+
+            if (field.Name == enumValue)
+                return (T)field.GetValue(null)!;
+        }
+        throw new NotImplementedException($"Не найден такой enum {enumValue}");
     }
 }

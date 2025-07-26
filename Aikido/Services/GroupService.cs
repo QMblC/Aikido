@@ -19,6 +19,12 @@ namespace Aikido.Services
             return groupEntity;
         }
 
+        public async Task<bool> Contains(long id)
+        {
+            var groupEntity = await context.Groups.FindAsync(id);
+            return groupEntity != null;
+        }
+
         public async Task<long> CreateGroup(GroupDto groupData)
         {
             var groupEntity = new GroupEntity();
@@ -68,7 +74,8 @@ namespace Aikido.Services
 
         public async Task AddUserToGroup(long groupId, long userId)
         {
-            var groupEntity = context.Groups.FindAsync(userId).Result;
+            var groupEntity = await context.Groups.FindAsync(groupId);
+
             if (groupEntity == null)
             {
                 throw new KeyNotFoundException($"Пользователя с Id = {userId} не существует");
@@ -79,8 +86,15 @@ namespace Aikido.Services
             await SaveDb();
         }
 
-        public async Task DeleteUserFromGroup(GroupEntity groupEntity, long userId)
+        public async Task DeleteUserFromGroup(long groupId, long userId)
         {
+            var groupEntity = await context.Groups.FindAsync(groupId);
+
+            if (groupEntity == null)
+            {
+                throw new KeyNotFoundException($"Пользователя с Id = {userId} не существует");
+            }
+
             groupEntity.DeleteUser(userId);
 
             await SaveDb();
@@ -121,6 +135,20 @@ namespace Aikido.Services
             groupEntity.UserIds = memberIds;
 
             await SaveDb();
+        }
+
+        public async Task<List<long>> GetCoachStudentsIds(long coachId)
+        {
+            var coachGroups = await context.Groups
+                .Where(group => group.CoachId == coachId)
+                .ToListAsync();
+
+            var userIds = coachGroups
+                .SelectMany(group => group.UserIds ?? new List<long>())
+                .Distinct()
+                .ToList();
+
+            return userIds;
         }
     }
 }

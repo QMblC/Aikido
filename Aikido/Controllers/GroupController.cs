@@ -1,4 +1,5 @@
-﻿using Aikido.Dto;
+﻿using Aikido.AdditionalData;
+using Aikido.Dto;
 using Aikido.Requests;
 using Aikido.Services;
 using DocumentFormat.OpenXml.InkML;
@@ -34,7 +35,7 @@ namespace Aikido.Controllers
             try
             {
                 var group = await groupService.GetGroupById(id);
-                return Ok(group);
+                return Ok(new GroupDto(group));
             }
             catch (KeyNotFoundException ex)
             {
@@ -51,7 +52,7 @@ namespace Aikido.Controllers
         {
             var groups = await groupService.GetGroupsByClubId(clubId);
 
-            return Ok(groups);
+            return Ok(groups.Select(group => new GroupDto(group)));
         }
 
         [HttpPost("create")]
@@ -87,7 +88,7 @@ namespace Aikido.Controllers
                     AgeGroup = groupData.AgeGroup,
                     CoachId = groupData.CoachId,
                     ClubId = groupData.ClubId,
-                    UserIds = groupData.GroupMembers?.Select(m => m.Id).ToList()
+                    GroupMembers = groupData.GroupMembers?.Select(m => m.Id).ToList()
                 };
 
                 groupId = await groupService.CreateGroup(groupDto);
@@ -120,8 +121,8 @@ namespace Aikido.Controllers
                     allDates.AddRange(groupData.ExtraDates.Select(d => new ExclusionDateDto
                     {
                         GroupId = groupId,
-                        DateTime = d.ToString("yyyy-MM-dd"),
-                        status = "extra"
+                        Date = d,
+                        Status = "Extra"
                     }));
                 }
 
@@ -130,8 +131,8 @@ namespace Aikido.Controllers
                     allDates.AddRange(groupData.MinorDates.Select(d => new ExclusionDateDto
                     {
                         GroupId = groupId,
-                        DateTime = d.ToString("yyyy-MM-dd"),
-                        status = "minor"
+                        Date = d,
+                        Status = "Minor"
                     }));
                 }
 
@@ -172,7 +173,7 @@ namespace Aikido.Controllers
                     AgeGroup = groupData.AgeGroup,
                     CoachId = groupData.CoachId,
                     ClubId = groupData.ClubId,
-                    UserIds = (groupData.GroupMembers != null && groupData.GroupMembers.Any())
+                    GroupMembers = (groupData.GroupMembers != null && groupData.GroupMembers.Any())
                         ? groupData.GroupMembers.Select(m => m.Id).ToList()
                         : null
                 };
@@ -209,8 +210,8 @@ namespace Aikido.Controllers
                     exclusions.AddRange(groupData.ExtraDates.Select(date => new ExclusionDateDto
                     {
                         GroupId = id,
-                        DateTime = date.ToString("yyyy-MM-dd"),
-                        status = "extra"
+                        Date = date,
+                        Status = "Extra"
                     }));
                 }
 
@@ -219,8 +220,8 @@ namespace Aikido.Controllers
                     exclusions.AddRange(groupData.MinorDates.Select(date => new ExclusionDateDto
                     {
                         GroupId = id,
-                        DateTime = date.ToString("yyyy-MM-dd"),
-                        status = "minor"
+                        Date = date,
+                        Status = "Minor"
                     }));
                 }
 
@@ -271,7 +272,7 @@ namespace Aikido.Controllers
         {
             var groups = await groupService.GetGroups();
 
-            return Ok(groups);
+            return Ok(groups.Select(group => new GroupDto(group)));
         }
 
         [HttpGet("get/info/{groupId}")]
@@ -285,7 +286,7 @@ namespace Aikido.Controllers
 
             groupInfo.Id = group.Id;
             groupInfo.Name = group.Name;
-            groupInfo.AgeGroup = group.AgeGroup;
+            groupInfo.AgeGroup = EnumParser.ConvertEnumToString(group.AgeGroup);
             groupInfo.ClubId = group.ClubId;
 
             if (group.ClubId != null)
@@ -370,12 +371,12 @@ namespace Aikido.Controllers
 
             var exclusionDates = await scheduleService.GetGroupExclusionDates(groupId, DateTime.Now);
             groupInfo.ExtraDates = exclusionDates
-                .Where(d => d.Status == "extra")
+                .Where(d => d.Status == ExclusiveDateType.Extra)
                 .Select(d => d.Date.Date)
                 .ToList();
 
             groupInfo.MinorDates = exclusionDates
-                .Where(d => d.Status == "minor")
+                .Where(d => d.Status == ExclusiveDateType.Minor)
                 .Select(d => d.Date.Date)
                 .ToList();
 

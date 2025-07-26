@@ -22,14 +22,5 @@ namespace Aikido.Services
                 throw new Exception($"Ошибка при обработке: {ex.InnerException?.Message}", ex);
             }
         }
-
-        internal async Task<long> Create<T>(T entity)
-        {
-            var savedEntity = context.Add(entity);
-
-            await SaveDb();
-
-            return 1;
-        }
     }
 }
