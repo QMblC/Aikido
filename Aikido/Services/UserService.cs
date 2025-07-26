@@ -1,6 +1,7 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Data;
 using Aikido.Dto;
+using Aikido.Dto.Seminars;
 using Aikido.Entities;
 using Aikido.Entities.Filters;
 using Microsoft.EntityFrameworkCore;
@@ -185,7 +186,7 @@ namespace Aikido.Services
             await SaveDb();
         }
 
-        public async Task ApplySeminarResults(CoachStatementMemberDto seminarMember, SeminarEntity seminar)
+        public async Task ApplySeminarResults(SeminarMemberDto seminarMember, SeminarEntity seminar)
         {
             var user = await GetUserById(seminarMember.Id.Value);
 
@@ -209,7 +210,7 @@ namespace Aikido.Services
             await SaveDb();
         }
 
-        public async Task DiscardSeminarResult(CoachStatementMemberDto seminarMember, SeminarEntity seminar)
+        public async Task DiscardSeminarResult(SeminarMemberDto seminarMember, SeminarEntity seminar)
         {
             var user = await GetUserById(seminarMember.Id.Value);
 

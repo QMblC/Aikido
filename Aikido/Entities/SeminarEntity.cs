@@ -1,4 +1,4 @@
-﻿using Aikido.Dto;
+﻿using Aikido.Dto.Seminars;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities

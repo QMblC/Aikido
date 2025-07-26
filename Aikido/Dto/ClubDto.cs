@@ -2,7 +2,7 @@
 
 namespace Aikido.Dto
 {
-    public class ClubDto
+    public class ClubDto : DtoBase
     {
         public long? Id { get; set; }
         public string Name { get; set; }

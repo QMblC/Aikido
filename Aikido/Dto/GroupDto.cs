@@ -3,9 +3,8 @@ using Aikido.Entities;
 
 namespace Aikido.Dto
 {
-    public class GroupDto
+    public class GroupDto : DtoBase
     {
-        public long? Id { get; set; }
         public long? CoachId { get; set; }
         public List<long>? GroupMembers { get; set; }
         public long? ClubId { get; set; }

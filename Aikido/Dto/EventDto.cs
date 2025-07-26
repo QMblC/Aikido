@@ -1,8 +1,7 @@
 ﻿namespace Aikido.Dto
 {
-    public class EventDto
+    public class EventDto : DtoBase
     {
-        public long Id { get; set; }
         public long? UserId { get; set; }
         public DateTime? PublishDate { get; set; }
         public string? City { get; set; }

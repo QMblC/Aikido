@@ -1,5 +1,5 @@
 ﻿using Aikido.Data;
-using Aikido.Dto;
+using Aikido.Dto.Seminars;
 using Aikido.Entities;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using Microsoft.EntityFrameworkCore;
@@ -69,13 +69,7 @@ namespace Aikido.Services
 
         public async Task<long> CreateSeminarMember(SeminarMemberDto seminarMemberDto)
         {
-            var memberEntity = new SeminarMemberEntity(seminarMemberDto);
-
-            await context.SeminarMembers.AddAsync(memberEntity);
-
-            await SaveDb();
-
-            return memberEntity.Id;
+            throw new NotImplementedException();
         }
 
         public async Task DeleteSeminarMember(long memberId)
@@ -89,11 +83,7 @@ namespace Aikido.Services
 
         public async Task UpdateSeminarMember(long memberId, SeminarMemberDto memberDto)
         {
-            var memberEntity = await GetSeminarMember(memberId);
-
-            memberEntity.UpdateFromJson(memberDto);
-
-            await SaveDb();
+            throw new NotImplementedException();
         }
 
         public async Task<List<SeminarMemberEntity>> GetMembersBySeminarId(long seminarId)
@@ -107,10 +97,7 @@ namespace Aikido.Services
 
         public async Task CreateSeminarMember(List<SeminarMemberDto> members)
         {
-            foreach (var member in members)
-            {
-                await CreateSeminarMember(member);
-            }
+            throw new NotImplementedException();
         }
         
         public async Task<List<StatementEntity>> GetSeminarCoachStatements(long seminarId)

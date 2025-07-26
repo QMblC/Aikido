@@ -1,6 +1,6 @@
 ﻿namespace Aikido.Dto
 {
-    public class GroupDetailsDto
+    public class GroupDetailsDto : DtoBase
     {
         public string? Name { get; set; }
         public CoachDto? Coach { get; set; }

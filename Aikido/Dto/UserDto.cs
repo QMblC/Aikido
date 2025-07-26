@@ -1,9 +1,9 @@
 ﻿using Aikido.AdditionalData;
+using Aikido.Dto;
 using Aikido.Entities;
 
-public class UserDto
+public class UserDto : DtoBase
 {
-    public long? Id { get; set; }
     public string Role { get; set; }
     public string Login { get; set; }
     public string? Password { get; set; }

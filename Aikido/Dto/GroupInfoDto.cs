@@ -3,7 +3,7 @@ using Aikido.Entities;
 
 namespace Aikido.Dto
 {
-    public class GroupInfoDto
+    public class GroupInfoDto : DtoBase
     {
         public long? Id { get; set; }
         public string? Name { get; set; }
