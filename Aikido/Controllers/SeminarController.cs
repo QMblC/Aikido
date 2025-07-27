@@ -554,7 +554,6 @@ namespace Aikido.Controllers
             {
                 var seminar = await seminarService.GetSeminar(seminarId);
 
-
                 var members = tableService.ParseStatement(seminar.FinalStatementFile);
 
                 foreach (var member in members)
