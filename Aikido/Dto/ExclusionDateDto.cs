@@ -3,7 +3,7 @@ using Aikido.Entities;
 
 namespace Aikido.Dto
 {
-    public class ExclusionDateDto
+    public class ExclusionDateDto : DtoBase
     {
         public long? Id { get; set; }
         public long? GroupId { get; set; }

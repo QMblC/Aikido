@@ -1,10 +1,9 @@
 ﻿using Aikido.Entities;
 
-namespace Aikido.Dto
+namespace Aikido.Dto.Seminars
 {
-    public class SeminarDto
+    public class SeminarDto : DtoBase
     {
-        public long? Id { get; set; }
         public string? Name { get; set; }
         public DateTime? Date { get; set; }
 

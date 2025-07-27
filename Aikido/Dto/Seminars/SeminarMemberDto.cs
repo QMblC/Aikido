@@ -1,15 +1,17 @@
 ﻿using Aikido.Entities;
+using Aikido.Entities.Users;
 using Aikido.Services;
 
-namespace Aikido.Dto
+namespace Aikido.Dto.Seminars
 {
-    public class CoachStatementMemberDto
+    public class SeminarMemberDto : DtoBase
     {
-        public long? Id { get; set; }
         public string? Name { get; set; }
+        public long? SeminarId { get; set; }
 
         public string? Grade { get; set; }
         public string? CertificationGrade { get; set; }
+        public DateTime? CertificationDate { get; set; }
 
         public string? CoachName { get; set; }
         public string? ClubName { get; set; }
@@ -25,9 +27,9 @@ namespace Aikido.Dto
         public bool IsBudoPassportPayed { get; set; }
         public bool IsAnnualFeePayed { get; set; }
 
-        public CoachStatementMemberDto() { }
+        public SeminarMemberDto() { }
 
-        public CoachStatementMemberDto(
+        public SeminarMemberDto(
             UserEntity user,
             ClubEntity club,
             UserEntity coach)
@@ -44,7 +46,7 @@ namespace Aikido.Dto
             IsBudoPassportPayed = user.HasBudoPassport;
         }
 
-        public CoachStatementMemberDto(
+        public SeminarMemberDto(
             UserEntity user,
             ClubEntity club,
             SeminarEntity seminar,
@@ -52,9 +54,11 @@ namespace Aikido.Dto
         {
             Id = user.Id;
             Name = user.FullName;
+            SeminarId = seminar.Id;
             Grade = EnumParser.ConvertEnumToString(user.Grade);
             CoachName = coach.FullName;
             CertificationGrade = null;
+            CertificationDate = seminar.Date;
             ClubName = club.Name;
             City = club.City;
             SeminarGroup = "";

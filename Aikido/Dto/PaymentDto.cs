@@ -3,7 +3,7 @@ using Aikido.Entities;
 
 namespace Aikido.Dto
 {
-    public class PaymentDto
+    public class PaymentDto : DtoBase
     {
         public long? Id { get; set; }
         public long? UserId { get; set; }

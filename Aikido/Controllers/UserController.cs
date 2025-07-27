@@ -119,7 +119,7 @@ namespace Aikido.Controllers
                 club = await clubService.GetClubById(user.ClubId.Value);
                 group = await groupService.GetGroupById(user.GroupId.Value);
                 var coach = await userService.GetUserById(group.CoachId.Value);
-                return Ok(new CoachStatementMemberDto(user,club,coach));
+                return Ok(new SeminarMemberDto(user,club,coach));
             }
             catch (Exception ex)
             {

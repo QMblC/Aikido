@@ -1,6 +1,6 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Data;
-using Aikido.Dto;
+using Aikido.Dto.Seminars;
 using Aikido.Entities;
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Drawing;
@@ -135,7 +135,7 @@ namespace Aikido.Services
         }
 
         public async Task<MemoryStream> CreateStatement(
-            List<CoachStatementMemberDto> members,
+            List<SeminarMemberDto> members,
             SeminarEntity seminar)
         {
             var workbook = new XLWorkbook();
@@ -236,7 +236,7 @@ namespace Aikido.Services
 
         private int AddMembersData(IXLWorksheet worksheet,
             int offset,
-            List<CoachStatementMemberDto> members,
+            List<SeminarMemberDto> members,
             SeminarEntity seminar)
         {
             // Данные участников
@@ -269,9 +269,9 @@ namespace Aikido.Services
             return row + 1;
         }
 
-        public List<CoachStatementMemberDto> ParseStatement(byte[] table)
+        public List<SeminarMemberDto> ParseStatement(byte[] table)
         {
-            var result = new List<CoachStatementMemberDto>();
+            var result = new List<SeminarMemberDto>();
 
             using var stream = new MemoryStream(table);
             using var workbook = new XLWorkbook(stream);
@@ -286,7 +286,7 @@ namespace Aikido.Services
                 if (idCell.IsEmpty() || !long.TryParse(idCell.GetValue<string>(), out var id))
                     break;
 
-                var dto = new CoachStatementMemberDto
+                var dto = new SeminarMemberDto
                 {
                     Id = id,
                     Name = worksheet.Cell(startRow, 3).GetValue<string>(),
@@ -319,7 +319,7 @@ namespace Aikido.Services
         }
 
         public async Task<MemoryStream> CreateCoachStatement(
-            List<CoachStatementMemberDto> members,
+            List<SeminarMemberDto> members,
             SeminarEntity seminar)
         {
             var workbook = new XLWorkbook();
@@ -359,7 +359,7 @@ namespace Aikido.Services
             return stream;
         }
 
-        private int AddMembersData(IXLWorksheet worksheet, int offset, List<CoachStatementMemberDto> members)
+        private int AddMembersData(IXLWorksheet worksheet, int offset, List<SeminarMemberDto> members)
         {
             var row = offset + 3;
             foreach (var member in members)

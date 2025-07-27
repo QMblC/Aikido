@@ -1,4 +1,5 @@
 ﻿using Aikido.Dto;
+using Aikido.Dto.Seminars;
 using Aikido.Entities;
 using Aikido.Requests;
 using Aikido.Services;
@@ -187,7 +188,7 @@ namespace Aikido.Controllers
             var coachStudentIds = await groupService.GetCoachStudentsIds(coachId);
             var coachStudents = await userService.GetUsers(coachStudentIds);
 
-            var members = coachStudents.Select(async student => new CoachStatementMemberDto(student,
+            var members = coachStudents.Select(async student => new SeminarMemberDto(student,
                 await clubService.GetClubById(student.ClubId.Value), seminar, coach))
                 .Select(m => m.Result)
                 .ToList();
@@ -286,7 +287,7 @@ namespace Aikido.Controllers
             var coach = await userService.GetUserById(coachId);
             var seminar = await seminarService.GetSeminar(seminarId);
 
-            var members = new List<CoachStatementMemberDto>();
+            var members = new List<SeminarMemberDto>();
 
             if (seminarService.Contains(seminarId, coachId))
             {
@@ -303,7 +304,7 @@ namespace Aikido.Controllers
                 var club = await clubService.GetClubById(student.ClubId.Value);
                 var group = await groupService.GetGroupById(student.GroupId.Value);
 
-                var member = new CoachStatementMemberDto(student, club, seminar, coach);
+                var member = new SeminarMemberDto(student, club, seminar, coach);
 
                 member.SeminarPrice = seminar.PriceSeminarInRubles;
                 member.BudoPassportPrice = member.IsBudoPassportPayed ? 0 : seminar.PriceBudoPassportRubles;
@@ -324,7 +325,7 @@ namespace Aikido.Controllers
             [FromQuery] long coachId,
             CoachStatementMembersRequest request)
         {
-            List<CoachStatementMemberDto> members;
+            List<SeminarMemberDto> members;
 
             try
             {
@@ -377,7 +378,7 @@ namespace Aikido.Controllers
                 return StatusCode(500, ex.Message);
             }
 
-            var members = new List<CoachStatementMemberDto>();
+            var members = new List<SeminarMemberDto>();
 
             if (seminar.FinalStatementFile != null)
             {
@@ -406,7 +407,7 @@ namespace Aikido.Controllers
         [HttpPost("create/final-statement/members/{seminarId}")]
         public async Task<IActionResult> CreateFinalStatement(long seminarId, CoachStatementMembersRequest request)
         {
-            List<CoachStatementMemberDto> members;
+            List<SeminarMemberDto> members;
 
             try
             {
@@ -488,7 +489,7 @@ namespace Aikido.Controllers
                         $"семинара {seminar.Date.Day}.{seminar.Date.Month}.{seminar.Date.Year}.xlsx");
                 }
 
-                var members = new List<CoachStatementMemberDto>();
+                var members = new List<SeminarMemberDto>();
 
                 var statements = await seminarService.GetSeminarCoachStatements(seminarId);
 

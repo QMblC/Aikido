@@ -1,5 +1,5 @@
 ﻿using Aikido.AdditionalData;
-using Aikido.Dto;
+using Aikido.Dto.Seminars;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities
@@ -8,34 +8,15 @@ namespace Aikido.Entities
     {
         [Key]
         public long Id { get; set; }
+
         public long UserId { get; set; }
-        public DateTime CertificationDate { get; set; }
-        public Grade OldGrade { get; set; }
-        public Grade CertificationGrade { get; set; }
-        public bool GradeConfirmationStatus { get; set; } = false;
-        public SeminarMemberStatus ResultStatus { get; set; }
+        public long SeminarId { get; set; }
+        public long ClubId { get; set; }
+        public long GroupId { get; set; }
+        public string? SeminarGroup { get; set; }
+        public long CertificationId { get; set; }
+        public List<long> PaymentsIds { get; set; } = new();
 
         public SeminarMemberEntity() { }
-
-        public SeminarMemberEntity(SeminarMemberDto memberDto)
-        {
-            UpdateFromJson(memberDto);
-        }
-
-        public void UpdateFromJson(SeminarMemberDto memberDto)
-        {
-            if (memberDto.UserId != null)
-            {
-                UserId = memberDto.UserId.Value;
-            }
-            if (memberDto.CertificationDate != null)
-            {
-                CertificationDate = memberDto.CertificationDate.Value;
-            }
-            OldGrade = EnumParser.ConvertStringToEnum<Grade>(memberDto.OldGrade);
-            CertificationGrade = EnumParser.ConvertStringToEnum<Grade>(memberDto.CertificationGrade);
-            GradeConfirmationStatus = memberDto.GradeConfirmationStatus;
-            ResultStatus = EnumParser.ConvertStringToEnum<SeminarMemberStatus>(memberDto.ResultStatus);
-        }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace Aikido.Dto
 {
-    public class ScheduleDto
+    public class ScheduleDto : DtoBase
     {
         //ToDo
 

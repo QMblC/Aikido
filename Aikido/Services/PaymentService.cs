@@ -1,6 +1,7 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Data;
 using Aikido.Dto;
+using Aikido.Dto.Seminars;
 using Aikido.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -71,7 +72,7 @@ namespace Aikido.Services
             await SaveDb();
         }
 
-        public async Task CreatePayment(CoachStatementMemberDto member, SeminarEntity seminar)
+        public async Task CreatePayment(SeminarMemberDto member, SeminarEntity seminar)
         {
             if (member.BudoPassportPrice > 0)
             {
@@ -123,7 +124,7 @@ namespace Aikido.Services
             }
         }
 
-        public async Task DeletePayment(CoachStatementMemberDto member, SeminarEntity seminar)
+        public async Task DeletePayment(SeminarMemberDto member, SeminarEntity seminar)
         {
             var payements = context.Payment.Where(payement => payement.UserId == member.Id 
                 && payement.Date == seminar.Date);

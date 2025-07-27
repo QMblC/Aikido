@@ -2,9 +2,8 @@
 
 namespace Aikido.Dto
 {
-    public class StatementDto
+    public class StatementDto : DtoBase
     {
-        public long? Id { get; set; }
         public string? Name { get; set; }
         public long? SeminarId { get; set; }
         public long? CoachId { get; set; }
