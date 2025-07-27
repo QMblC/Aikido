@@ -1,6 +1,7 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Dto;
 using Aikido.Entities;
+using Aikido.Entities.Users;
 using Aikido.Requests;
 using Aikido.Services;
 using DocumentFormat.OpenXml.Spreadsheet;

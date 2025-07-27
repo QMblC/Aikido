@@ -4,6 +4,7 @@ using Aikido.Dto;
 using Aikido.Dto.Seminars;
 using Aikido.Entities;
 using Aikido.Entities.Filters;
+using Aikido.Entities.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace Aikido.Services

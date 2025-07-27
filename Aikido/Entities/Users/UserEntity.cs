@@ -1,7 +1,8 @@
 ﻿using Aikido.AdditionalData;
+using Aikido.Dto;
 using System.ComponentModel.DataAnnotations;
 
-namespace Aikido.Entities
+namespace Aikido.Entities.Users
 {
     public class UserEntity : IDbEntity
     {
@@ -11,24 +12,25 @@ namespace Aikido.Entities
         public Role Role { get; set; }
         public string? Login { get; set; }
         public string? Password { get; set; }
-        public string FullName { get; set; }
+
+        public string LastName { get; set; }
+        public string FirstName { get; set; }
+        public string SecondName { get; set; }
         public Sex Sex { get; set; }
 
         public byte[] Photo { get; set; } = [];
         public string? PhoneNumber { get; set; }
         public DateTime? Birthday { get; set; }
+        public string? City { get; set; }
+
         public Grade Grade { get; set; } = Grade.None;
         public ProgramType ProgramType { get; set; } = ProgramType.None;
         public Education Education { get; set; } = Education.None;
-
-        public List<DateTime> CertificationDates { get; private set; } = [];
         public bool HasBudoPassport { get; set; }
-        public List<DateTime> PaymentDates { get; set; } = [];
 
-        
-        public long? ClubId { get; set; }
-        public string? City { get; set; }
-        public long? GroupId { get; set; }
+        public List<long> CertificationIds { get; set; } = [];
+        public List<long> PaymentIds { get; set; } = [];
+        public List<long> UserGroupDataIds { get; set; }
         
         public string? ParentFullName { get; set; }
         public string? ParentPhoneNumber { get; set; }
