@@ -3,6 +3,7 @@ using Aikido.Data;
 using Aikido.Dto;
 using Aikido.Dto.Seminars;
 using Aikido.Entities;
+using Aikido.Entities.Seminar;
 using Microsoft.EntityFrameworkCore;
 
 namespace Aikido.Services
@@ -69,7 +70,7 @@ namespace Aikido.Services
 
             context.Add(paymentEntity);
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task CreatePayment(SeminarMemberDto member, SeminarEntity seminar)
@@ -84,7 +85,7 @@ namespace Aikido.Services
                     Amount = (long)member.BudoPassportPrice
                 };
                 context.Add(payment);
-                await SaveDb();
+                await SaveChangesAsync();
             }
             if (member.AnnualFee > 0)
             {
@@ -96,7 +97,7 @@ namespace Aikido.Services
                     Amount = (long)member.AnnualFee
                 };
                 context.Add(payment);
-                await SaveDb();
+                await SaveChangesAsync();
             }
             if (member.SeminarPrice > 0)
             {
@@ -108,7 +109,7 @@ namespace Aikido.Services
                     Amount = (long)member.SeminarPrice
                 };
                 context.Add(payment);
-                await SaveDb();
+                await SaveChangesAsync();
             }
             if (member.CertificationPrice > 0)
             {
@@ -120,7 +121,7 @@ namespace Aikido.Services
                     Amount = (long)member.CertificationPrice
                 };
                 context.Add(payment);
-                await SaveDb();
+                await SaveChangesAsync();
             }
         }
 
@@ -141,7 +142,7 @@ namespace Aikido.Services
                        
             }
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task DeletePayment(long id)
@@ -150,7 +151,7 @@ namespace Aikido.Services
 
             context.Remove(payment);
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
     }

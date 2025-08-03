@@ -1,12 +1,16 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Dto;
+using Aikido.Entities.Users;
 
 namespace Aikido.Entities
 {
     public class PaymentEntity : IDbEntity
     {
         public long Id { get; set; }
+
         public long UserId { get; set; }
+        public UserEntity User { get; set; }
+
         public DateTime Date { get; set; }
         public PaymentType Type { get; set; }
         public long Amount { get; set; } = 0;

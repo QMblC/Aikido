@@ -26,7 +26,7 @@ namespace Aikido.Services
 
             context.Events.Add(eventEntity);
 
-            await SaveDb();
+            await SaveChangesAsync();
 
             return eventEntity.Id;
         }
@@ -39,7 +39,7 @@ namespace Aikido.Services
 
             context.Remove(eventEntity);
 
-            await SaveDb();
+            await SaveChangesAsync();
 
         }
 
@@ -51,7 +51,7 @@ namespace Aikido.Services
 
             eventEntity.UpdateFromJson(eventNewData);
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
     }
 }

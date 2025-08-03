@@ -20,7 +20,7 @@ namespace Aikido.Services
 
             await context.Attendances.AddAsync(attendanceEntity);
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task RemoveAttendance(AttendanceDto attendandce)
@@ -31,7 +31,7 @@ namespace Aikido.Services
 
             context.Remove(attendanceEntity);
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task<List<AttendanceEntity>> GetUserMonthlyAttendance(long userId, long groupId, DateTime month)

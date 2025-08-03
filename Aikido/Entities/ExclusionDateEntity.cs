@@ -8,10 +8,14 @@ namespace Aikido.Entities
     {
         [Key]
         public long Id { get; set; }
+
         public long GroupId { get; set; }
+        public GroupEntity Group { get; set; }
+
         public DateTime Date { get; set; }
-        //public TimeSpan StartTime { get; set; }
-        //public TimeSpan EndTime { get; set; }
+
+        public TimeSpan? StartTime { get; set; }
+        public TimeSpan? EndTime { get; set; }
         public ExclusiveDateType Status { get; set; }
 
         public ExclusionDateEntity() { }

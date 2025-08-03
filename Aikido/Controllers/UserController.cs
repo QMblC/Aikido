@@ -39,7 +39,7 @@ namespace Aikido.Controllers
         {
             try
             {
-                var user = await userService.GetUserById(id);
+                var user = await userService.GetByIdOrThrowException(id);
                 
                 if (user.ClubId == null && user.GroupId == null)
                 {
@@ -107,7 +107,7 @@ namespace Aikido.Controllers
         {
             try
             {
-                var user = await userService.GetUserById(userId);
+                var user = await userService.GetByIdOrThrowException(userId);
                 ClubEntity club = null;
                 GroupEntity group = null;
 
@@ -118,7 +118,7 @@ namespace Aikido.Controllers
 
                 club = await clubService.GetClubById(user.ClubId.Value);
                 group = await groupService.GetGroupById(user.GroupId.Value);
-                var coach = await userService.GetUserById(group.CoachId.Value);
+                var coach = await userService.GetByIdOrThrowException(group.CoachId.Value);
                 return Ok(new SeminarMemberDto(user,club,coach));
             }
             catch (Exception ex)
@@ -284,7 +284,7 @@ namespace Aikido.Controllers
                     userData.City = club.City;
                 }
 
-                var user = await userService.GetUserById(id);
+                var user = await userService.GetByIdOrThrowException(id);
                 var userOldGroupId = user.GroupId;
 
                 await userService.UpdateUser(id, userData);

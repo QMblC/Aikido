@@ -46,7 +46,7 @@ namespace Aikido.Services
                 });
             }
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         private bool TryParseRussianDayOfWeek(string input, out DayOfWeek result)
@@ -98,7 +98,7 @@ namespace Aikido.Services
                 context.ExclusionDates.Add(entity);
             }
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task<List<ExclusionDateEntity>> GetGroupExclusionDates(long groupId, DateTime month)

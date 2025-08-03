@@ -1,7 +1,7 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Data;
 using Aikido.Dto.Seminars;
-using Aikido.Entities;
+using Aikido.Entities.Seminar;
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.Spreadsheet;

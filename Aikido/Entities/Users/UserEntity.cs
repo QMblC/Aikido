@@ -28,9 +28,11 @@ namespace Aikido.Entities.Users
         public Education Education { get; set; } = Education.None;
         public bool HasBudoPassport { get; set; }
 
-        public List<long> CertificationIds { get; set; } = [];
-        public List<long> PaymentIds { get; set; } = [];
-        public List<long> UserGroupDataIds { get; set; }
+        public List<CertificationEntity> Certifications { get; set; } = [];
+        public List<PaymentEntity> Payments { get; set; } = [];
+        public List<UserGroupDataEntity> UserGroupData { get; set; } = [];
+
+        public List<AttendanceEntity> Attendances { get; set; } = [];
         
         public string? ParentFullName { get; set; }
         public string? ParentPhoneNumber { get; set; }

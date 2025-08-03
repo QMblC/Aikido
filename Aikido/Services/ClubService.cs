@@ -39,7 +39,7 @@ namespace Aikido.Services
 
             context.Clubs.Add(clubEntity);
 
-            await SaveDb();
+            await SaveChangesAsync();
 
             return clubEntity.Id;
         }
@@ -52,7 +52,7 @@ namespace Aikido.Services
 
             context.Remove(clubEntity);
 
-            await SaveDb();
+            await SaveChangesAsync();
 
         }
 
@@ -64,7 +64,7 @@ namespace Aikido.Services
 
             clubEntity.UpdateFromJson(clubNewData);
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task AddGroupToClub(long clubId, long groupId)
@@ -80,7 +80,7 @@ namespace Aikido.Services
 
             clubEntity.Groups = groupList.ToArray();
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task DeleteGroupFromClub(long clubId, long groupId)
@@ -96,7 +96,7 @@ namespace Aikido.Services
 
             clubEntity.Groups = groupList.ToArray();
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
     }
 }

@@ -73,7 +73,7 @@ namespace Aikido.Controllers
 
             try
             {
-                await userService.GetUserById((long)groupData.CoachId);
+                await userService.GetByIdOrThrowException((long)groupData.CoachId);
             }
             catch
             {
@@ -312,7 +312,7 @@ namespace Aikido.Controllers
             {
                 try
                 {
-                    var coach = await userService.GetUserById((long)group.CoachId);
+                    var coach = await userService.GetByIdOrThrowException((long)group.CoachId);
                     groupInfo.Coach = coach.FullName;
                 }
                 catch (KeyNotFoundException)

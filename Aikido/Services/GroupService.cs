@@ -32,7 +32,7 @@ namespace Aikido.Services
 
             context.Groups.Add(groupEntity);
 
-            await SaveDb();
+            await SaveChangesAsync();
 
             return groupEntity.Id;
         }
@@ -42,7 +42,7 @@ namespace Aikido.Services
             var groupEntity = await GetGroupById(id);
             groupEntity.UpdateFromJson(newData);
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task DeleteGroup(long id, bool saveDB = true)
@@ -54,7 +54,7 @@ namespace Aikido.Services
             context.Remove(groupEntity);
 
             if (saveDB)
-                await SaveDb();
+                await SaveChangesAsync();
         }
 
         public async Task<List<GroupEntity>> GetGroupsByClubId(long clubId)
@@ -83,7 +83,7 @@ namespace Aikido.Services
 
             groupEntity.AddUser(userId);
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task DeleteUserFromGroup(long groupId, long userId)
@@ -97,7 +97,7 @@ namespace Aikido.Services
 
             groupEntity.DeleteUser(userId);
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task<List<GroupEntity>> GetGroups()
@@ -134,7 +134,7 @@ namespace Aikido.Services
 
             groupEntity.UserIds = memberIds;
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task<List<long>> GetCoachStudentsIds(long coachId)

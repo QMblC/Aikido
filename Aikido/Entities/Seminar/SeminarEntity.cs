@@ -1,7 +1,9 @@
 ﻿using Aikido.Dto.Seminars;
+using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Aikido.Entities
+namespace Aikido.Entities.Seminar
 {
     public class SeminarEntity : IDbEntity
     {
@@ -11,10 +13,14 @@ namespace Aikido.Entities
         public DateTime Date { get; set; }
 
         public string? Location { get; set; }
-        public List<string>? Schedule { get; set; } = [];
-        public List<string>? Contacts { get; set; } = [];
         public string? Description { get; set; } = "";
-        public List<string>? Groups { get; set; } = [];
+
+        public List<SeminarScheduleEntity> Schedule { get; set; } = [];
+        public List<SeminarContactEntity> Contacts { get; set; } = []; 
+        public List<SeminarGroupEntity> Groups { get; set; } = [];
+
+        public List<SeminarMemberEntity> Members { get; set; } = [];
+
 
         public decimal? PriceSeminarInRubles { get; set; }
         public decimal? PriceAnnualFeeRubles { get; set; }
@@ -23,14 +29,17 @@ namespace Aikido.Entities
         public decimal? Price1KyuCertificationInRubles { get; set; }
         public decimal? PriceDanCertificationInRubles { get; set; }
 
-        public long[]? CoachStatementIds { get; set; } = [];
+        public List<StatementEntity> CoachStatements { get; set; } = [];
         public byte[]? Regulation { get; set; }
 
         public byte[]? FinalStatementFile { get; set; }
         public bool IsFinalStatementApplied { get; set; }
 
         public DateTime? CreationDate { get; set; }
+
+        [ForeignKey(nameof(Creator))]
         public long? CreatorId { get; set; }
+        public UserEntity? Creator { get; set; }
 
         public SeminarEntity() { }
 
@@ -61,7 +70,7 @@ namespace Aikido.Entities
 
             CreatorId = dto.CreatorId ?? null;
             Regulation = dto.Regulation != null ? Convert.FromBase64String(dto.Regulation) : null;
-            CoachStatementIds = [];
+            CoachStatements = [];
         }
 
         public void UpdateFromJson(SeminarDto seminarNewData)

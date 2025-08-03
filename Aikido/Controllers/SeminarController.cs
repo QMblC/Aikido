@@ -1,6 +1,6 @@
 ﻿using Aikido.Dto;
 using Aikido.Dto.Seminars;
-using Aikido.Entities;
+using Aikido.Entities.Seminar;
 using Aikido.Requests;
 using Aikido.Services;
 using DocumentFormat.OpenXml.Spreadsheet;
@@ -45,7 +45,7 @@ namespace Aikido.Controllers
 
                 if (seminarDto.CreatorId != null)
                 {
-                    var creator = await userService.GetUserById(seminarDto.CreatorId.Value);
+                    var creator = await userService.GetByIdOrThrowException(seminarDto.CreatorId.Value);
                     seminarDto.Creator = new UserShortDto(creator);
                 }       
 
@@ -168,7 +168,7 @@ namespace Aikido.Controllers
         {
             byte[] fileBytes;
 
-            var coach = await userService.GetUserById(coachId);
+            var coach = await userService.GetByIdOrThrowException(coachId);
             var seminar = await seminarService.GetSeminar(seminarId);
 
             if (seminarService.Contains(seminarId, coachId))
@@ -284,7 +284,7 @@ namespace Aikido.Controllers
             [FromQuery] long seminarId,
             [FromQuery] long coachId)
         {
-            var coach = await userService.GetUserById(coachId);
+            var coach = await userService.GetByIdOrThrowException(coachId);
             var seminar = await seminarService.GetSeminar(seminarId);
 
             var members = new List<SeminarMemberDto>();

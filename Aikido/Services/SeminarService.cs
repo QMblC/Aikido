@@ -1,6 +1,6 @@
 ﻿using Aikido.Data;
 using Aikido.Dto.Seminars;
-using Aikido.Entities;
+using Aikido.Entities.Seminar;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
@@ -35,7 +35,7 @@ namespace Aikido.Services
 
             await context.Seminars.AddAsync(seminarEntity);
 
-            await SaveDb();
+            await SaveChangesAsync();
 
             return seminarEntity.Id;
         }
@@ -46,7 +46,7 @@ namespace Aikido.Services
 
             context.Seminars.Remove(seminarEntity);
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task UpdateSeminar(long id, SeminarDto seminarData)
@@ -55,7 +55,7 @@ namespace Aikido.Services
 
             seminarEntity.UpdateFromJson(seminarData);
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task<SeminarMemberEntity> GetSeminarMember(long memberId)
@@ -78,7 +78,7 @@ namespace Aikido.Services
 
             context.SeminarMembers.Remove(memberEntity);
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task UpdateSeminarMember(long memberId, SeminarMemberDto memberDto)
@@ -140,7 +140,7 @@ namespace Aikido.Services
 
             context.Add(statement);
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task DeleteSeminarCoachStatement(long seminarId, long coachId)
@@ -152,7 +152,7 @@ namespace Aikido.Services
 
             context.Statements.Remove(statement);
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task UpdateSeminarCoachStatement(
@@ -168,7 +168,7 @@ namespace Aikido.Services
 
             statement.UpdateStatement(table, name);
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task CreateFinalStatement(long seminarId, byte[] table)
@@ -177,7 +177,7 @@ namespace Aikido.Services
 
             seminar.FinalStatementFile = table;
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task DeleteFinalStatement(long seminarId)
@@ -186,7 +186,7 @@ namespace Aikido.Services
 
             seminar.FinalStatementFile = null;
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task UpdateAppliement(long seminarId, bool value)
@@ -195,7 +195,7 @@ namespace Aikido.Services
 
             seminar.IsFinalStatementApplied = value;
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
     }
 }

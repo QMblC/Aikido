@@ -1,6 +1,6 @@
 ﻿using Aikido.Data;
 using Aikido.Dto.Seminars;
-using Aikido.Entities;
+using Aikido.Entities.Seminar;
 
 namespace Aikido.Services
 {
@@ -36,7 +36,7 @@ namespace Aikido.Services
 
             await context.SeminarMembers.AddAsync(memberEntity);
 
-            await SaveDb();
+            await SaveChangesAsync();
 
             return memberEntity.Id;
         }
@@ -47,7 +47,7 @@ namespace Aikido.Services
 
             context.SeminarMembers.Remove(member);
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task DeleteSeminarMember(long seminarId, long userId)
@@ -56,7 +56,7 @@ namespace Aikido.Services
 
             context.SeminarMembers.Remove(member);
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
     }
 }

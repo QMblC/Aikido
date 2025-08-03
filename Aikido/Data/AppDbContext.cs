@@ -1,4 +1,5 @@
 ﻿using Aikido.Entities;
+using Aikido.Entities.Seminar;
 using Aikido.Entities.Users;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,6 +8,7 @@ namespace Aikido.Data
     public class AppDbContext : DbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
         public DbSet<UserEntity> Users { get; set; }
         public DbSet<ClubEntity> Clubs { get; set; }
         public DbSet<GroupEntity> Groups { get; set; }
@@ -16,9 +18,11 @@ namespace Aikido.Data
         public DbSet<ExclusionDateEntity> ExclusionDates { get; set; }
         public DbSet<SeminarEntity> Seminars { get; set; }
         public DbSet<SeminarMemberEntity> SeminarMembers { get; set; }
+        public DbSet<SeminarScheduleEntity> SeminarSchedules { get; set; }
+        public DbSet<SeminarContactEntity> SeminarContacts { get; set; }
+        public DbSet<SeminarGroupEntity> SeminarGroups { get; set; }
         public DbSet<PaymentEntity> Payment { get; set; }
         public DbSet<StatementEntity> Statements { get; set; }
-
-
     }
+
 }

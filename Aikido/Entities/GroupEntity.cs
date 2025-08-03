@@ -1,5 +1,6 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Dto;
+using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities
@@ -9,10 +10,19 @@ namespace Aikido.Entities
         [Key]
         public long Id { get; set; }
         public long? CoachId { get; set; }
-        public List<long> UserIds { get; set; } = new();
+        public UserEntity? Coach { get; set; }
+
         public long? ClubId { get; set; }
+        public ClubEntity Club { get; set; }
+
         public string? Name { get; set; }
         public AgeGroup AgeGroup { get; set; } = AgeGroup.Adult;
+
+        public List<ScheduleEntity> Schedules { get; set; } = new();
+        public List<ExclusionDateEntity> ExclusionDates { get; set; } = new();
+
+        public List<UserGroupDataEntity> UserGroupData { get; set; } = new();
+        public List<AttendanceEntity> Attendances { get; set; } = [];
 
         public void UpdateFromJson(GroupDto groupNewData)
         {

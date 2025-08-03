@@ -54,7 +54,7 @@ namespace Aikido.Controllers
             if (!DateTime.TryParseExact(month, "yyyy-MM", null, System.Globalization.DateTimeStyles.None, out var monthInDate))
                 return BadRequest("Неверный формат месяца. Используйте 'yyyy-MM'.");
 
-            var user = await userService.GetUserById(userId);
+            var user = await userService.GetByIdOrThrowException(userId);
             if (user == null)
                 return NotFound($"Пользователь с Id = {userId} не найден.");
 
@@ -85,7 +85,7 @@ namespace Aikido.Controllers
 
             if (group.CoachId != null)
             {
-                var coachEntity = await userService.GetUserById(group.CoachId.Value);
+                var coachEntity = await userService.GetByIdOrThrowException(group.CoachId.Value);
                 if (coachEntity != null)
                 {
                     coach = new UserShortDto
@@ -189,7 +189,7 @@ namespace Aikido.Controllers
 
                 foreach (var id in UserIds)
                 {
-                    var user = await userService.GetUserById(id);
+                    var user = await userService.GetByIdOrThrowException(id);
                     if (user == null)
                         return NotFound($"Пользователь с ID {id} не найден.");
 
@@ -218,7 +218,7 @@ namespace Aikido.Controllers
 
             foreach (var userId in memberIds)
             {
-                var user = await userService.GetUserById(userId);
+                var user = await userService.GetByIdOrThrowException(userId);
 
                 users.Add(new UserShortDto
                 {

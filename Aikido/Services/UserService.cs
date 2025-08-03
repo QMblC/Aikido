@@ -2,9 +2,10 @@
 using Aikido.Data;
 using Aikido.Dto;
 using Aikido.Dto.Seminars;
-using Aikido.Entities;
 using Aikido.Entities.Filters;
+using Aikido.Entities.Seminar;
 using Aikido.Entities.Users;
+using Aikido.Services.Base;
 using Microsoft.EntityFrameworkCore;
 
 namespace Aikido.Services
@@ -15,9 +16,10 @@ namespace Aikido.Services
         public List<UserDto> Users { get; set; } = [];
     }
 
-    public class UserService : DbService
+    public class UserService : DbService<UserEntity, UserService>, IUserService
     {
-        public UserService(AppDbContext context) : base(context) { }
+        public UserService(AppDbContext context, ILogger<UserService> logger)
+            : base(context, logger) { }
 
         public async Task<List<UserShortDto>> GetUserIdAndNamesAsync()
         {
@@ -31,15 +33,6 @@ namespace Aikido.Services
             {
                 throw new ApplicationException("Не удалось получить список пользователей.", ex);
             }
-        }
-
-        public async Task<UserEntity> GetUserById(long id)
-        {
-            var userEntity = await context.Users.FindAsync(id);
-            if (userEntity == null)
-                throw new KeyNotFoundException($"Пользователь с Id = {id} не найден.");
-
-            return userEntity;
         }
 
         public async Task<List<UserEntity>> GetUsers(List<long> ids)
@@ -59,7 +52,7 @@ namespace Aikido.Services
             userEntity.UpdateFromJson(userData);
 
             context.Users.Add(userEntity);
-            await SaveDb();
+            await SaveChangesAsync();
 
             return userEntity.Id;
         }
@@ -97,7 +90,7 @@ namespace Aikido.Services
                 context.Users.Add(userEntity);
             }
 
-            await SaveDb();
+            await SaveChangesAsync();
 
             return context.Users
                 .Where(u => loginsToCheck.Contains(u.Login))
@@ -126,7 +119,7 @@ namespace Aikido.Services
             context.Users.Remove(userEntity);
 
             if (saveDb)
-                await SaveDb();
+                await SaveChangesAsync();
 
         }
         public async Task UpdateUser(long id, UserDto userNewData)
@@ -139,7 +132,7 @@ namespace Aikido.Services
 
             userEntity.UpdateFromJson(userNewData);
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task UpdateUsers(List<UserDto> usersData)
@@ -184,12 +177,12 @@ namespace Aikido.Services
                 userEntity.UpdateFromJson(userDto);
             }
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task ApplySeminarResults(SeminarMemberDto seminarMember, SeminarEntity seminar)
         {
-            var user = await GetUserById(seminarMember.Id.Value);
+            var user = await GetByIdOrThrowException(seminarMember.Id.Value);
 
             var newGrade = EnumParser.ConvertStringToEnum<Grade>(seminarMember.CertificationGrade);
 
@@ -208,12 +201,12 @@ namespace Aikido.Services
                 }
             }
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task DiscardSeminarResult(SeminarMemberDto seminarMember, SeminarEntity seminar)
         {
-            var user = await GetUserById(seminarMember.Id.Value);
+            var user = await GetByIdOrThrowException(seminarMember.Id.Value);
 
             if (seminarMember.BudoPassportPrice > 0)
             {
@@ -227,7 +220,7 @@ namespace Aikido.Services
                 user.ProgramType = ProgramType.Child;
             }
 
-            await SaveDb();
+            await SaveChangesAsync();
         }
 
         public async Task<List<UserEntity>> GetClubMembers(long clubId)

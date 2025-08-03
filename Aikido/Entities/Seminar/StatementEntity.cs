@@ -1,7 +1,7 @@
 ﻿using Aikido.Dto;
 using System.ComponentModel.DataAnnotations;
 
-namespace Aikido.Entities
+namespace Aikido.Entities.Seminar
 {
     public class StatementEntity : IDbEntity
     {

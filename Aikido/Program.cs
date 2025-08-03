@@ -1,9 +1,20 @@
 using Aikido.Data;
 using Aikido.Services;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using System.Text.Json;
 
+Directory.CreateDirectory("logs");
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .WriteTo.Console()
+    .WriteTo.File("logs/app.log", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog();
 
 var connString = builder.Configuration.GetConnectionString("DefaultConnection");
 
@@ -21,7 +32,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connString));
 
-builder.Services.AddScoped<UserService>()
+builder.Services.AddScoped<IUserService, UserService>();
     .AddScoped<ClubService>()
     .AddScoped<GroupService>()
     .AddScoped<TableService>()
@@ -29,8 +40,6 @@ builder.Services.AddScoped<UserService>()
     .AddScoped<AttendanceService>()
     .AddScoped<SeminarService>()
     .AddScoped<PaymentService>();
-
-
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -43,4 +52,5 @@ var app = builder.Build();
 app.MapGet("/", () => "Сервер работает!");
 app.UseCors("AllowAll");
 app.MapControllers();
+
 app.Run("http://0.0.0.0:5000");

@@ -1,4 +1,5 @@
 ﻿using Aikido.AdditionalData;
+using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities
@@ -7,6 +8,9 @@ namespace Aikido.Entities
     {
         [Key]
         public long Id { get; set; }
+
+        public long UserId { get; set; }
+        public UserEntity User { get; set; }
         
         public Grade OldGrade { get; set; }
         public Grade CertificationGrade { get; set; }

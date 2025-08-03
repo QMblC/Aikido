@@ -96,7 +96,7 @@ namespace Aikido.Controllers
                 UserEntity coach;
                 try
                 {
-                    coach = await userService.GetUserById((long)group.CoachId);
+                    coach = await userService.GetByIdOrThrowException(group.CoachId.Value);
                 }
                 catch
                 {
