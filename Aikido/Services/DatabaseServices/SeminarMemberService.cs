@@ -2,7 +2,7 @@
 using Aikido.Dto.Seminars;
 using Aikido.Entities.Seminar;
 
-namespace Aikido.Services
+namespace Aikido.Services.DatabaseServices
 {
     public class SeminarMemberService : DbService
     {

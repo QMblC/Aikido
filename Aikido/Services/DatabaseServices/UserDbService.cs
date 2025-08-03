@@ -5,10 +5,10 @@ using Aikido.Dto.Seminars;
 using Aikido.Entities.Filters;
 using Aikido.Entities.Seminar;
 using Aikido.Entities.Users;
-using Aikido.Services.Base;
+using Aikido.Services.DatabaseServices.Base;
 using Microsoft.EntityFrameworkCore;
 
-namespace Aikido.Services
+namespace Aikido.Services.DatabaseServices
 {
     public class PagedUserResult
     {
@@ -16,9 +16,9 @@ namespace Aikido.Services
         public List<UserDto> Users { get; set; } = [];
     }
 
-    public class UserService : DbService<UserEntity, UserService>, IUserService
+    public class UserDbService : DbService<UserEntity, UserDbService>, IUserDbService
     {
-        public UserService(AppDbContext context, ILogger<UserService> logger)
+        public UserDbService(AppDbContext context, ILogger<UserDbService> logger)
             : base(context, logger) { }
 
         public async Task<List<UserShortDto>> GetUserIdAndNamesAsync()

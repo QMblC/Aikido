@@ -6,7 +6,7 @@ using Aikido.Entities;
 using Aikido.Entities.Seminar;
 using Microsoft.EntityFrameworkCore;
 
-namespace Aikido.Services
+namespace Aikido.Services.DatabaseServices
 {
     public class PaymentService : DbService
     {

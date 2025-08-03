@@ -4,7 +4,7 @@ using Aikido.Exceptions;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using Microsoft.EntityFrameworkCore;
 
-namespace Aikido.Services.Base
+namespace Aikido.Services.DatabaseServices.Base
 {
     public abstract class DbService<T, TService> : IDbService<T>
         where T : class, IDbEntity
@@ -50,6 +50,13 @@ namespace Aikido.Services.Base
             logger.LogInformation("{Entity} создана", typeof(T).Name);
         }
 
+        public async Task Create(List<T> entities)
+        {
+            await context.Set<T>().AddRangeAsync(entities);
+            await SaveChangesAsync();
+            logger.LogInformation("Список {Entity} создан", typeof(T).Name);
+        }
+
         public async Task UpdateOrThrowException(T newEntity)
         {
             if (await Exists(newEntity.Id))
@@ -65,6 +72,8 @@ namespace Aikido.Services.Base
                 throw ex;
             }
         }
+
+
 
         public async Task DeleteById(long id)
         {

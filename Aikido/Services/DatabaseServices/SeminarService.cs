@@ -5,7 +5,7 @@ using DocumentFormat.OpenXml.Office2010.Excel;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 
-namespace Aikido.Services
+namespace Aikido.Services.DatabaseServices
 {
     public class SeminarService : DbService
     {

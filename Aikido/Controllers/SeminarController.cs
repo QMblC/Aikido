@@ -3,6 +3,7 @@ using Aikido.Dto.Seminars;
 using Aikido.Entities.Seminar;
 using Aikido.Requests;
 using Aikido.Services;
+using Aikido.Services.DatabaseServices;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,7 +13,7 @@ namespace Aikido.Controllers
     [Route("api/[controller]")]
     public class SeminarController : Controller
     {
-        private readonly UserService userService;
+        private readonly UserDbService userService;
         private readonly ClubService clubService;
         private readonly GroupService groupService;
         private readonly SeminarService seminarService;
@@ -20,7 +21,7 @@ namespace Aikido.Controllers
         private readonly PaymentService paymentService;
 
         public SeminarController(
-            UserService userService,
+            UserDbService userService,
             ClubService clubService,
             GroupService groupService,
             SeminarService seminarService,

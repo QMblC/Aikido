@@ -3,7 +3,7 @@ using Aikido.Dto;
 using Aikido.Entities;
 using Aikido.Entities.Users;
 using Aikido.Requests;
-using Aikido.Services;
+using Aikido.Services.DatabaseServices;
 using DocumentFormat.OpenXml.InkML;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,13 +13,13 @@ namespace Aikido.Controllers
     [Route("api/[controller]")]
     public class ClubController : Controller
     {
-        private readonly UserService userService;
+        private readonly UserDbService userService;
         private readonly ClubService clubService;
         private readonly GroupService groupService;
         private readonly ScheduleService scheduleService;
 
         public ClubController(
-            UserService userService, 
+            UserDbService userService, 
             ClubService clubService, 
             GroupService groupService,
             ScheduleService scheduleService

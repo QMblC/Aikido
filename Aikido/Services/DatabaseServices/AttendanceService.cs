@@ -4,7 +4,7 @@ using Aikido.Entities;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using Microsoft.EntityFrameworkCore;
 
-namespace Aikido.Services
+namespace Aikido.Services.DatabaseServices
 {
     public class AttendanceService : DbService
     {

@@ -5,7 +5,7 @@ using DocumentFormat.OpenXml.Office2010.Excel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace Aikido.Services
+namespace Aikido.Services.DatabaseServices
 {
     public class ClubService : DbService
     {
@@ -23,7 +23,7 @@ namespace Aikido.Services
         public async Task<bool> Contains(long id)
         {
             var clubEntity = await context.Clubs.FindAsync(id);
-            return (clubEntity != null);
+            return clubEntity != null;
         }
 
         public async Task<List<ClubEntity>> GetClubsList()

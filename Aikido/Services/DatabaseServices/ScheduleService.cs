@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore; // ← обязательно
 
 
 
-namespace Aikido.Services
+namespace Aikido.Services.DatabaseServices
 {
     public class ScheduleService : DbService
     {

@@ -5,6 +5,7 @@ using Aikido.Entities;
 using Aikido.Entities.Filters;
 using Aikido.Requests;
 using Aikido.Services;
+using Aikido.Services.DatabaseServices;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Mvc;
@@ -17,13 +18,13 @@ namespace Aikido.Controllers
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
-        private readonly UserService userService;
+        private readonly UserDbService userService;
         private readonly ClubService clubService;
         private readonly GroupService groupService;
         private readonly TableService tableService;
 
         public UserController(
-            UserService userService,
+            UserDbService userService,
             ClubService clubService,
             GroupService groupService,
             TableService tableService)
