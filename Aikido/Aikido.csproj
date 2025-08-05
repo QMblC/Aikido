@@ -25,7 +25,7 @@
   <ItemGroup>
     <Folder Include="Dto\Users\" />
     <Folder Include="Migrations\" />
-    <Folder Include="Services\Application\" />
+    <Folder Include="Services\ApplicationServices\" />
   </ItemGroup>
 
 </Project>

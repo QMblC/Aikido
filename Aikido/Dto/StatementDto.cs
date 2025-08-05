@@ -18,7 +18,7 @@ namespace Aikido.Dto
             SeminarId = entity.SeminarId;
             CoachId = entity.CoachId;
 
-            File = entity.StatementFile != null ? Convert.ToBase64String(entity.StatementFile) : null;
+            File = entity.StatementPath != null ? Convert.ToBase64String(entity.StatementPath) : null;
 
         }
     }

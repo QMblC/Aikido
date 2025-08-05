@@ -175,7 +175,7 @@ namespace Aikido.Services.DatabaseServices
         {
             var seminar = await GetSeminar(seminarId);
 
-            seminar.FinalStatementFile = table;
+            seminar.FinalStatementPath = table;
 
             await SaveChangesAsync();
         }
@@ -184,7 +184,7 @@ namespace Aikido.Services.DatabaseServices
         {
             var seminar = await GetSeminar(seminarId);
 
-            seminar.FinalStatementFile = null;
+            seminar.FinalStatementPath = null;
 
             await SaveChangesAsync();
         }

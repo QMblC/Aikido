@@ -1,6 +1,7 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Dto;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Aikido.Entities.Users
 {
@@ -18,7 +19,7 @@ namespace Aikido.Entities.Users
         public string SecondName { get; set; }
         public Sex Sex { get; set; }
 
-        public byte[] Photo { get; set; } = [];
+        public string? AvatarPath { get; set; }
         public string? PhoneNumber { get; set; }
         public DateTime? Birthday { get; set; }
         public string? City { get; set; }
@@ -38,6 +39,10 @@ namespace Aikido.Entities.Users
         public string? ParentPhoneNumber { get; set; }
 
         public DateTime? RegistrationDate { get; set; }
+
+        [NotMapped]
+        public string FullName => $"{LastName} {FirstName} {SecondName}";
+        
 
         public UserEntity()
         {
@@ -72,16 +77,16 @@ namespace Aikido.Entities.Users
             {
                 try
                 {
-                    Photo = Convert.FromBase64String(userNewData.Photo);
+                    AvatarPath = Convert.FromBase64String(userNewData.Photo);
                 }
                 catch (FormatException)
                 {
-                    Photo = [];
+                    AvatarPath = [];
                 }
             }
             else
             {
-                Photo = [];
+                AvatarPath = [];
             }
 
             PhoneNumber = userNewData.PhoneNumber;

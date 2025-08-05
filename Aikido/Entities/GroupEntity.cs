@@ -21,7 +21,7 @@ namespace Aikido.Entities
         public List<ScheduleEntity> Schedules { get; set; } = new();
         public List<ExclusionDateEntity> ExclusionDates { get; set; } = new();
 
-        public List<UserGroupDataEntity> UserGroupData { get; set; } = new();
+        public List<UserGroupDataEntity> MemberData { get; set; } = new();
         public List<AttendanceEntity> Attendances { get; set; } = [];
 
         public void UpdateFromJson(GroupDto groupNewData)

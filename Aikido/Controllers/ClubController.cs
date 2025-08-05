@@ -14,14 +14,14 @@ namespace Aikido.Controllers
     public class ClubController : Controller
     {
         private readonly UserDbService userService;
-        private readonly ClubService clubService;
-        private readonly GroupService groupService;
+        private readonly ClubDbService clubService;
+        private readonly GroupDbService groupService;
         private readonly ScheduleService scheduleService;
 
         public ClubController(
             UserDbService userService, 
-            ClubService clubService, 
-            GroupService groupService,
+            ClubDbService clubService, 
+            GroupDbService groupService,
             ScheduleService scheduleService
             )
         {
@@ -36,7 +36,7 @@ namespace Aikido.Controllers
         {
             try
             {
-                var club = await clubService.GetClubById(id);
+                var club = await clubService.GetByIdOrThrowException(id);
                 return Ok(club);
             }
             catch (KeyNotFoundException ex)
@@ -56,7 +56,7 @@ namespace Aikido.Controllers
 
             try
             {
-                club = await clubService.GetClubById(id);
+                club = await clubService.GetByIdOrThrowException(id);
             }
             catch (KeyNotFoundException ex)
             {
@@ -74,7 +74,7 @@ namespace Aikido.Controllers
         [HttpGet("get/details/list")]
         public async Task<IActionResult> GetAllClubDetails()
         {
-            var clubs = await clubService.GetClubsList();
+            var clubs = await clubService.GetAll();
             var result = new List<ClubDetailsDto>();
 
             foreach (var club in clubs)
@@ -152,7 +152,7 @@ namespace Aikido.Controllers
         {
             try
             {
-                var clubs = await clubService.GetClubsList();
+                var clubs = await clubService.GetAll();
                 return Ok(clubs);
             }
             catch (Exception ex)
@@ -219,7 +219,7 @@ namespace Aikido.Controllers
         public async Task<IActionResult> Delete(long id)
         {
             try
-            {   var groupsDelete = clubService.GetClubById(id).Result.Groups;
+            {   var groupsDelete = clubService.GetByIdOrThrowException(id).Result.Groups;
 
                 var isClubEmpty = userService.GetClubMembers(id)
                     .Result
@@ -233,7 +233,7 @@ namespace Aikido.Controllers
                     await groupService.DeleteGroup(group, false);
                 }
 
-                await clubService.DeleteClub(id);
+                await clubService.DeleteById(id);
                 return Ok();
             }
             catch (KeyNotFoundException ex)

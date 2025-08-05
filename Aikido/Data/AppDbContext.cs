@@ -23,6 +23,7 @@ namespace Aikido.Data
         public DbSet<SeminarGroupEntity> SeminarGroups { get; set; }
         public DbSet<PaymentEntity> Payment { get; set; }
         public DbSet<StatementEntity> Statements { get; set; }
+        public DbSet<UserGroupDataEntity> UserGroupData { get; set; }
     }
 
 }

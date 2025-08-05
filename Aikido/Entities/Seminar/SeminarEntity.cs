@@ -30,9 +30,9 @@ namespace Aikido.Entities.Seminar
         public decimal? PriceDanCertificationInRubles { get; set; }
 
         public List<StatementEntity> CoachStatements { get; set; } = [];
-        public byte[]? Regulation { get; set; }
+        public string? RegulationPath { get; set; }
 
-        public byte[]? FinalStatementFile { get; set; }
+        public string? FinalStatementPath { get; set; }
         public bool IsFinalStatementApplied { get; set; }
 
         public DateTime? CreationDate { get; set; }
@@ -69,7 +69,7 @@ namespace Aikido.Entities.Seminar
                 CreationDate = DateTime.SpecifyKind(dto.CreationDate.Value, DateTimeKind.Utc);
 
             CreatorId = dto.CreatorId ?? null;
-            Regulation = dto.Regulation != null ? Convert.FromBase64String(dto.Regulation) : null;
+            RegulationPath = dto.Regulation != null ? Convert.FromBase64String(dto.Regulation) : null;
             CoachStatements = [];
         }
 
@@ -119,7 +119,7 @@ namespace Aikido.Entities.Seminar
 
             CreatorId = seminarNewData.CreatorId;
 
-            Regulation = seminarNewData.Regulation != null ? Convert.FromBase64String(seminarNewData.Regulation) : null;
+            RegulationPath = seminarNewData.Regulation != null ? Convert.FromBase64String(seminarNewData.Regulation) : null;
         }
     }
 }

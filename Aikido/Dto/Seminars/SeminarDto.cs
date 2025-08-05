@@ -56,7 +56,7 @@ namespace Aikido.Dto.Seminars
 
             CreationDate = entity.CreationDate;
             CreatorId = entity.CreatorId;
-            Regulation = entity.Regulation != null ? Convert.ToBase64String(entity.Regulation) : null;
+            Regulation = entity.RegulationPath != null ? Convert.ToBase64String(entity.RegulationPath) : null;
             CoachStatements = [];
         }
     }

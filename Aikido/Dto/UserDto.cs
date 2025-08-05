@@ -64,7 +64,7 @@ namespace Aikido.Dto
             Role = EnumParser.ConvertEnumToString(user.Role);
             Login = user.Login;
             Password = user.Password;
-            Photo = Convert.ToBase64String(user.Photo);
+            Photo = Convert.ToBase64String(user.AvatarPath);
             PhoneNumber = user.PhoneNumber;
             Birthday = user.Birthday;
             Sex = EnumParser.ConvertEnumToString(user.Sex);

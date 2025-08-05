@@ -19,14 +19,14 @@ namespace Aikido.Controllers
     public class UserController : ControllerBase
     {
         private readonly UserDbService userService;
-        private readonly ClubService clubService;
-        private readonly GroupService groupService;
+        private readonly ClubDbService clubService;
+        private readonly GroupDbService groupService;
         private readonly TableService tableService;
 
         public UserController(
             UserDbService userService,
-            ClubService clubService,
-            GroupService groupService,
+            ClubDbService clubService,
+            GroupDbService groupService,
             TableService tableService)
         {
             this.userService = userService;
@@ -198,19 +198,19 @@ namespace Aikido.Controllers
 
             try
             {
-                if (userData.ClubId != null && !await clubService.Contains(userData.ClubId.Value))
+                if (userData.ClubId != null && !await clubService.Exists(userData.ClubId.Value))
                 {
                     return BadRequest($"Клуба с Id = {userData.ClubId} не существует");
                 }
 
-                if (userData.GroupId != null && !await groupService.Contains(userData.GroupId.Value))
+                if (userData.GroupId != null && !await groupService.Exists(userData.GroupId.Value))
                 {
                     return BadRequest($"Группы с Id = {userData.GroupId} не существует");
                 }
 
                 if (userData.ClubId != null)
                 {
-                    var club = await clubService.GetClubById(userData.ClubId.Value);
+                    var club = await clubService.GetByIdOrThrowException(userData.ClubId.Value);
                     userData.City = club.City;
                 }
 
@@ -241,7 +241,7 @@ namespace Aikido.Controllers
                     await groupService.DeleteUserFromGroup(group.Id, id);
                 }
 
-                await userService.DeleteUser(id);
+                await userService.Delete(id);
                 return Ok();
             }
             catch (KeyNotFoundException ex)
@@ -270,18 +270,18 @@ namespace Aikido.Controllers
 
             try
             {
-                if (userData.ClubId != null && !await clubService.Contains(userData.ClubId.Value))
+                if (userData.ClubId != null && !await clubService.Exists(userData.ClubId.Value))
                 {
                     return BadRequest($"Клуба с Id = {userData.ClubId} не существует");
                 }
 
-                if (userData.GroupId != null && !await groupService.Contains(userData.GroupId.Value))
+                if (userData.GroupId != null && !await groupService.Exists(userData.GroupId.Value))
                 {
                     return BadRequest($"Группы с Id = {userData.GroupId} не существует");
                 }
                 if (userData.ClubId != null)
                 {
-                    var club = await clubService.GetClubById(userData.ClubId.Value);
+                    var club = await clubService.GetByIdOrThrowException(userData.ClubId.Value);
                     userData.City = club.City;
                 }
 
@@ -334,7 +334,7 @@ namespace Aikido.Controllers
                 {
                     if (club == null)
                         continue;
-                    await clubService.GetClubById((long)club);
+                    await clubService.GetByIdOrThrowException((long)club);
                 }
             }
             catch
@@ -348,7 +348,7 @@ namespace Aikido.Controllers
                 {
                     if (group == null)
                         continue;
-                    await clubService.GetClubById((long)group);
+                    await clubService.GetByIdOrThrowException((long)group);
                 }
             }
             catch

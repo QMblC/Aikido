@@ -16,7 +16,7 @@ namespace Aikido.Dto
             Name = userEntity.FullName;
             if (addPhoto)
             {
-                Photo = Convert.ToBase64String(userEntity.Photo);
+                Photo = Convert.ToBase64String(userEntity.AvatarPath);
             }
             
         }

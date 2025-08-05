@@ -14,16 +14,16 @@ namespace Aikido.Controllers
     public class SeminarController : Controller
     {
         private readonly UserDbService userService;
-        private readonly ClubService clubService;
-        private readonly GroupService groupService;
+        private readonly ClubDbService clubService;
+        private readonly GroupDbService groupService;
         private readonly SeminarService seminarService;
         private readonly TableService tableService;
         private readonly PaymentService paymentService;
 
         public SeminarController(
             UserDbService userService,
-            ClubService clubService,
-            GroupService groupService,
+            ClubDbService clubService,
+            GroupDbService groupService,
             SeminarService seminarService,
             TableService tableService,
             PaymentService paymentService)
@@ -149,7 +149,7 @@ namespace Aikido.Controllers
                 .ToList();
 
             var seminar = await seminarService.GetSeminar(seminarId);
-            var finalStatement = seminar.FinalStatementFile != null ? Convert.ToBase64String(seminar.FinalStatementFile) : null;
+            var finalStatement = seminar.FinalStatementPath != null ? Convert.ToBase64String(seminar.FinalStatementPath) : null;
             var isFinalStatementApplied = seminar.IsFinalStatementApplied;
 
             var result = new
@@ -176,7 +176,7 @@ namespace Aikido.Controllers
             {
                 var statement = await seminarService.GetCoachStatement(seminarId, coachId);
 
-                fileBytes = statement.StatementFile.ToArray();
+                fileBytes = statement.StatementPath.ToArray();
 
                 return File(
                     fileContents: fileBytes,
@@ -187,7 +187,7 @@ namespace Aikido.Controllers
             }
 
             var coachStudentIds = await groupService.GetCoachStudentsIds(coachId);
-            var coachStudents = await userService.GetUsers(coachStudentIds);
+            var coachStudents = await userService.GetByIdOrThrowException(coachStudentIds);
 
             var members = coachStudents.Select(async student => new SeminarMemberDto(student,
                 await clubService.GetClubById(student.ClubId.Value), seminar, coach))
@@ -293,12 +293,12 @@ namespace Aikido.Controllers
             if (seminarService.Contains(seminarId, coachId))
             {
                 var statement = await seminarService.GetCoachStatement(seminarId, coachId);
-                members = tableService.ParseStatement(statement.StatementFile);
+                members = tableService.ParseStatement(statement.StatementPath);
                 return Ok(members);
             }
 
             var coachStudentIds = await groupService.GetCoachStudentsIds(coachId);
-            var coachStudents = await userService.GetUsers(coachStudentIds);
+            var coachStudents = await userService.GetByIdOrThrowException(coachStudentIds);
 
             foreach (var student in coachStudents)
             {
@@ -381,9 +381,9 @@ namespace Aikido.Controllers
 
             var members = new List<SeminarMemberDto>();
 
-            if (seminar.FinalStatementFile != null)
+            if (seminar.FinalStatementPath != null)
             {
-                members = tableService.ParseStatement(seminar.FinalStatementFile);
+                members = tableService.ParseStatement(seminar.FinalStatementPath);
                 return Ok(members);
             }
 
@@ -392,7 +392,7 @@ namespace Aikido.Controllers
 
             foreach (var statement in statements)
             {
-                var currentMembers = tableService.ParseStatement(statement.StatementFile);
+                var currentMembers = tableService.ParseStatement(statement.StatementPath);
                 members.AddRange(currentMembers);
             }
 
@@ -430,7 +430,7 @@ namespace Aikido.Controllers
                     return StatusCode(500, "Не удалось создать таблицу");
                 }
 
-                if (seminar.FinalStatementFile != null)
+                if (seminar.FinalStatementPath != null)
                 {
                     await seminarService.CreateFinalStatement(seminarId, table.ToArray());
                 }
@@ -454,7 +454,7 @@ namespace Aikido.Controllers
             {
                 var seminar = await seminarService.GetSeminar(seminarId);
 
-                var oldMembers = tableService.ParseStatement(seminar.FinalStatementFile);
+                var oldMembers = tableService.ParseStatement(seminar.FinalStatementPath);
                 await seminarService.DeleteFinalStatement(seminarId);
 
                 return Ok();
@@ -481,10 +481,10 @@ namespace Aikido.Controllers
 
             try
             {
-                if (seminar.FinalStatementFile != null)
+                if (seminar.FinalStatementPath != null)
                 {
                     return File(
-                        fileContents: seminar.FinalStatementFile,
+                        fileContents: seminar.FinalStatementPath,
                         contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                         fileDownloadName: $"Итоговая ведомость " +
                         $"семинара {seminar.Date.Day}.{seminar.Date.Month}.{seminar.Date.Year}.xlsx");
@@ -497,7 +497,7 @@ namespace Aikido.Controllers
 
                 foreach (var statement in statements)
                 {
-                    var currentMembers = tableService.ParseStatement(statement.StatementFile);
+                    var currentMembers = tableService.ParseStatement(statement.StatementPath);
                     members.AddRange(currentMembers);
                 }
 
@@ -531,7 +531,7 @@ namespace Aikido.Controllers
 
             try
             {
-                if (seminar.FinalStatementFile != null)
+                if (seminar.FinalStatementPath != null)
                 {       
                     await seminarService.CreateFinalStatement(seminarId, table);
 
@@ -556,7 +556,7 @@ namespace Aikido.Controllers
             {
                 var seminar = await seminarService.GetSeminar(seminarId);
 
-                var members = tableService.ParseStatement(seminar.FinalStatementFile);
+                var members = tableService.ParseStatement(seminar.FinalStatementPath);
 
                 foreach (var member in members)
                 {
@@ -581,7 +581,7 @@ namespace Aikido.Controllers
             {
                 var seminar = await seminarService.GetSeminar(seminarId);
 
-                var members = tableService.ParseStatement(seminar.FinalStatementFile);
+                var members = tableService.ParseStatement(seminar.FinalStatementPath);
 
                 foreach (var member in members)
                 {

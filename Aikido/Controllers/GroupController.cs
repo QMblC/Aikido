@@ -12,14 +12,14 @@ namespace Aikido.Controllers
     public class GroupController : Controller
     {
         private readonly UserDbService userService;
-        private readonly ClubService clubService;
-        private readonly GroupService groupService;
+        private readonly ClubDbService clubService;
+        private readonly GroupDbService groupService;
         private readonly ScheduleService scheduleService;
 
         public GroupController(
             UserDbService userService,
-            ClubService clubService,
-            GroupService groupService,
+            ClubDbService clubService,
+            GroupDbService groupService,
             ScheduleService scheduleService
             )
         {
@@ -34,7 +34,7 @@ namespace Aikido.Controllers
         {
             try
             {
-                var group = await groupService.GetGroupById(id);
+                var group = await groupService.GetByIdOrThrowException(id);
                 return Ok(new GroupDto(group));
             }
             catch (KeyNotFoundException ex)
@@ -240,7 +240,7 @@ namespace Aikido.Controllers
         {
             try
             {
-                await groupService.DeleteGroup(id);
+                await groupService.DeleteById(id);
                 return Ok();
             }
             catch (KeyNotFoundException ex)
@@ -270,7 +270,7 @@ namespace Aikido.Controllers
         [HttpGet("get/list")]
         public async Task<IActionResult> GetList()
         {
-            var groups = await groupService.GetGroups();
+            var groups = await groupService.GetAll();
 
             return Ok(groups.Select(group => new GroupDto(group)));
         }
@@ -280,7 +280,7 @@ namespace Aikido.Controllers
         {
             var groupInfo = new GroupInfoDto();
 
-            var group = await groupService.GetGroupById(groupId);
+            var group = await groupService.GetByIdOrThrowException(groupId);
             if (group == null)
                 return NotFound(new { Message = $"Группа с Id = {groupId} не найдена." });
 
@@ -293,7 +293,7 @@ namespace Aikido.Controllers
             {
                 try
                 {
-                    var club = await clubService.GetClubById((long)group.ClubId);
+                    var club = await clubService.GetByIdOrThrowException((long)group.ClubId);
                     groupInfo.Club = club.Name;
                 }
                 catch (KeyNotFoundException)

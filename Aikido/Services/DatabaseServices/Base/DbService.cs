@@ -2,6 +2,7 @@
 using Aikido.Entities;
 using Aikido.Exceptions;
 using DocumentFormat.OpenXml.Office2010.Excel;
+using DocumentFormat.OpenXml.Vml.Office;
 using Microsoft.EntityFrameworkCore;
 
 namespace Aikido.Services.DatabaseServices.Base
@@ -36,6 +37,19 @@ namespace Aikido.Services.DatabaseServices.Base
             return entity;
         }
 
+        public async Task<List<T>> GetByIdOrThrowException(List<long> ids)
+        {
+            var entities = await Task.WhenAll(ids.Select(id => TryGetById(id)));
+
+            if (entities.Any(entity => entity == null))
+            {
+                var ex = new EntityNotFoundException(typeof(T).Name);
+                logger.LogError(ex, "Ошибка получения {Entity}", typeof(T).Name);
+                throw ex;
+            }
+
+            return entities.ToList();
+        }
 
         public async Task<T?> TryGetById(long id) =>
             await context.Set<T>().FirstOrDefaultAsync(e => e.Id == id);
@@ -57,23 +71,39 @@ namespace Aikido.Services.DatabaseServices.Base
             logger.LogInformation("Список {Entity} создан", typeof(T).Name);
         }
 
-        public async Task UpdateOrThrowException(T newEntity)
+        public async Task UpdateOrThrowException(T entity)
         {
-            if (await Exists(newEntity.Id))
+            if (await Exists(entity.Id))
             {
-                context.Set<T>().Update(newEntity);
+                context.Set<T>().Update(entity);
                 await SaveChangesAsync();
                 logger.LogInformation("{Entity} обновлена", typeof(T).Name);
             }
             else
             {
-                var ex = new EntityNotFoundException(typeof(T).Name, newEntity.Id);
+                var ex = new EntityNotFoundException(typeof(T).Name, entity.Id);
                 logger.LogError(ex, "Ошибка обновления {Entity}", typeof(T).Name);
                 throw ex;
             }
         }
 
+        public async Task UpdateOrThrowException(List<T> entities)
+        {
+            var existenceChecks = await Task.WhenAll(entities.Select(entity => Exists(entity.Id)));
 
+            if (existenceChecks.All(x => x))
+            {
+                context.Set<T>().UpdateRange(entities);
+                await SaveChangesAsync();
+                logger.LogInformation("Список {Entity} обновлен", typeof(T).Name);
+            }
+            else
+            {
+                var ex = new EntityNotFoundException(typeof(T).Name);
+                logger.LogError(ex, "Ошибка обновления списка {Entity}", typeof(T).Name);
+                throw ex;
+            }
+        }
 
         public async Task DeleteById(long id)
         {

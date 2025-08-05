@@ -11,6 +11,9 @@ namespace Aikido.Entities.Users
         public long UserId { get; set; }
         public UserEntity User { get; set; }
 
+        public long ClubId { get; set; }
+        public ClubEntity Club { get; set; }
+
         public long GroupId { get; set; }
         public GroupEntity Group { get; set; }
 
@@ -18,13 +21,6 @@ namespace Aikido.Entities.Users
 
         public UserGroupDataEntity() { }
 
-        public UserGroupDataEntity(long clubId, List<long>? groupId = null)
-        {
-            ClubId = clubId;
-            if (groupId != null)
-            {
-                Groups = groupId;
-            }
-        }
+
     }
 }

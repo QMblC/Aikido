@@ -15,16 +15,16 @@ namespace Aikido.Controllers
     public class CoachLogController : ControllerBase
     {
         private readonly UserDbService userService;
-        private readonly ClubService clubService;
-        private readonly GroupService groupService;
+        private readonly ClubDbService clubService;
+        private readonly GroupDbService groupService;
         private readonly TableService tableService;
         private readonly ScheduleService scheduleService;
         private readonly AttendanceService attendanceService;
 
         public CoachLogController(
             UserDbService userService,
-            ClubService clubService,
-            GroupService groupService,
+            ClubDbService clubService,
+            GroupDbService groupService,
             TableService tableService,
             ScheduleService scheduleService,
             AttendanceService attendanceService
@@ -70,7 +70,7 @@ namespace Aikido.Controllers
                     g => string.Join(", ", g.Select(s => $"{s.StartTime:hh\\:mm}-{s.EndTime:hh\\:mm}"))
                 );
 
-            var group = await groupService.GetGroupById(groupId);
+            var group = await groupService.GetByIdOrThrowException(groupId);
 
             ClubEntity club;
             if (user.ClubId != null)
@@ -93,7 +93,7 @@ namespace Aikido.Controllers
                     {
                         Id = coachEntity.Id,
                         Name = coachEntity.FullName,
-                        Photo = Convert.ToBase64String(coachEntity.Photo)
+                        Photo = Convert.ToBase64String(coachEntity.AvatarPath)
                     };
                 }
             }
@@ -113,7 +113,7 @@ namespace Aikido.Controllers
         [HttpGet("get/data/{groupId}")]
         public async Task<IActionResult> GetData(long groupId, [FromQuery] string month)
         {
-            var group = await groupService.GetGroupById(groupId);
+            var group = await groupService.GetByIdOrThrowException(groupId);
             if (group == null)
                 return NotFound($"Группа с Id = {groupId} не найдена.");
 
@@ -213,7 +213,7 @@ namespace Aikido.Controllers
         [HttpGet("get/group-members/{groupId}")]
         public async Task<IActionResult> GetGroupMembers(long groupId)
         {
-            var memberIds = await groupService.GetGroupMemberIds(groupId);
+            var memberIds = await groupService.GetGroupMembers(groupId);
 
             var users = new List<UserShortDto>();
 
@@ -225,7 +225,7 @@ namespace Aikido.Controllers
                 {
                     Id = user.Id,
                     Name = user.FullName,
-                    Photo = Convert.ToBase64String(user.Photo)
+                    Photo = Convert.ToBase64String(user.AvatarPath)
                 });
             }
 

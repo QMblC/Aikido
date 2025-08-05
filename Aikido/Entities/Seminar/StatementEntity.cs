@@ -10,7 +10,7 @@ namespace Aikido.Entities.Seminar
         public string? Name { get; set; }
         public long SeminarId { get; set; }
         public long CoachId { get; set; }
-        public byte[]? StatementFile { get; set; }  
+        public string? StatementPath { get; set; }  
 
         public StatementEntity() { }
 
@@ -26,11 +26,11 @@ namespace Aikido.Entities.Seminar
             }
             if (statementDto.File != null)
             {
-                StatementFile = Convert.FromBase64String(statementDto.File);
+                StatementPath = Convert.FromBase64String(statementDto.File);
             }
             else
             {
-                StatementFile = null;
+                StatementPath = null;
             }
             Name = statementDto.Name;
         }
@@ -39,13 +39,13 @@ namespace Aikido.Entities.Seminar
         {
             SeminarId = seminarId;
             CoachId = coachId;
-            StatementFile = table;
+            StatementPath = table;
             Name = name;
         }
 
         public void UpdateStatement(byte[] table, string name)
         {
-            StatementFile = table;
+            StatementPath = table;
             Name = name;
         }
     }

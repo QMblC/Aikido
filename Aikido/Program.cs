@@ -1,6 +1,7 @@
 using Aikido.Data;
 using Aikido.Services;
 using Aikido.Services.DatabaseServices;
+using Aikido.Services.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System.Text.Json;
@@ -33,9 +34,10 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connString));
 
-builder.Services.AddScoped<IUserDbService, UserDbService>();
-    .AddScoped<ClubService>()
-    .AddScoped<GroupService>()
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>()
+    .AddScoped<IUserDbService, UserDbService>()
+    .AddScoped<ClubDbService>()
+    .AddScoped<GroupDbService>()
     .AddScoped<TableService>()
     .AddScoped<ScheduleService>()
     .AddScoped<AttendanceService>()
