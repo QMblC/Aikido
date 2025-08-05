@@ -16,20 +16,6 @@ namespace Aikido.Services.DatabaseServices
 
         }
 
-        public async Task<List<GroupEntity>> GetGroupsByClubId(long clubId)
-        {
-            return await context.Groups
-                .Where(g => g.ClubId == clubId)
-                .ToListAsync();
-        }
-
-        public async Task<List<GroupEntity>> GetGroupsByUser(long userId)
-        {
-            return await context.Groups
-                .Where(group => group.CoachId == userId || group.MemberData.Any(data => data.UserId == userId))
-                .ToListAsync();
-        }
-
         public async Task<List<UserEntity>> GetGroupMembers(long groupId)
         {
             try

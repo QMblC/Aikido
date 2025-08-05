@@ -15,5 +15,12 @@ namespace Aikido.Services.DatabaseServices
         {
 
         }
+
+        public List<GroupEntity> GetClubGroups(long clubId)
+        {
+            return context.Clubs
+                .SelectMany(club => club.Groups)
+                .ToList();
+        }
     }
 }

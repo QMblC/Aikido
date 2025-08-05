@@ -2,6 +2,7 @@
 using Aikido.Data;
 using Aikido.Dto;
 using Aikido.Dto.Seminars;
+using Aikido.Entities;
 using Aikido.Entities.Filters;
 using Aikido.Entities.Seminar;
 using Aikido.Entities.Users;
@@ -87,6 +88,14 @@ namespace Aikido.Services.DatabaseServices
                 .ToListAsync();
 
             return usersEntities;
+        }
+
+        public async Task<List<GroupEntity>> GetUserGroups(long userId)
+        {
+            return await context.UserGroupData
+                .Where(data =>  data.UserId == userId)
+                .Select(data => data.Group)
+                .ToListAsync();
         }
 
         public async Task<List<UserEntity>> GetCoachStudents(long coachId)
