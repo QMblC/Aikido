@@ -9,7 +9,7 @@ using Aikido.Entities.Users;
 using Aikido.Services.DatabaseServices.Base;
 using Microsoft.EntityFrameworkCore;
 
-namespace Aikido.Services.DatabaseServices
+namespace Aikido.Services.DatabaseServices.User
 {
     public class UserDbService : DbService<UserEntity, UserDbService>, IUserDbService
     {

@@ -7,9 +7,9 @@ using Aikido.Services.DatabaseServices.Base;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using Microsoft.EntityFrameworkCore;
 
-namespace Aikido.Services.DatabaseServices
+namespace Aikido.Services.DatabaseServices.Group
 {
-    public class GroupDbService : DbService<GroupEntity, GroupDbService>
+    public class GroupDbService : DbService<GroupEntity, GroupDbService>, IGroupDbService
     {
         public GroupDbService(AppDbContext context, ILogger<GroupDbService> logger) : base(context, logger)
         {

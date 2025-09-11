@@ -4,6 +4,9 @@ using Aikido.Entities;
 using Aikido.Entities.Users;
 using Aikido.Requests;
 using Aikido.Services.DatabaseServices;
+using Aikido.Services.DatabaseServices.Club;
+using Aikido.Services.DatabaseServices.Group;
+using Aikido.Services.DatabaseServices.User;
 using DocumentFormat.OpenXml.InkML;
 using Microsoft.AspNetCore.Mvc;
 
@@ -245,7 +248,5 @@ namespace Aikido.Controllers
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
         }
-
-        
     }
 }

@@ -11,7 +11,7 @@ namespace Aikido.Dto
 
         public StatementDto() { }
 
-        public StatementDto(StatementEntity entity)
+        public StatementDto(SeminarCoachStatementEntity entity)
         {
             Id = entity.Id;
             Name = entity.Name;

@@ -1,6 +1,10 @@
 using Aikido.Data;
 using Aikido.Services;
 using Aikido.Services.DatabaseServices;
+using Aikido.Services.DatabaseServices.Club;
+using Aikido.Services.DatabaseServices.Group;
+using Aikido.Services.DatabaseServices.Seminar;
+using Aikido.Services.DatabaseServices.User;
 using Aikido.Services.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -41,7 +45,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>()
     .AddScoped<TableService>()
     .AddScoped<ScheduleService>()
     .AddScoped<AttendanceService>()
-    .AddScoped<SeminarService>()
+    .AddScoped<SeminarDbService>()
     .AddScoped<PaymentService>();
 
 builder.Services.AddControllers()

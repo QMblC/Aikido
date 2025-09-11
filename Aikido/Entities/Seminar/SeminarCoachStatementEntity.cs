@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities.Seminar
 {
-    public class StatementEntity : IDbEntity
+    public class SeminarCoachStatementEntity : IDbEntity
     {
         [Key]
         public long Id { get; set; }
@@ -12,9 +12,9 @@ namespace Aikido.Entities.Seminar
         public long CoachId { get; set; }
         public string? StatementPath { get; set; }  
 
-        public StatementEntity() { }
+        public SeminarCoachStatementEntity() { }
 
-        public StatementEntity(StatementDto statementDto)
+        public SeminarCoachStatementEntity(StatementDto statementDto)
         {
             if (statementDto.SeminarId != null)
             {
@@ -35,7 +35,7 @@ namespace Aikido.Entities.Seminar
             Name = statementDto.Name;
         }
 
-        public StatementEntity(long seminarId, long coachId, byte[] table, string name)
+        public SeminarCoachStatementEntity(long seminarId, long coachId, byte[] table, string name)
         {
             SeminarId = seminarId;
             CoachId = coachId;

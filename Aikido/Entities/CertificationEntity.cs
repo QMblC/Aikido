@@ -17,6 +17,6 @@ namespace Aikido.Entities
         public bool GradeConfirmationStatus { get; set; } = false;
         public SeminarMemberStatus ResultStatus { get; set; }
 
-        public DateTime CertificationDate { get; set; }
+        public DateTime Date { get; set; }
     }
 }

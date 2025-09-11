@@ -29,7 +29,7 @@ namespace Aikido.Entities.Seminar
         public decimal? Price1KyuCertificationInRubles { get; set; }
         public decimal? PriceDanCertificationInRubles { get; set; }
 
-        public List<StatementEntity> CoachStatements { get; set; } = [];
+        public List<SeminarCoachStatementEntity> CoachStatements { get; set; } = [];
         public string? RegulationPath { get; set; }
 
         public string? FinalStatementPath { get; set; }

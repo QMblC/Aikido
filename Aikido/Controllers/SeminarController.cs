@@ -4,6 +4,10 @@ using Aikido.Entities.Seminar;
 using Aikido.Requests;
 using Aikido.Services;
 using Aikido.Services.DatabaseServices;
+using Aikido.Services.DatabaseServices.Club;
+using Aikido.Services.DatabaseServices.Group;
+using Aikido.Services.DatabaseServices.Seminar;
+using Aikido.Services.DatabaseServices.User;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,7 +20,7 @@ namespace Aikido.Controllers
         private readonly UserDbService userService;
         private readonly ClubDbService clubService;
         private readonly GroupDbService groupService;
-        private readonly SeminarService seminarService;
+        private readonly SeminarDbService seminarService;
         private readonly TableService tableService;
         private readonly PaymentService paymentService;
 
@@ -24,7 +28,7 @@ namespace Aikido.Controllers
             UserDbService userService,
             ClubDbService clubService,
             GroupDbService groupService,
-            SeminarService seminarService,
+            SeminarDbService seminarService,
             TableService tableService,
             PaymentService paymentService)
         {
@@ -41,7 +45,7 @@ namespace Aikido.Controllers
         {
             try
             {
-                var seminar = await seminarService.GetSeminar(seminarId);
+                var seminar = await seminarService.GetByIdOrThrowException(seminarId);
                 var seminarDto = new SeminarDto(seminar);
 
                 if (seminarDto.CreatorId != null)
@@ -65,7 +69,7 @@ namespace Aikido.Controllers
         [HttpGet("get/list")]
         public async Task<IActionResult> GetSeminarList()
         {
-            var seminars = await seminarService.GetSeminarList();
+            var seminars = await seminarService.GetAll();
 
             return Ok(seminars.Select(seminar => new SeminarDto(seminar)));
         }
@@ -148,7 +152,7 @@ namespace Aikido.Controllers
                 .Select(statement => new StatementDto(statement))
                 .ToList();
 
-            var seminar = await seminarService.GetSeminar(seminarId);
+            var seminar = await seminarService.GetByIdOrThrowException(seminarId);
             var finalStatement = seminar.FinalStatementPath != null ? Convert.ToBase64String(seminar.FinalStatementPath) : null;
             var isFinalStatementApplied = seminar.IsFinalStatementApplied;
 
@@ -170,9 +174,9 @@ namespace Aikido.Controllers
             byte[] fileBytes;
 
             var coach = await userService.GetByIdOrThrowException(coachId);
-            var seminar = await seminarService.GetSeminar(seminarId);
+            var seminar = await seminarService.GetByIdOrThrowException(seminarId);
 
-            if (seminarService.Contains(seminarId, coachId))
+            if (seminarService.Exists(seminarId, coachId))
             {
                 var statement = await seminarService.GetCoachStatement(seminarId, coachId);
 
@@ -217,12 +221,12 @@ namespace Aikido.Controllers
             var table = await request.Parse();
 
             var members = tableService.ParseStatement(table);
-            var seminar = await seminarService.GetSeminar(seminarId);
+            var seminar = await seminarService.GetByIdOrThrowException(seminarId);
             var name = $"{members.FirstOrDefault().CoachName} ведомость семинара {seminar.Date}";
 
             try
             {
-                if (seminarService.Contains(seminarId, coachId))
+                if (seminarService.Exists(seminarId, coachId))
                 {
                     await seminarService.UpdateSeminarCoachStatement(seminarId, coachId, table, name);
                 }
@@ -265,7 +269,7 @@ namespace Aikido.Controllers
         {
             var table = await request.Parse(); 
             var members = tableService.ParseStatement(table);
-            var seminar = await seminarService.GetSeminar(seminarId);
+            var seminar = await seminarService.GetByIdOrThrowException(seminarId);
 
             var name = $"{members.FirstOrDefault().CoachName} ведомость семинара {seminar.Date}";
 
@@ -286,11 +290,11 @@ namespace Aikido.Controllers
             [FromQuery] long coachId)
         {
             var coach = await userService.GetByIdOrThrowException(coachId);
-            var seminar = await seminarService.GetSeminar(seminarId);
+            var seminar = await seminarService.GetByIdOrThrowException(seminarId);
 
             var members = new List<SeminarMemberDto>();
 
-            if (seminarService.Contains(seminarId, coachId))
+            if (seminarService.Exists(seminarId, coachId))
             {
                 var statement = await seminarService.GetCoachStatement(seminarId, coachId);
                 members = tableService.ParseStatement(statement.StatementPath);
@@ -339,7 +343,7 @@ namespace Aikido.Controllers
 
             try
             {
-                var seminar = await seminarService.GetSeminar(seminarId);
+                var seminar = await seminarService.GetByIdOrThrowException(seminarId);
 
                 var table = await tableService.CreateCoachStatement(members, seminar);
                 var name = $"{members.FirstOrDefault().CoachName} ведомость семинара {seminar.Date}";
@@ -348,7 +352,7 @@ namespace Aikido.Controllers
                     return StatusCode(500, "Не удалось создать таблицу");
                 }
 
-                if (seminarService.Contains(seminarId, coachId))
+                if (seminarService.Exists(seminarId, coachId))
                 {
                     await seminarService.UpdateSeminarCoachStatement(seminarId, coachId, table.ToArray(), name);
                 }
@@ -372,7 +376,7 @@ namespace Aikido.Controllers
 
             try
             {
-                seminar = await seminarService.GetSeminar(seminarId);
+                seminar = await seminarService.GetByIdOrThrowException(seminarId);
             }
             catch (Exception ex)
             {
@@ -421,7 +425,7 @@ namespace Aikido.Controllers
 
             try
             {
-                var seminar = await seminarService.GetSeminar(seminarId);
+                var seminar = await seminarService.GetByIdOrThrowException(seminarId);
 
                 var table = await tableService.CreateCoachStatement(members, seminar);
 
@@ -452,7 +456,7 @@ namespace Aikido.Controllers
         {
             try
             {
-                var seminar = await seminarService.GetSeminar(seminarId);
+                var seminar = await seminarService.GetByIdOrThrowException(seminarId);
 
                 var oldMembers = tableService.ParseStatement(seminar.FinalStatementPath);
                 await seminarService.DeleteFinalStatement(seminarId);
@@ -472,7 +476,7 @@ namespace Aikido.Controllers
 
             try
             {
-                seminar = await seminarService.GetSeminar(seminarId);
+                seminar = await seminarService.GetByIdOrThrowException(seminarId);
             }
             catch (Exception ex)
             {
@@ -526,7 +530,7 @@ namespace Aikido.Controllers
         {
 
             var table = await request.Parse();
-            var seminar = await seminarService.GetSeminar(seminarId);
+            var seminar = await seminarService.GetByIdOrThrowException(seminarId);
             var members = tableService.ParseStatement(table);
 
             try
@@ -554,7 +558,7 @@ namespace Aikido.Controllers
         {
             try
             {
-                var seminar = await seminarService.GetSeminar(seminarId);
+                var seminar = await seminarService.GetByIdOrThrowException(seminarId);
 
                 var members = tableService.ParseStatement(seminar.FinalStatementPath);
 
@@ -579,7 +583,7 @@ namespace Aikido.Controllers
         {
             try
             {
-                var seminar = await seminarService.GetSeminar(seminarId);
+                var seminar = await seminarService.GetByIdOrThrowException(seminarId);
 
                 var members = tableService.ParseStatement(seminar.FinalStatementPath);
 

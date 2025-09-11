@@ -6,9 +6,9 @@ using DocumentFormat.OpenXml.Office2010.Excel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace Aikido.Services.DatabaseServices
+namespace Aikido.Services.DatabaseServices.Club
 {
-    public class ClubDbService : DbService<ClubEntity, ClubDbService>
+    public class ClubDbService : DbService<ClubEntity, ClubDbService>, IClubDbService
     {
         public ClubDbService(AppDbContext context, ILogger<ClubDbService> logger) 
             : base(context, logger)
