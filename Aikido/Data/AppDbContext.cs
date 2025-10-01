@@ -33,28 +33,33 @@ namespace Aikido.Data
             modelBuilder.Entity<UserEntity>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.FullName).IsRequired().HasMaxLength(200);
+
+                // Исключаем вычисляемое свойство из базы
+                entity.Property(e => e.LastName).HasMaxLength(100);
+                entity.Property(e => e.FirstName).HasMaxLength(100);
+                entity.Property(e => e.SecondName).HasMaxLength(100);
                 entity.Property(e => e.Login).HasMaxLength(50);
                 entity.Property(e => e.Password).HasMaxLength(100);
                 entity.Property(e => e.PhoneNumber).HasMaxLength(20);
                 entity.Property(e => e.City).HasMaxLength(100);
                 entity.Property(e => e.ParentFullName).HasMaxLength(200);
                 entity.Property(e => e.ParentPhoneNumber).HasMaxLength(20);
+
                 entity.Property(e => e.CertificationDates)
                     .HasConversion(
                         v => string.Join(';', v.Select(d => d.ToString("O"))),
                         v => v.Split(';', StringSplitOptions.RemoveEmptyEntries)
                               .Select(DateTime.Parse).ToList());
+
                 entity.Property(e => e.PaymentDates)
                     .HasConversion(
                         v => string.Join(';', v.Select(d => d.ToString("O"))),
                         v => v.Split(';', StringSplitOptions.RemoveEmptyEntries)
                               .Select(DateTime.Parse).ToList());
 
-                // Настройка индексов
+                // Индексы
                 entity.HasIndex(e => e.Login).IsUnique();
                 entity.HasIndex(e => e.PhoneNumber);
-                entity.HasIndex(e => e.FullName);
             });
 
             // Конфигурация UserClub (промежуточная таблица для User-Club many-to-many)

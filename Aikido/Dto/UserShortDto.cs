@@ -1,11 +1,14 @@
 ﻿using Aikido.Entities;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace Aikido.Dto
 {
-    public class UserShortDto : DtoBase
+    public class UserShortDto : DtoBase//fix FullName
     {
-        public long Id { get; set; }
-        public string Name { get; set; } = string.Empty;
+        public long? Id { get; set; }
+        public string LastName { get; set; }
+        public string FirstName { get; set; }
+        public string? SecondName { get; set; }
         public List<string>? ClubNames { get; set; }
         public List<string>? GroupNames { get; set; }
         public string? Role { get; set; }
@@ -13,12 +16,16 @@ namespace Aikido.Dto
         public string? PhoneNumber { get; set; }
         public string? City { get; set; }
 
+        public string FullName => $"{LastName} {FirstName} {SecondName}";
+
         public UserShortDto() { }
 
         public UserShortDto(UserEntity user)
         {
             Id = user.Id;
-            Name = user.FullName;
+            LastName = user.LastName;
+            FirstName = user.FirstName;
+            SecondName = user.SecondName;
             Role = user.Role.ToString();
             Grade = user.Grade.ToString();
             PhoneNumber = user.PhoneNumber;

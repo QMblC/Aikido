@@ -1,6 +1,7 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Dto;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Aikido.Entities
 {
@@ -11,7 +12,10 @@ namespace Aikido.Entities
         public Role Role { get; set; }
         public string? Login { get; set; }
         public string? Password { get; set; }
-        public string FullName { get; set; } = string.Empty;
+        public string LastName { get; set; }
+        public string FirstName { get; set; }
+        public string? SecondName { get; set; }
+
         public Sex Sex { get; set; }
         public byte[] Photo { get; set; } = [];
         public string? PhoneNumber { get; set; }
@@ -20,7 +24,7 @@ namespace Aikido.Entities
         public ProgramType ProgramType { get; set; } = ProgramType.None;
         public Education Education { get; set; } = Education.None;
         public List<DateTime> CertificationDates { get; private set; } = [];
-        public bool HasBudoPassport { get; set; }
+        public bool HasBudoPassport { get; set; } = false;
         public List<DateTime> PaymentDates { get; set; } = [];
 
         public string? City { get; set; }
@@ -32,12 +36,17 @@ namespace Aikido.Entities
         public virtual ICollection<UserClub> UserClubs { get; set; } = new List<UserClub>();
         public virtual ICollection<UserGroup> UserGroups { get; set; } = new List<UserGroup>();
 
+        [NotMapped]
+        public string FullName => $"{LastName} {FirstName} {SecondName}";
+
         public UserEntity() { }
 
-        public UserEntity(string role, string fullName)
+        public UserEntity(string role, string lastName, string firstName, string secondName)
         {
             Role = EnumParser.ConvertStringToEnum<Role>(role);
-            FullName = fullName;
+            LastName = lastName;
+            FirstName = firstName;
+            SecondName = secondName;
         }
 
         public UserEntity(UserDto userNewData)
@@ -53,8 +62,12 @@ namespace Aikido.Entities
                 Login = userNewData.Login;
             if (!string.IsNullOrEmpty(userNewData.Password))
                 Password = userNewData.Password;
-            if (!string.IsNullOrEmpty(userNewData.Name))
-                FullName = userNewData.Name;
+            if (!string.IsNullOrEmpty(userNewData.LastName))
+                LastName = userNewData.LastName;
+            if (!string.IsNullOrEmpty(userNewData.FirstName))
+                FirstName = userNewData.FirstName;
+            if (!string.IsNullOrEmpty(userNewData.SecondName))
+                SecondName = userNewData.SecondName;
             if (!string.IsNullOrEmpty(userNewData.Photo))
             {
                 try

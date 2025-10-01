@@ -40,7 +40,7 @@ namespace Aikido.Services.DatabaseServices.User
 
         public async Task<List<UserShortDto>> GetUserIdAndNamesAsync()
         {
-            return await _context.Users
+            var users = await _context.Users
                 .Include(u => u.UserClubs)
                     .ThenInclude(uc => uc.Club)
                 .Include(u => u.UserGroups)
@@ -48,7 +48,9 @@ namespace Aikido.Services.DatabaseServices.User
                 .Select(u => new UserShortDto
                 {
                     Id = u.Id,
-                    Name = u.FullName,
+                    LastName = u.LastName,
+                    FirstName = u.FirstName,
+                    SecondName = u.SecondName,
                     Role = u.Role.ToString(),
                     Grade = u.Grade.ToString(),
                     PhoneNumber = u.PhoneNumber,
@@ -58,8 +60,11 @@ namespace Aikido.Services.DatabaseServices.User
                     GroupNames = u.UserGroups.Where(ug => ug.IsActive && ug.Group != null)
                                             .Select(ug => ug.Group!.Name).ToList()
                 })
-                .OrderBy(u => u.Name)
+                .OrderBy(u => u.LastName)
+                .ThenBy(u => u.FirstName)
+                .ThenBy(u => u.SecondName)
                 .ToListAsync();
+            return users;
         }
 
         public async Task<(List<UserDto> Users, int TotalCount)> GetUserListAlphabetAscending(int startIndex, int finishIndex, UserFilter filter)
@@ -74,7 +79,11 @@ namespace Aikido.Services.DatabaseServices.User
             if (!string.IsNullOrWhiteSpace(filter.Name))
             {
                 var nameLower = filter.Name.ToLower();
-                query = query.Where(u => u.FullName != null && u.FullName.ToLower().Contains(nameLower));
+                query = query.Where(u =>
+                    (u.LastName != null && u.LastName.ToLower().Contains(nameLower)) ||
+                    (u.FirstName != null && u.FirstName.ToLower().Contains(nameLower)) ||
+                    (u.SecondName != null && u.SecondName.ToLower().Contains(nameLower))
+                );
             }
 
             if (filter.Roles != null && filter.Roles.Any())
@@ -108,7 +117,9 @@ namespace Aikido.Services.DatabaseServices.User
             var totalCount = await query.CountAsync();
 
             var users = await query
-                .OrderBy(u => u.FullName)
+                .OrderBy(u => u.LastName)
+                .ThenBy(u => u.FirstName)
+                .ThenBy(u => u.SecondName)
                 .Skip(startIndex)
                 .Take(finishIndex - startIndex)
                 .ToListAsync();
@@ -119,6 +130,7 @@ namespace Aikido.Services.DatabaseServices.User
 
             return (userDtos, totalCount);
         }
+
 
 
 

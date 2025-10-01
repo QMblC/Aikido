@@ -10,8 +10,12 @@ namespace Aikido.Dto
         public string? Role { get; set; }
         public string? Login { get; set; }
         public string? Password { get; set; }
-        [Required]
-        public string Name { get; set; } = string.Empty;
+
+        public string LastName { get; set; }
+        public string FirstName { get; set; }
+        public string? SecondName { get; set; }
+
+        public string FullName => $"{LastName} {FirstName} {SecondName}";
         public string? Sex { get; set; }
         public string? Photo { get; set; }
         public string? PhoneNumber { get; set; }
@@ -44,7 +48,9 @@ namespace Aikido.Dto
             Role = user.Role.ToString();
             Login = user.Login;
             Password = user.Password;
-            Name = user.FullName;
+            LastName = user.LastName;
+            FirstName = user.FirstName;
+            SecondName = user.SecondName;
             Sex = user.Sex.ToString();
             Photo = user.Photo?.Length > 0 ? Convert.ToBase64String(user.Photo) : null;
             PhoneNumber = user.PhoneNumber;

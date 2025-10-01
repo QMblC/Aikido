@@ -101,7 +101,7 @@ namespace Aikido.Controllers
                     Coach = new
                     {
                         Id = coach.Id,
-                        Name = coach.Name,
+                        Name = coach.FullName,
                         Grade = coach.Grade
                     },
                     TotalGroups = coachGroups.Count,

@@ -42,7 +42,12 @@ namespace Aikido.Application.Services
         {
             var result = await _userDbService.GetUserListAlphabetAscending(0, 100, filter);
             return result.Users
-                .Select(user => new UserShortDto { Id = user.Id.Value, Name = user.Name })
+                .Select(user => new UserShortDto { 
+                    Id = user.Id.Value,
+                    LastName = user.LastName,
+                    FirstName = user.FirstName,
+                    SecondName = user.LastName,
+                })
                 .ToList();
         }
 
