@@ -7,17 +7,17 @@ namespace Aikido.Dto
     {
         public long? Id { get; set; }
         [Required]
-        public string Name { get; set; } = string.Empty;
+        public string? Name { get; set; } = string.Empty;
         public string? City { get; set; }
         public string? Address { get; set; }
         public string? PhoneNumber { get; set; }
         public string? Email { get; set; }
         public string? Website { get; set; }
         public string? Description { get; set; }
-        public long? HeadCoachId { get; set; }
-        public string? HeadCoachName { get; set; }
+        public long? ManagerId { get; set; }
+        public string? ManagerName { get; set; }
         public DateTime? FoundedDate { get; set; }
-        public bool IsActive { get; set; } = true;
+        public bool? IsActive { get; set; } = true;
         public int? MemberCount { get; set; }
         public int? GroupCount { get; set; }
 
@@ -33,8 +33,8 @@ namespace Aikido.Dto
             Email = club.Email;
             Website = club.Website;
             Description = club.Description;
-            HeadCoachId = club.HeadCoachId;
-            HeadCoachName = club.HeadCoach?.FullName;
+            ManagerId = club.ManagerId;
+            ManagerName = club.Manager?.FullName;
             FoundedDate = club.FoundedDate;
             IsActive = club.IsActive;
             MemberCount = club.UserClubs?.Count(uc => uc.IsActive) ?? 0;

@@ -18,7 +18,7 @@ namespace Aikido.Services.DatabaseServices.Club
         public async Task<ClubEntity> GetByIdOrThrowException(long id)
         {
             var club = await _context.Clubs
-                .Include(c => c.HeadCoach)
+                .Include(c => c.Manager)
                 .Include(c => c.UserClubs)
                     .ThenInclude(uc => uc.User)
                 .Include(c => c.Groups)
@@ -44,7 +44,7 @@ namespace Aikido.Services.DatabaseServices.Club
         public async Task<List<ClubEntity>> GetAllAsync()
         {
             return await _context.Clubs
-                .Include(c => c.HeadCoach)
+                .Include(c => c.Manager)
                 .Where(c => c.IsActive)
                 .OrderBy(c => c.Name)
                 .ToListAsync();
@@ -68,7 +68,7 @@ namespace Aikido.Services.DatabaseServices.Club
         public async Task DeleteAsync(long id)
         {
             var club = await GetByIdOrThrowException(id);
-            club.IsActive = false; // Мягкое удаление
+            _context.Remove(club); 
             await _context.SaveChangesAsync();
         }
 

@@ -36,6 +36,9 @@ builder.Services.AddCors(options =>
         });
 });
 
+builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
+
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connString));
 

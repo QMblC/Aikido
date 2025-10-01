@@ -23,7 +23,6 @@ namespace Aikido.Dto
         public bool HasBudoPassport { get; set; }
         public List<DateTime> PaymentDates { get; set; } = new();
 
-        // Изменено с одиночных ID на массивы для many-to-many связей
         public List<long>? ClubIds { get; set; }
         public List<string>? ClubNames { get; set; }
         public List<long>? GroupIds { get; set; }
@@ -34,7 +33,6 @@ namespace Aikido.Dto
         public string? ParentPhoneNumber { get; set; }
         public DateTime? RegistrationDate { get; set; }
 
-        // Дополнительная информация о связях
         public List<UserClubDto>? UserClubs { get; set; }
         public List<UserGroupDto>? UserGroups { get; set; }
 
@@ -62,7 +60,6 @@ namespace Aikido.Dto
             ParentPhoneNumber = user.ParentPhoneNumber;
             RegistrationDate = user.RegistrationDate;
 
-            // Инициализация пустых списков
             ClubIds = new List<long>();
             ClubNames = new List<string>();
             GroupIds = new List<long>();
@@ -73,12 +70,10 @@ namespace Aikido.Dto
 
         public UserDto(UserEntity user, List<UserClub> userClubs, List<UserGroup> userGroups) : this(user)
         {
-            // Заполнение информации о клубах
             ClubIds = userClubs.Where(uc => uc.IsActive).Select(uc => uc.ClubId).ToList();
             ClubNames = userClubs.Where(uc => uc.IsActive && uc.Club != null).Select(uc => uc.Club!.Name).ToList();
             UserClubs = userClubs.Select(uc => new UserClubDto(uc)).ToList();
 
-            // Заполнение информации о группах
             GroupIds = userGroups.Where(ug => ug.IsActive).Select(ug => ug.GroupId).ToList();
             GroupNames = userGroups.Where(ug => ug.IsActive && ug.Group != null).Select(ug => ug.Group!.Name).ToList();
             UserGroups = userGroups.Select(ug => new UserGroupDto(ug)).ToList();

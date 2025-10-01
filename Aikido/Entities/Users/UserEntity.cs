@@ -23,14 +23,12 @@ namespace Aikido.Entities
         public bool HasBudoPassport { get; set; }
         public List<DateTime> PaymentDates { get; set; } = [];
 
-        // Удалены ClubId и GroupId - теперь связи через промежуточные таблицы
         public string? City { get; set; }
 
         public string? ParentFullName { get; set; }
         public string? ParentPhoneNumber { get; set; }
         public DateTime? RegistrationDate { get; set; }
 
-        // Навигационные свойства для many-to-many связей
         public virtual ICollection<UserClub> UserClubs { get; set; } = new List<UserClub>();
         public virtual ICollection<UserGroup> UserGroups { get; set; } = new List<UserGroup>();
 

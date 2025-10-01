@@ -110,9 +110,9 @@ namespace Aikido.Data
                 entity.Property(e => e.Website).HasMaxLength(200);
 
                 // Связь с главным тренером
-                entity.HasOne(c => c.HeadCoach)
+                entity.HasOne(c => c.Manager)
                     .WithMany()
-                    .HasForeignKey(c => c.HeadCoachId)
+                    .HasForeignKey(c => c.ManagerId)
                     .OnDelete(DeleteBehavior.SetNull);
 
                 // Индексы

@@ -4,8 +4,8 @@ namespace Aikido.Dto
 {
     public class ClubDetailsDto : DtoBase
     {
-        public long Id { get; set; }
-        public string Name { get; set; } = string.Empty;
+        public long? Id { get; set; }
+        public string? Name { get; set; } = string.Empty;
         public string? City { get; set; }
         public string? Address { get; set; }
         public string? PhoneNumber { get; set; }
@@ -15,10 +15,10 @@ namespace Aikido.Dto
         public long? HeadCoachId { get; set; }
         public string? HeadCoachName { get; set; }
         public DateTime? FoundedDate { get; set; }
-        public bool IsActive { get; set; }
-        public List<GroupDto> Groups { get; set; } = new();
-        public List<UserShortDto> Members { get; set; } = new();
-        public int TotalMembers { get; set; }
+        public bool? IsActive { get; set; }
+        public List<GroupDto>? Groups { get; set; } = new();
+        public List<UserShortDto>? Members { get; set; } = new();
+        public int? TotalMembers { get; set; }
 
         public ClubDetailsDto() { }
 
@@ -32,8 +32,8 @@ namespace Aikido.Dto
             Email = club.Email;
             Website = club.Website;
             Description = club.Description;
-            HeadCoachId = club.HeadCoachId;
-            HeadCoachName = club.HeadCoach?.FullName;
+            HeadCoachId = club.ManagerId;
+            HeadCoachName = club.Manager?.FullName;
             FoundedDate = club.FoundedDate;
             IsActive = club.IsActive;
         }
