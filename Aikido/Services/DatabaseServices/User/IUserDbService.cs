@@ -23,7 +23,7 @@ namespace Aikido.Services.DatabaseServices.User
         Task AddUserToClubAsync(long userId, long clubId, string membershipType = "Regular");
         Task RemoveUserFromClubAsync(long userId, long clubId);
         Task RemoveUserFromAllClubsAsync(long userId);
-        Task AddUserToGroupAsync(long userId, long groupId, Role roleInGroup = Role.Student);
+        Task AddUserToGroupAsync(long userId, long groupId, Role roleInGroup = Role.User);
         Task RemoveUserFromGroupAsync(long userId, long groupId);
         Task RemoveUserFromAllGroupsAsync(long userId);
         Task UpdateUserClubMembershipAsync(long userId, long clubId, UserClubDto membershipInfo);

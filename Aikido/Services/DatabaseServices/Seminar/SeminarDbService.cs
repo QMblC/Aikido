@@ -89,7 +89,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
                     SeminarId = seminarId,
                     UserId = userId,
                     RegistrationDate = DateTime.UtcNow,
-                    Status = SeminarMemberStatus.Registered
+                    Status = SeminarMemberStatus.None
                 };
 
                 _context.SeminarMembers.Add(member);

@@ -7,46 +7,44 @@ namespace Aikido.Entities.Seminar
     {
         [Key]
         public long Id { get; set; }
+
         public string? Name { get; set; }
+
         public long SeminarId { get; set; }
         public long CoachId { get; set; }
-        public string? StatementPath { get; set; }  
+
+        // Хранение файла в бинарном виде
+        public byte[]? StatementFile { get; set; }
+
+        // А также хранение пути к файлу, если нужно
+        public string? FilePath { get; set; }
 
         public SeminarCoachStatementEntity() { }
 
         public SeminarCoachStatementEntity(StatementDto statementDto)
         {
-            if (statementDto.SeminarId != null)
-            {
-                SeminarId = statementDto.SeminarId.Value;
-            }
-            if (statementDto.CoachId != null)
-            {
-                CoachId = statementDto.CoachId.Value;
-            }
-            if (statementDto.File != null)
-            {
-                StatementPath = Convert.FromBase64String(statementDto.File);
-            }
-            else
-            {
-                StatementPath = null;
-            }
-            Name = statementDto.Name;
+            if (statementDto.Id != 0)
+                Id = statementDto.Id;
+
+            Name = statementDto.Title; 
+
+            FilePath = statementDto.FilePath;
         }
 
-        public SeminarCoachStatementEntity(long seminarId, long coachId, byte[] table, string name)
+        public SeminarCoachStatementEntity(long seminarId, long coachId, byte[] fileContent, string name, string? filePath = null)
         {
             SeminarId = seminarId;
             CoachId = coachId;
-            StatementPath = table;
+            StatementFile = fileContent;
             Name = name;
+            FilePath = filePath;
         }
 
-        public void UpdateStatement(byte[] table, string name)
+        public void UpdateStatement(byte[] fileContent, string name, string? filePath = null)
         {
-            StatementPath = table;
+            StatementFile = fileContent;
             Name = name;
+            FilePath = filePath;
         }
     }
 }

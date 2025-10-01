@@ -11,10 +11,8 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System.Text.Json;
 
-// Создание директории для логов
 Directory.CreateDirectory("logs");
 
-// Настройка Serilog
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
     .WriteTo.Console()
@@ -23,13 +21,10 @@ Log.Logger = new LoggerConfiguration()
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Использование Serilog
 builder.Host.UseSerilog();
 
-// Получение строки подключения
 var connString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// Настройка CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
@@ -41,29 +36,23 @@ builder.Services.AddCors(options =>
         });
 });
 
-// Настройка Entity Framework
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connString));
 
-// Регистрация Database Services (слой доступа к данным)
 builder.Services.AddScoped<IUserDbService, UserDbService>();
 builder.Services.AddScoped<IClubDbService, ClubDbService>();
 builder.Services.AddScoped<IGroupDbService, GroupDbService>();
 builder.Services.AddScoped<ISeminarDbService, SeminarDbService>();
 
-// Регистрация остальных Database Services
 builder.Services.AddScoped<AttendanceService>();
 builder.Services.AddScoped<PaymentService>();
 builder.Services.AddScoped<ScheduleService>();
 
-// Регистрация других сервисов
 builder.Services.AddScoped<EventService>();
 builder.Services.AddScoped<TableService>();
 
-// Регистрация UnitOfWork
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-// РЕГИСТРАЦИЯ APPLICATION SERVICES (новый слой)
 builder.Services.AddScoped<UserApplicationService>();
 builder.Services.AddScoped<ClubApplicationService>();
 builder.Services.AddScoped<GroupApplicationService>();
@@ -73,14 +62,12 @@ builder.Services.AddScoped<AttendanceApplicationService>();
 builder.Services.AddScoped<PaymentApplicationService>();
 builder.Services.AddScoped<ScheduleApplicationService>();
 
-// Настройка Controllers
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
     });
 
-// Настройка Swagger для разработки
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -94,7 +81,6 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Настройка конвейера обработки HTTP-запросов
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -105,10 +91,8 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// Простой endpoint для проверки работы сервера
 app.MapGet("/", () => "Сервер Aikido работает! Перейдите на /swagger для API документации");
 
-// Endpoint для проверки состояния БД
 app.MapGet("/health", async (AppDbContext context) =>
 {
     try
@@ -122,12 +106,8 @@ app.MapGet("/health", async (AppDbContext context) =>
     }
 });
 
-// Использование CORS
 app.UseCors("AllowAll");
-
-// Маршрутизация контроллеров
 app.MapControllers();
 
-// Запуск приложения
 Log.Information("Запуск сервера Aikido на http://0.0.0.0:5000");
 app.Run("http://0.0.0.0:5000");

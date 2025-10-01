@@ -71,35 +71,38 @@ namespace Aikido.Services.DatabaseServices.User
                     .ThenInclude(ug => ug.Group)
                 .AsQueryable();
 
-            // Применение фильтров
-            if (!string.IsNullOrEmpty(filter.Name))
+            if (!string.IsNullOrWhiteSpace(filter.Name))
             {
-                query = query.Where(u => u.FullName.ToLower().Contains(filter.Name.ToLower()));
+                var nameLower = filter.Name.ToLower();
+                query = query.Where(u => u.FullName != null && u.FullName.ToLower().Contains(nameLower));
             }
 
-            if (!string.IsNullOrEmpty(filter.Role))
+            if (filter.Roles != null && filter.Roles.Any())
             {
-                query = query.Where(u => u.Role.ToString() == filter.Role);
+                var roleEnums = filter.Roles.Select(EnumParser.ConvertStringToEnum<Role>).ToList();
+                query = query.Where(u => roleEnums.Contains(u.Role));
             }
 
-            if (!string.IsNullOrEmpty(filter.Grade))
+            if (filter.Grades != null && filter.Grades.Any())
             {
-                query = query.Where(u => u.Grade.ToString() == filter.Grade);
+                var gradeEnums = filter.Grades.Select(EnumParser.ConvertStringToEnum<Grade>).ToList();
+                query = query.Where(u => gradeEnums.Contains(u.Grade));
             }
 
-            if (filter.ClubId.HasValue)
+            if (filter.ClubIds != null && filter.ClubIds.Any())
             {
-                query = query.Where(u => u.UserClubs.Any(uc => uc.ClubId == filter.ClubId.Value && uc.IsActive));
+                query = query.Where(u => u.UserClubs.Any(uc => filter.ClubIds.Contains(uc.ClubId) && uc.IsActive));
             }
 
-            if (filter.GroupId.HasValue)
+            if (filter.GroupIds != null && filter.GroupIds.Any())
             {
-                query = query.Where(u => u.UserGroups.Any(ug => ug.GroupId == filter.GroupId.Value && ug.IsActive));
+                query = query.Where(u => u.UserGroups.Any(ug => filter.GroupIds.Contains(ug.GroupId) && ug.IsActive));
             }
 
-            if (!string.IsNullOrEmpty(filter.City))
+            if (filter.Cities != null && filter.Cities.Any())
             {
-                query = query.Where(u => u.City != null && u.City.ToLower().Contains(filter.City.ToLower()));
+                var lowerCities = filter.Cities.Select(c => c.ToLower()).ToList();
+                query = query.Where(u => u.City != null && lowerCities.Contains(u.City.ToLower()));
             }
 
             var totalCount = await query.CountAsync();
@@ -116,6 +119,8 @@ namespace Aikido.Services.DatabaseServices.User
 
             return (userDtos, totalCount);
         }
+
+
 
         public async Task<long> CreateUser(UserDto userData)
         {
@@ -231,7 +236,7 @@ namespace Aikido.Services.DatabaseServices.User
                 .ToListAsync();
         }
 
-        public async Task AddUserToGroupAsync(long userId, long groupId, Role roleInGroup = Role.Student)
+        public async Task AddUserToGroupAsync(long userId, long groupId, Role roleInGroup = Role.User)
         {
             var existingMembership = await _context.UserGroups
                 .FirstOrDefaultAsync(ug => ug.UserId == userId && ug.GroupId == groupId);

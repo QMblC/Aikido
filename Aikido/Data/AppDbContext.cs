@@ -170,7 +170,18 @@ namespace Aikido.Data
                 entity.HasIndex(e => e.ClubId);
             });
 
-            // Конфигурация SeminarEntity
+            // Остальные конфигурации...
+            ConfigureSeminarEntity(modelBuilder);
+            ConfigureSeminarMemberEntity(modelBuilder);
+            ConfigureAttendanceEntity(modelBuilder);
+            ConfigurePaymentEntity(modelBuilder);
+            ConfigureScheduleEntity(modelBuilder);
+            ConfigureExclusionDateEntity(modelBuilder);
+            ConfigureStatementEntity(modelBuilder);
+        }
+
+        private void ConfigureSeminarEntity(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<SeminarEntity>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -195,8 +206,10 @@ namespace Aikido.Data
                 entity.HasIndex(e => e.StartDate);
                 entity.HasIndex(e => e.InstructorId);
             });
+        }
 
-            // Конфигурация SeminarMemberEntity
+        private void ConfigureSeminarMemberEntity(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<SeminarMemberEntity>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -218,8 +231,10 @@ namespace Aikido.Data
                 // Уникальный индекс - пользователь может быть участником семинара только один раз
                 entity.HasIndex(e => new { e.SeminarId, e.UserId }).IsUnique();
             });
+        }
 
-            // Конфигурация AttendanceEntity
+        private void ConfigureAttendanceEntity(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<AttendanceEntity>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -239,8 +254,10 @@ namespace Aikido.Data
                 entity.HasIndex(e => new { e.UserId, e.EventId, e.Date });
                 entity.HasIndex(e => e.Date);
             });
+        }
 
-            // Конфигурация PaymentEntity
+        private void ConfigurePaymentEntity(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<PaymentEntity>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -274,8 +291,10 @@ namespace Aikido.Data
                 entity.HasIndex(e => e.UserId);
                 entity.HasIndex(e => e.TransactionId);
             });
+        }
 
-            // Конфигурация ScheduleEntity
+        private void ConfigureScheduleEntity(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<ScheduleEntity>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -290,13 +309,15 @@ namespace Aikido.Data
                 // Индексы
                 entity.HasIndex(e => new { e.GroupId, e.DayOfWeek, e.StartTime });
             });
+        }
 
-            // Конфигурация ExclusionDateEntity
+        private void ConfigureExclusionDateEntity(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<ExclusionDateEntity>(entity =>
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Description).HasMaxLength(500);
-                entity.Property(e => e.RecurrencePattern).HasMaxLength(200);
+                entity.Property(e => e.RecurringPattern).HasMaxLength(200);
 
                 // Связи
                 entity.HasOne(ed => ed.Group)
@@ -319,8 +340,10 @@ namespace Aikido.Data
                 entity.HasIndex(e => e.GroupId);
                 entity.HasIndex(e => e.ClubId);
             });
+        }
 
-            // Конфигурация StatementEntity
+        private void ConfigureStatementEntity(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<StatementEntity>(entity =>
             {
                 entity.HasKey(e => e.Id);

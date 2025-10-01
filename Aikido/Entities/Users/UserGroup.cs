@@ -17,7 +17,7 @@ namespace Aikido.Entities
         public DateTime JoinDate { get; set; } = DateTime.UtcNow;
         public DateTime? LeaveDate { get; set; }
         public bool IsActive { get; set; } = true;
-        public Role RoleInGroup { get; set; } = Role.Student; // Student, Assistant, etc.
+        public Role RoleInGroup { get; set; } = Role.User; // Student, Assistant, etc.
         public string? Notes { get; set; }
 
         // Дополнительные поля для группы
@@ -27,7 +27,7 @@ namespace Aikido.Entities
 
         public UserGroup() { }
 
-        public UserGroup(long userId, long groupId, Role roleInGroup = Role.Student)
+        public UserGroup(long userId, long groupId, Role roleInGroup = Role.User)
         {
             UserId = userId;
             GroupId = groupId;

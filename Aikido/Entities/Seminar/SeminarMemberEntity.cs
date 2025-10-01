@@ -14,7 +14,7 @@ namespace Aikido.Entities.Seminar
         public long UserId { get; set; }
         public virtual UserEntity? User { get; set; }
 
-        public SeminarMemberStatus Status { get; set; } = SeminarMemberStatus.Registered;
+        public SeminarMemberStatus Status { get; set; } = SeminarMemberStatus.None;
         public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
         public DateTime? PaymentDate { get; set; }
         public decimal? Amount { get; set; }

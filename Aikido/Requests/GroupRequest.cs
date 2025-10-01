@@ -1,52 +1,16 @@
 ﻿using Aikido.Dto;
 using System.Text.Json;
 
-namespace Aikido.Requests
+public class GroupRequest
 {
-    public class GroupRequest
+    public string? JsonData { get; set; }
+
+    public async Task<GroupDto> Parse()
     {
-        public IFormFile GroupDataJson { get; set; }
-        public IFormFile? ScheduleDataJson { get; set; }
+        if (string.IsNullOrEmpty(JsonData))
+            throw new ArgumentException("Данные запроса пусты");
 
-        public async Task<GroupDto> ParseGroupAsync()
-        {
-            if (GroupDataJson == null)
-                throw new Exception("Файл данных группы не предоставлен.");
-
-            using var reader = new StreamReader(GroupDataJson.OpenReadStream());
-            var jsonString = await reader.ReadToEndAsync();
-
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-
-            var groupData = JsonSerializer.Deserialize<GroupDto>(jsonString, options);
-            if (groupData == null)
-                throw new Exception("Не удалось десериализовать данные группы.");
-
-            return groupData;
-        }
-
-        public async Task<List<ScheduleDto>> ParseScheduleAsync()//ToDo переделать парсинг
-        {
-            if (ScheduleDataJson == null)
-                return new List<ScheduleDto>(); // Пустой список — это ок
-
-            using var reader = new StreamReader(ScheduleDataJson.OpenReadStream());
-            var jsonString = await reader.ReadToEndAsync();
-
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-
-            var scheduleList = JsonSerializer.Deserialize<List<ScheduleDto>>(jsonString, options);
-            if (scheduleList == null)
-                throw new Exception("Не удалось десериализовать расписание.");
-
-            return scheduleList;
-        }
+        return await Task.Run(() => JsonSerializer.Deserialize<GroupDto>(JsonData)
+            ?? throw new ArgumentException("Ошибка при десериализации данных"));
     }
-
 }

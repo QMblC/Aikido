@@ -43,7 +43,7 @@ namespace Aikido.Entities
             ClubId = exclusionData.ClubId;
             IsRecurring = exclusionData.IsRecurring;
             RecurringUntil = exclusionData.RecurringUntil;
-            RecurringPattern = exclusionData.RecurrencePattern;
+            RecurringPattern = exclusionData.RecurringPattern;
             IsActive = exclusionData.IsActive;
             CreatedBy = exclusionData.CreatedBy;
         }

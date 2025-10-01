@@ -18,8 +18,8 @@ namespace Aikido.Dto
         public string? HeadCoachName { get; set; }
         public DateTime? FoundedDate { get; set; }
         public bool IsActive { get; set; } = true;
-        public int MemberCount { get; set; }
-        public int GroupCount { get; set; }
+        public int? MemberCount { get; set; }
+        public int? GroupCount { get; set; }
 
         public ClubDto() { }
 

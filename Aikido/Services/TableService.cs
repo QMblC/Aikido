@@ -86,7 +86,7 @@ namespace Aikido.Services
             }
 
             workbookPart.Workbook.Save();
-            document.Close();
+            document.Dispose();
 
             stream.Position = 0;
             return stream;
@@ -147,7 +147,7 @@ namespace Aikido.Services
             sheetData.AppendChild(headerRow);
 
             workbookPart.Workbook.Save();
-            document.Close();
+            document.Dispose();
 
             stream.Position = 0;
             return stream;
@@ -214,7 +214,7 @@ namespace Aikido.Services
             }
 
             workbookPart.Workbook.Save();
-            document.Close();
+            document.Dispose();
 
             stream.Position = 0;
             return stream;

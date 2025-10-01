@@ -1,14 +1,16 @@
-﻿
-using Aikido.Data;
+﻿using Aikido.Data;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
 
 namespace Aikido.Services.UnitOfWork
 {
     public class UnitOfWork : IUnitOfWork
     {
         private readonly AppDbContext _context;
-        private readonly ILogger _logger;
+        private readonly ILogger<UnitOfWork> _logger;
 
-        public UnitOfWork(AppDbContext context, ILogger logger)
+        public UnitOfWork(AppDbContext context, ILogger<UnitOfWork> logger)
         {
             _context = context;
             _logger = logger;
@@ -20,7 +22,7 @@ namespace Aikido.Services.UnitOfWork
 
             try
             {
-                await action(); 
+                await action();
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
