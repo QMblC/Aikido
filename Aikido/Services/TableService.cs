@@ -1,402 +1,223 @@
-﻿using Aikido.AdditionalData;
-using Aikido.Data;
-using Aikido.Dto.Seminars;
-using Aikido.Entities.Seminar;
-using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Drawing;
+﻿using Aikido.Data;
+using Aikido.Dto;
+using Aikido.Entities;
+using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Aikido.Services
 {
-    public class TableService : DbService
+    public class TableService
     {
-        public TableService(AppDbContext context) : base(context) { }
+        private readonly AppDbContext _context;
+
+        public TableService(AppDbContext context)
+        {
+            _context = context;
+        }
 
         public async Task<MemoryStream> ExportUsersToExcelAsync()
         {
-            var users = await context.Users.ToListAsync();
-            var clubs = await context.Clubs.ToDictionaryAsync(c => c.Id, c => c.Name);
-            var groups = await context.Groups.ToDictionaryAsync(g => g.Id, g => g.Name);
+            var users = await _context.Users
+                .Include(u => u.UserClubs)
+                    .ThenInclude(uc => uc.Club)
+                .Include(u => u.UserGroups)
+                    .ThenInclude(ug => ug.Group)
+                .ToListAsync();
 
-            var workbook = new XLWorkbook();
-            var worksheet = workbook.Worksheets.Add("Пользователи");
+            var stream = new MemoryStream();
+            using var document = SpreadsheetDocument.Create(stream, SpreadsheetDocumentType.Workbook);
 
-            WriteExcelHeader(worksheet);
+            var workbookPart = document.AddWorkbookPart();
+            workbookPart.Workbook = new Workbook();
 
-            for (int i = 0; i < users.Count; i++)
+            var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
+            worksheetPart.Worksheet = new Worksheet(new SheetData());
+
+            var sheets = document.WorkbookPart.Workbook.AppendChild(new Sheets());
+            var sheet = new Sheet
             {
-                var user = users[i];
-                var row = i + 2;
+                Id = document.WorkbookPart.GetIdOfPart(worksheetPart),
+                SheetId = 1,
+                Name = "Users"
+            };
+            sheets.Append(sheet);
 
-                worksheet.Cell(row, 1).Value = user.Id;
-                worksheet.Cell(row, 2).Value = EnumParser.ConvertEnumToString(user.Role);
-                worksheet.Cell(row, 3).Value = user.Login;
-                // Пароль не выгружается
-                worksheet.Cell(row, 5).Value = user.FullName;
-                worksheet.Cell(row, 6).Value = user.PhoneNumber;
-                worksheet.Cell(row, 7).Value = user.Birthday?.ToString("yyyy-MM-dd");
-                worksheet.Cell(row, 8).Value = user.City;
-                worksheet.Cell(row, 9).Value = EnumParser.ConvertEnumToString(user.Grade);
-                worksheet.Cell(row, 10).Value = user.CertificationDates != null && user.CertificationDates.Any()
-                    ? user.CertificationDates.Last().ToString("yyyy-MM-dd")
-                    : null;
-                worksheet.Cell(row, 11).Value = user.PaymentDates != null && user.PaymentDates.Any()
-                    ? user.PaymentDates.Last().ToString("yyyy-MM-dd")
-                    : null;
-                worksheet.Cell(row, 12).Value = EnumParser.ConvertEnumToString(user.Sex);
-                worksheet.Cell(row, 13).Value = user.ClubId;
-                worksheet.Cell(row, 14).Value = user.ClubId.HasValue && clubs.TryGetValue(user.ClubId.Value, out var clubName)
-                    ? clubName
-                    : null;
-                worksheet.Cell(row, 15).Value = user.GroupId;
-                worksheet.Cell(row, 16).Value = user.GroupId.HasValue && groups.TryGetValue(user.GroupId.Value, out var groupName)
-                    ? groupName
-                    : null;
-                worksheet.Cell(row, 17).Value = EnumParser.ConvertEnumToString(user.Education);
-                worksheet.Cell(row, 18).Value = user.ParentFullName;
-                worksheet.Cell(row, 19).Value = user.ParentPhoneNumber;
-                worksheet.Cell(row, 20).Value = user.RegistrationDate?.ToString("yyyy-MM-dd");
+            var sheetData = worksheetPart.Worksheet.GetFirstChild<SheetData>();
+
+            // Заголовки
+            var headerRow = new Row();
+            headerRow.Append(
+                new Cell { CellValue = new CellValue("Id"), DataType = CellValues.String },
+                new Cell { CellValue = new CellValue("Name"), DataType = CellValues.String },
+                new Cell { CellValue = new CellValue("Role"), DataType = CellValues.String },
+                new Cell { CellValue = new CellValue("Grade"), DataType = CellValues.String },
+                new Cell { CellValue = new CellValue("Phone"), DataType = CellValues.String },
+                new Cell { CellValue = new CellValue("City"), DataType = CellValues.String },
+                new Cell { CellValue = new CellValue("Clubs"), DataType = CellValues.String },
+                new Cell { CellValue = new CellValue("Groups"), DataType = CellValues.String }
+            );
+            sheetData.AppendChild(headerRow);
+
+            // Данные
+            foreach (var user in users)
+            {
+                var clubNames = string.Join(", ",
+                    user.UserClubs.Where(uc => uc.IsActive && uc.Club != null)
+                                  .Select(uc => uc.Club!.Name));
+
+                var groupNames = string.Join(", ",
+                    user.UserGroups.Where(ug => ug.IsActive && ug.Group != null)
+                                   .Select(ug => ug.Group!.Name));
+
+                var row = new Row();
+                row.Append(
+                    new Cell { CellValue = new CellValue(user.Id.ToString()), DataType = CellValues.String },
+                    new Cell { CellValue = new CellValue(user.FullName), DataType = CellValues.String },
+                    new Cell { CellValue = new CellValue(user.Role.ToString()), DataType = CellValues.String },
+                    new Cell { CellValue = new CellValue(user.Grade.ToString()), DataType = CellValues.String },
+                    new Cell { CellValue = new CellValue(user.PhoneNumber ?? ""), DataType = CellValues.String },
+                    new Cell { CellValue = new CellValue(user.City ?? ""), DataType = CellValues.String },
+                    new Cell { CellValue = new CellValue(clubNames), DataType = CellValues.String },
+                    new Cell { CellValue = new CellValue(groupNames), DataType = CellValues.String }
+                );
+                sheetData.AppendChild(row);
             }
 
-            worksheet.Columns().AdjustToContents();
+            workbookPart.Workbook.Save();
+            document.Close();
 
-            var stream = new MemoryStream();
-            workbook.SaveAs(stream);
             stream.Position = 0;
-
-            return stream;
-        }      
-
-        public async Task<MemoryStream> GenerateUserUpdateTemplateExcelAsync()
-        {
-            var workbook = new XLWorkbook();
-            var worksheet = workbook.Worksheets.Add("Шаблон пользователей");
-
-            WriteExcelHeader(worksheet);
-            worksheet.Columns().AdjustToContents();
-
-            var stream = new MemoryStream();
-            workbook.SaveAs(stream);
-            stream.Position = 0;
-
             return stream;
         }
 
-        private void WriteExcelHeader(IXLWorksheet worksheet)
+        public async Task<MemoryStream> GenerateUserUpdateTemplateExcelAsync()
         {
-            var headers = new[]
-            {
-                "ID", "Роль", "Логин", "Пароль", "ФИО", "Телефон", "Дата рождения", "Город",
-                "Кю/Дан", "Дата аттестации", "Дата последнего взноса", "Пол", "Клуб ID", "Клуб", "Группа ID",
-                "Группа", "Образование", "ФИО родителя", "Телефон родителя", "Дата регистрации"
-            };
-
-            for (int i = 0; i < headers.Length; i++)
-            {
-                worksheet.Cell(1, i + 1).Value = headers[i];
-            }
+            return await GenerateUserTemplateAsync(includeIds: true);
         }
 
         public async Task<MemoryStream> GenerateUserCreateTemplateExcelAsync()
         {
-            var workbook = new XLWorkbook();
-            var worksheet = workbook.Worksheets.Add("Шаблон создания пользователей");
-
-            WriteExcelCreateHeader(worksheet);
-            worksheet.Columns().AdjustToContents();
-
-            var stream = new MemoryStream();
-            workbook.SaveAs(stream);
-            stream.Position = 0;
-
-            return stream;
+            return await GenerateUserTemplateAsync(includeIds: false);
         }
 
-        private void WriteExcelCreateHeader(IXLWorksheet worksheet)
+        private async Task<MemoryStream> GenerateUserTemplateAsync(bool includeIds)
         {
-            var headers = new[]
+            var stream = new MemoryStream();
+            using var document = SpreadsheetDocument.Create(stream, SpreadsheetDocumentType.Workbook);
+
+            var workbookPart = document.AddWorkbookPart();
+            workbookPart.Workbook = new Workbook();
+
+            var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
+            worksheetPart.Worksheet = new Worksheet(new SheetData());
+
+            var sheets = document.WorkbookPart.Workbook.AppendChild(new Sheets());
+            var sheet = new Sheet
             {
-                "Роль", "Логин", "Пароль", "ФИО", "Телефон", "Дата рождения", "Город",
-                "Кю/Дан", "Дата аттестации", "Взнос", "Пол", "Клуб ID", "Клуб", "Группа ID",
-                "Группа", "Класс", "ФИО родителя", "Телефон родителя", "Дата регистрации"
+                Id = document.WorkbookPart.GetIdOfPart(worksheetPart),
+                SheetId = 1,
+                Name = "UserTemplate"
             };
+            sheets.Append(sheet);
 
-            for (int i = 0; i < headers.Length; i++)
+            var sheetData = worksheetPart.Worksheet.GetFirstChild<SheetData>();
+
+            // Заголовки шаблона
+            var headerRow = new Row();
+            var headers = new List<string>();
+
+            if (includeIds)
+                headers.Add("Id");
+
+            headers.AddRange(new[]
             {
-                worksheet.Cell(1, i + 1).Value = headers[i];
-            }
-        }
+                "Name", "Role", "Grade", "Phone", "City",
+                "ClubIds (comma separated)", "GroupIds (comma separated)",
+                "Sex", "Birthday (YYYY-MM-DD)", "Education", "ProgramType",
+                "ParentFullName", "ParentPhoneNumber"
+            });
 
-        public async Task<MemoryStream> CreateStatement(
-            List<SeminarMemberDto> members,
-            SeminarEntity seminar)
-        {
-            var workbook = new XLWorkbook();
-            var worksheet = workbook.Worksheets.Add("Ведомость");
-
-            AddSeminarData(worksheet, seminar);
-
-
-            var offset = 6; // Смещение таблицы вниз на 6 строк
-
-            AddTableHeaders(worksheet, offset);
-
-            var totalsRow = AddMembersData(worksheet, offset, members, seminar);
-            var row = totalsRow - 1;
-
-            // "Итого" в колонке "ФИО"
-            worksheet.Cell(totalsRow, 3).Value = "Итого";
-            worksheet.Cell(totalsRow, 3).Style.Font.Bold = true;
-            worksheet.Cell(totalsRow, 3).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-
-            // Суммы по платёжной ведомости (столбцы K, L, M, N = 11–14)
-            for (int col = 11; col <= 14; col++)
+            foreach (var header in headers)
             {
-                var colLetter = XLHelper.GetColumnLetterFromNumber(col);
-                worksheet.Cell(totalsRow, col).FormulaA1 = $"SUM({colLetter}{offset + 3}:{colLetter}{row - 1})";
-                worksheet.Cell(totalsRow, col).Style.Font.Bold = true;
+                headerRow.Append(new Cell { CellValue = new CellValue(header), DataType = CellValues.String });
             }
 
-            // Итоговая сумма в "Примечаниях" (столбец O = 15)
-            worksheet.Cell(totalsRow, 15).FormulaA1 = $"SUM(K{totalsRow}:N{totalsRow})";
-            worksheet.Cell(totalsRow, 15).Style.Font.Bold = true;
+            sheetData.AppendChild(headerRow);
 
+            workbookPart.Workbook.Save();
+            document.Close();
 
-            // Скрытие ID
-            worksheet.Column(2).Hide();
-
-            worksheet.Columns().AdjustToContents();
-
-            var stream = new MemoryStream();
-            workbook.SaveAs(stream);
             stream.Position = 0;
             return stream;
         }
 
-        private void AddSeminarData(IXLWorksheet worksheet, SeminarEntity seminar)
+        public async Task<MemoryStream> ExportSeminarsToExcelAsync()
         {
-            // Верхняя часть: Информация о семинаре
-            worksheet.Range("A1:O1").Merge();
-            worksheet.Cell("A1").Value = seminar.Name;
-            worksheet.Cell("A1").Style.Font.Bold = true;
-            worksheet.Cell("A1").Style.Font.FontSize = 24;
-            worksheet.Cell("A1").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            var seminars = await _context.Seminars
+                .Include(s => s.Instructor)
+                .Include(s => s.SeminarMembers)
+                    .ThenInclude(sm => sm.User)
+                .Where(s => s.IsActive)
+                .ToListAsync();
 
+            var stream = new MemoryStream();
+            using var document = SpreadsheetDocument.Create(stream, SpreadsheetDocumentType.Workbook);
 
-            worksheet.Range("A2:O2").Merge();
-            worksheet.Cell("A2").Value = seminar.Date.ToString("dd-MM-yyyy");
-            worksheet.Cell("A2").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            var workbookPart = document.AddWorkbookPart();
+            workbookPart.Workbook = new Workbook();
 
-            worksheet.Range("A3:O3").Merge();
-            worksheet.Cell("A3").Value = seminar.Location;
-            worksheet.Cell("A3").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-        }
+            var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
+            worksheetPart.Worksheet = new Worksheet(new SheetData());
 
-        private void AddTableHeaders(IXLWorksheet worksheet, int offset)
-        {
-            // Заголовки объединённых ячеек
-            worksheet.Range(offset + 1, 1, offset + 1, 8).Merge().Value = "Данные участника";
-            worksheet.Range(offset + 1, 9, offset + 1, 10).Merge().Value = "Распределение";
-            worksheet.Range(offset + 1, 11, offset + 1, 14).Merge().Value = "Платёжная ведомость";
-            worksheet.Cell(offset + 1, 15).Value = "Примечания";
-
-            var darkBlue = XLColor.DarkBlue;
-            worksheet.Range(offset + 1, 1, offset + 1, 15).Style.Fill.BackgroundColor = XLColor.BlueGray;
-            worksheet.Range(offset + 1, 1, offset + 1, 15).Style.Font.FontColor = XLColor.White;
-            worksheet.Range(offset + 1, 1, offset + 1, 15).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-            worksheet.Range(offset + 1, 1, offset + 1, 15).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-            worksheet.Range(offset + 1, 1, offset + 1, 15).Style.Font.Bold = true;
-
-            // Подзаголовки
-            var headers = new[]
+            var sheets = document.WorkbookPart.Workbook.AppendChild(new Sheets());
+            var sheet = new Sheet
             {
-                "№", "ID", "ФИО", "Степень кю/дан", "Аттестуется", "Тренер", "Клуб", "Город",
-                "Группа семинара", "Программа",
-                "Годовой взнос", "Семинар", "Аттестация", "Паспорт",
-                ""
+                Id = document.WorkbookPart.GetIdOfPart(worksheetPart),
+                SheetId = 1,
+                Name = "Seminars"
             };
+            sheets.Append(sheet);
 
-            for (int i = 0; i < headers.Length; i++)
+            var sheetData = worksheetPart.Worksheet.GetFirstChild<SheetData>();
+
+            // Заголовки
+            var headerRow = new Row();
+            headerRow.Append(
+                new Cell { CellValue = new CellValue("Id"), DataType = CellValues.String },
+                new Cell { CellValue = new CellValue("Name"), DataType = CellValues.String },
+                new Cell { CellValue = new CellValue("StartDate"), DataType = CellValues.String },
+                new Cell { CellValue = new CellValue("EndDate"), DataType = CellValues.String },
+                new Cell { CellValue = new CellValue("Location"), DataType = CellValues.String },
+                new Cell { CellValue = new CellValue("Instructor"), DataType = CellValues.String },
+                new Cell { CellValue = new CellValue("Cost"), DataType = CellValues.String },
+                new Cell { CellValue = new CellValue("Participants"), DataType = CellValues.String }
+            );
+            sheetData.AppendChild(headerRow);
+
+            // Данные
+            foreach (var seminar in seminars)
             {
-                worksheet.Cell(offset + 2, i + 1).Value = headers[i];
-            }
-
-            var lightBlue = XLColor.LightBlue;
-            worksheet.Range(offset + 2, 1, offset + 2, 15).Style.Fill.BackgroundColor = lightBlue;
-            worksheet.Range(offset + 2, 1, offset + 2, 15).Style.Font.Bold = true;
-            worksheet.Range(offset + 2, 1, offset + 2, 15).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-        }
-
-        private int AddMembersData(IXLWorksheet worksheet,
-            int offset,
-            List<SeminarMemberDto> members,
-            SeminarEntity seminar)
-        {
-            // Данные участников
-
-            var row = offset + 3;
-            foreach (var member in members)
-            {
-                var grade = EnumParser.ConvertStringToEnum<Grade>(member.Grade);
-                var programType = EnumParser.ConvertStringToEnum<ProgramType>(member.ProgramType);
-
-                worksheet.Cell(row, 1).Value = row - (offset + 2);            
-                worksheet.Cell(row, 2).Value = member.Id;                     
-                worksheet.Cell(row, 3).Value = member.Name;
-                worksheet.Cell(row, 4).Value = EnumParser.GetEnumMemberValue(grade);
-
-                worksheet.Cell(row, 6).Value = member.CoachName;
-                worksheet.Cell(row, 7).Value = member.ClubName ?? "";
-                worksheet.Cell(row, 8).Value = member.City ?? "";
-                worksheet.Cell(row, 9).Value = "";
-                worksheet.Cell(row, 10).Value = EnumParser.GetEnumMemberValue(programType);
-
-                worksheet.Cell(row, 11).Value = 0;
-                worksheet.Cell(row, 12).Value = seminar.PriceSeminarInRubles;
-                worksheet.Cell(row, 13).Value = member.IsAnnualFeePayed ? 0 : seminar.PriceAnnualFeeRubles;
-                worksheet.Cell(row, 14).Value = member.IsBudoPassportPayed ? 0 : seminar.PriceBudoPassportRubles;
-
-                row++;
-            }
-
-            return row + 1;
-        }
-
-        public List<SeminarMemberDto> ParseStatement(byte[] table)
-        {
-            var result = new List<SeminarMemberDto>();
-
-            using var stream = new MemoryStream(table);
-            using var workbook = new XLWorkbook(stream);
-            var worksheet = workbook.Worksheet("Ведомость");
-
-            var offset = 6;
-            var startRow = offset + 3;
-
-            while (true)
-            {
-                var idCell = worksheet.Cell(startRow, 2);
-                if (idCell.IsEmpty() || !long.TryParse(idCell.GetValue<string>(), out var id))
-                    break;
-
-                var dto = new SeminarMemberDto
-                {
-                    Id = id,
-                    Name = worksheet.Cell(startRow, 3).GetValue<string>(),
-                    Grade = EnumParser.GetEnumMemberValue<Grade>(worksheet.Cell(startRow, 4).GetValue<string>()).ToString(),
-                    CertificationGrade = EnumParser.GetEnumMemberValue<Grade>(worksheet.Cell(startRow, 5).GetValue<string>()).ToString(),
-                    CoachName = worksheet.Cell(startRow, 6).GetValue<string>(),
-                    ClubName = worksheet.Cell(startRow, 7).GetValue<string>(),
-                    City = worksheet.Cell(startRow, 8).GetValue<string>(),
-                    SeminarGroup = worksheet.Cell(startRow, 9).GetValue<string>(),
-                    ProgramType = EnumParser.GetEnumMemberValue<ProgramType>(worksheet.Cell(startRow, 10).GetValue<string>()).ToString(),
-                };
-
-                var annual = worksheet.Cell(startRow, 11).GetValue<string>();
-                var seminar = worksheet.Cell(startRow, 12).GetValue<string>();
-                var certification = worksheet.Cell(startRow, 13).GetValue<string>();
-                var passport = worksheet.Cell(startRow, 14).GetValue<string>();
-
-                dto.AddPrices(
-                    ParseDecimal(annual),
-                    ParseDecimal(seminar),
-                    ParseDecimal(certification),
-                    ParseDecimal(passport)
+                var row = new Row();
+                row.Append(
+                    new Cell { CellValue = new CellValue(seminar.Id.ToString()), DataType = CellValues.String },
+                    new Cell { CellValue = new CellValue(seminar.Name), DataType = CellValues.String },
+                    new Cell { CellValue = new CellValue(seminar.StartDate.ToString("yyyy-MM-dd")), DataType = CellValues.String },
+                    new Cell { CellValue = new CellValue(seminar.EndDate.ToString("yyyy-MM-dd")), DataType = CellValues.String },
+                    new Cell { CellValue = new CellValue(seminar.Location ?? ""), DataType = CellValues.String },
+                    new Cell { CellValue = new CellValue(seminar.Instructor?.FullName ?? ""), DataType = CellValues.String },
+                    new Cell { CellValue = new CellValue(seminar.Cost?.ToString() ?? ""), DataType = CellValues.String },
+                    new Cell { CellValue = new CellValue(seminar.CurrentParticipants.ToString()), DataType = CellValues.String }
                 );
-
-                result.Add(dto);
-                startRow++;
+                sheetData.AppendChild(row);
             }
 
-            return result;
-        }
+            workbookPart.Workbook.Save();
+            document.Close();
 
-        public async Task<MemoryStream> CreateCoachStatement(
-            List<SeminarMemberDto> members,
-            SeminarEntity seminar)
-        {
-            var workbook = new XLWorkbook();
-            var worksheet = workbook.Worksheets.Add("Ведомость");
-
-            AddSeminarData(worksheet, seminar);
-
-            var offset = 6;
-            AddTableHeaders(worksheet, offset);
-
-            var totalsRow = AddMembersData(worksheet, offset, members);
-            var row = totalsRow - 1;
-
-            // "Итого" в колонке "ФИО"
-            worksheet.Cell(totalsRow, 3).Value = "Итого";
-            worksheet.Cell(totalsRow, 3).Style.Font.Bold = true;
-            worksheet.Cell(totalsRow, 3).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-
-            // Суммы по платёжной ведомости (столбцы K, L, M, N = 11–14)
-            for (int col = 11; col <= 14; col++)
-            {
-                var colLetter = XLHelper.GetColumnLetterFromNumber(col);
-                worksheet.Cell(totalsRow, col).FormulaA1 = $"SUM({colLetter}{offset + 3}:{colLetter}{row - 1})";
-                worksheet.Cell(totalsRow, col).Style.Font.Bold = true;
-            }
-
-            // Итоговая сумма в "Примечаниях" (столбец O = 15)
-            worksheet.Cell(totalsRow, 15).FormulaA1 = $"SUM(K{totalsRow}:N{totalsRow})";
-            worksheet.Cell(totalsRow, 15).Style.Font.Bold = true;
-
-            worksheet.Column(2).Hide();
-            worksheet.Columns().AdjustToContents();
-
-            var stream = new MemoryStream();
-            workbook.SaveAs(stream);
             stream.Position = 0;
             return stream;
         }
-
-        private int AddMembersData(IXLWorksheet worksheet, int offset, List<SeminarMemberDto> members)
-        {
-            var row = offset + 3;
-            foreach (var member in members)
-            {
-                var grade = EnumParser.ConvertStringToEnum<Grade>(member.Grade);
-                var certificationGrade = EnumParser.ConvertStringToEnum<Grade>(member.CertificationGrade);
-
-                worksheet.Cell(row, 1).Value = row - (offset + 2);
-                worksheet.Cell(row, 2).Value = member.Id;
-                worksheet.Cell(row, 3).Value = member.Name;
-                worksheet.Cell(row, 4).Value = EnumParser.GetEnumMemberValue(grade);
-                worksheet.Cell(row, 5).Value = certificationGrade == Grade.None ? "" : EnumParser.GetEnumMemberValue(certificationGrade);
-                worksheet.Cell(row, 6).Value = member.CoachName;
-                worksheet.Cell(row, 7).Value = member.ClubName;
-                worksheet.Cell(row, 8).Value = member.City;
-                worksheet.Cell(row, 9).Value = member.SeminarGroup;
-                worksheet.Cell(row, 10).Value = EnumParser.GetEnumMemberValue(EnumParser.ConvertStringToEnum<ProgramType>(member.ProgramType));
-
-                worksheet.Cell(row, 11).Value = member.AnnualFee ?? 0;
-                worksheet.Cell(row, 12).Value = member.SeminarPrice ?? 0;
-                worksheet.Cell(row, 13).Value = member.CertificationPrice ?? 0;
-                worksheet.Cell(row, 14).Value = member.BudoPassportPrice ?? 0;
-
-                row++;
-            }
-
-            return row + 1;
-        }
-
-
-        private decimal? ParseDecimal(string value)
-        {
-            if (decimal.TryParse(value, out var result))
-                return result;
-            return null;
-        }
-
-
     }
 }

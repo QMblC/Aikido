@@ -1,5 +1,4 @@
 ﻿using Aikido.Dto;
-using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities
@@ -8,26 +7,45 @@ namespace Aikido.Entities
     {
         [Key]
         public long Id { get; set; }
-
-        public long ManagerId { get; set; }
-        public UserEntity Manager { get; set; }
-
-        public string? Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         public string? City { get; set; }
         public string? Address { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? Email { get; set; }
+        public string? Website { get; set; }
+        public string? Description { get; set; }
+        public long? HeadCoachId { get; set; }
+        public virtual UserEntity? HeadCoach { get; set; }
+        public DateTime? FoundedDate { get; set; }
+        public bool IsActive { get; set; } = true;
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedDate { get; set; }
 
-        public List<GroupEntity> Groups { get; set; } = new();
+        // Навигационные свойства
+        public virtual ICollection<UserClub> UserClubs { get; set; } = new List<UserClub>();
+        public virtual ICollection<GroupEntity> Groups { get; set; } = new List<GroupEntity>();
 
-        public void UpdateFromJson(ClubDto clubNewData)
+        public ClubEntity() { }
+
+        public ClubEntity(ClubDto clubData)
         {
-            if (clubNewData.Name != null)
-                Name = clubNewData.Name;
+            UpdateFromJson(clubData);
+        }
 
-            if (clubNewData.City != null)
-                City = clubNewData.City;
-
-            if (clubNewData.Address != null)
-                Address = clubNewData.Address;
+        public void UpdateFromJson(ClubDto clubData)
+        {
+            if (!string.IsNullOrEmpty(clubData.Name))
+                Name = clubData.Name;
+            City = clubData.City;
+            Address = clubData.Address;
+            PhoneNumber = clubData.PhoneNumber;
+            Email = clubData.Email;
+            Website = clubData.Website;
+            Description = clubData.Description;
+            HeadCoachId = clubData.HeadCoachId;
+            FoundedDate = clubData.FoundedDate;
+            IsActive = clubData.IsActive;
+            UpdatedDate = DateTime.UtcNow;
         }
     }
 }

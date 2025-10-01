@@ -1,6 +1,4 @@
 ﻿using Aikido.AdditionalData;
-using Aikido.Dto.Seminars;
-using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities.Seminar
@@ -10,22 +8,21 @@ namespace Aikido.Entities.Seminar
         [Key]
         public long Id { get; set; }
 
-        public long UserId { get; set; }
-        public UserEntity User { get; set; }
-
         public long SeminarId { get; set; }
-        public SeminarEntity Seminar { get; set; }
+        public virtual SeminarEntity? Seminar { get; set; }
 
-        public long ClubId { get; set; }
-        public ClubEntity Club { get; set; }
+        public long UserId { get; set; }
+        public virtual UserEntity? User { get; set; }
 
-        public long SeminarGroupId { get; set; }
-        public SeminarGroupEntity SeminarGroup { get; set; }
-
-        public long? CertificationId { get; set; }
-        public CertificationEntity? Certification { get; set; }
-
-        public List<PaymentEntity> Payments { get; set; } = new();
+        public SeminarMemberStatus Status { get; set; } = SeminarMemberStatus.Registered;
+        public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
+        public DateTime? PaymentDate { get; set; }
+        public decimal? Amount { get; set; }
+        public bool IsPaid { get; set; }
+        public string? Notes { get; set; }
+        public string? SpecialRequirements { get; set; }
+        public bool NeedsAccommodation { get; set; }
+        public string? EmergencyContact { get; set; }
 
         public SeminarMemberEntity() { }
     }

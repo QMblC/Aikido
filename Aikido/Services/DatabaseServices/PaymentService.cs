@@ -1,158 +1,69 @@
-﻿using Aikido.AdditionalData;
-using Aikido.Data;
+﻿using Aikido.Data;
 using Aikido.Dto;
-using Aikido.Dto.Seminars;
 using Aikido.Entities;
-using Aikido.Entities.Seminar;
+using Aikido.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
-namespace Aikido.Services.DatabaseServices
+namespace Aikido.Services
 {
-    public class PaymentService : DbService
+    public class PaymentService
     {
-        public PaymentService(AppDbContext context) : base(context)
+        private readonly AppDbContext _context;
+
+        public PaymentService(AppDbContext context)
         {
+            _context = context;
         }
 
-        public async Task<PaymentEntity> GetPayment(long id)
+        public async Task<PaymentEntity> GetPaymentById(long id)
         {
-            var payment = await context.Payment.FindAsync(id);
+            var payment = await _context.Payment.FindAsync(id);
             if (payment == null)
-            {
-                throw new KeyNotFoundException($"Оплата с Id = {id} не найдена");
-            }
-
+                throw new EntityNotFoundException($"Платеж с Id = {id} не найден");
             return payment;
         }
 
-        public async Task<List<PaymentEntity>> GetPayments(long userId)
+        public async Task<List<PaymentEntity>> GetPaymentsByUser(long userId)
         {
-            var payments = await context.Payment
-                .Where(payment => payment.UserId == userId)
+            return await _context.Payment
+                .Where(p => p.UserId == userId)
+                .OrderByDescending(p => p.PaymentDate)
                 .ToListAsync();
-
-            return payments;
         }
 
-        public async Task<List<PaymentEntity>> GetPayments(long userId, DateTime date)
+        public async Task<List<PaymentEntity>> GetPaymentsByDateRange(DateTime startDate, DateTime endDate)
         {
-            var payments = await context.Payment
-                .Where(payment => payment.UserId == userId)
-                .Where(payment => payment.Date == date)
+            return await _context.Payment
+                .Where(p => p.PaymentDate >= startDate && p.PaymentDate <= endDate)
+                .OrderByDescending(p => p.PaymentDate)
                 .ToListAsync();
-
-            return payments;
         }
 
-        public async Task<List<PaymentEntity>> GetCurrentYearPayment(long userId, DateTime date)
+        public async Task<long> CreatePayment(PaymentDto paymentData)
         {
-            var payements = await context.Payment
-                .Where(payment => payment.UserId == userId)
-                .Where(payment => payment.Date.Year == date.Year)
-                .ToListAsync();
-
-            return payements;
+            var payment = new PaymentEntity(paymentData);
+            _context.Payment.Add(payment);
+            await _context.SaveChangesAsync();
+            return payment.Id;
         }
 
-        public async Task<bool> IsUserPayedAnnualFee(long userId, DateTime date)
+        public async Task UpdatePayment(long id, PaymentDto paymentData)
         {
-            var payments = await GetCurrentYearPayment(userId, date);
-
-            return payments
-                .Where(payment => payment.Type == PaymentType.AnnualFee)
-                .ToList()
-                .FirstOrDefault() != null;
-        }
-
-        public async Task CreatePayment(PaymentDto paymentDto)
-        {
-            var paymentEntity = new PaymentEntity(paymentDto);
-
-            context.Add(paymentEntity);
-
-            await SaveChangesAsync();
-        }
-
-        public async Task CreatePayment(SeminarMemberDto member, SeminarEntity seminar)
-        {
-            if (member.BudoPassportPrice > 0)
-            {
-                var payment = new PaymentEntity()
-                {
-                    UserId = member.Id.Value,
-                    Date = seminar.Date,
-                    Type = PaymentType.BudoPassport,
-                    Amount = (long)member.BudoPassportPrice
-                };
-                context.Add(payment);
-                await SaveChangesAsync();
-            }
-            if (member.AnnualFee > 0)
-            {
-                var payment = new PaymentEntity()
-                {
-                    UserId = member.Id.Value,
-                    Date = seminar.Date,
-                    Type = PaymentType.AnnualFee,
-                    Amount = (long)member.AnnualFee
-                };
-                context.Add(payment);
-                await SaveChangesAsync();
-            }
-            if (member.SeminarPrice > 0)
-            {
-                var payment = new PaymentEntity()
-                {
-                    UserId = member.Id.Value,
-                    Date = seminar.Date,
-                    Type = PaymentType.Seminar,
-                    Amount = (long)member.SeminarPrice
-                };
-                context.Add(payment);
-                await SaveChangesAsync();
-            }
-            if (member.CertificationPrice > 0)
-            {
-                var payment = new PaymentEntity()
-                {
-                    UserId = member.Id.Value,
-                    Date = seminar.Date,
-                    Type = PaymentType.Certification,
-                    Amount = (long)member.CertificationPrice
-                };
-                context.Add(payment);
-                await SaveChangesAsync();
-            }
-        }
-
-        public async Task DeletePayment(SeminarMemberDto member, SeminarEntity seminar)
-        {
-            var payements = context.Payment.Where(payement => payement.UserId == member.Id 
-                && payement.Date == seminar.Date);
-
-            foreach (var payement in payements)
-            {
-                if (payement.Type == PaymentType.Certification 
-                    || payement.Type == PaymentType.AnnualFee
-                    || payement.Type == PaymentType.Seminar
-                    || payement.Type == PaymentType.BudoPassport)
-                {
-                    context.Payment.Remove(payement);
-                }
-                       
-            }
-
-            await SaveChangesAsync();
+            var payment = await GetPaymentById(id);
+            payment.UpdateFromJson(paymentData);
+            await _context.SaveChangesAsync();
         }
 
         public async Task DeletePayment(long id)
         {
-            var payment = GetPayment(id);
-
-            context.Remove(payment);
-
-            await SaveChangesAsync();
+            var payment = await GetPaymentById(id);
+            _context.Payment.Remove(payment);
+            await _context.SaveChangesAsync();
         }
 
+        public async Task<bool> PaymentExists(long id)
+        {
+            return await _context.Payment.AnyAsync(p => p.Id == id);
+        }
     }
 }

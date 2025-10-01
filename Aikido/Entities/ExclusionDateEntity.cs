@@ -8,32 +8,44 @@ namespace Aikido.Entities
     {
         [Key]
         public long Id { get; set; }
-
-        public long GroupId { get; set; }
-        public GroupEntity Group { get; set; }
-
         public DateTime Date { get; set; }
+        public ExclusiveDateType Type { get; set; }
+        public string? Description { get; set; }
 
-        public TimeSpan? StartTime { get; set; }
-        public TimeSpan? EndTime { get; set; }
-        public ExclusiveDateType Status { get; set; }
+        public long? GroupId { get; set; }
+        public virtual GroupEntity? Group { get; set; }
+
+        public long? ClubId { get; set; }
+        public virtual ClubEntity? Club { get; set; }
+
+        public bool IsRecurring { get; set; }
+        public DateTime? RecurringUntil { get; set; }
+        public string? RecurringPattern { get; set; }
+        public bool IsActive { get; set; } = true;
+        public DateTime? CreatedDate { get; set; } = DateTime.UtcNow;
+
+        public long? CreatedBy { get; set; }
+        public virtual UserEntity? CreatedByUser { get; set; }
 
         public ExclusionDateEntity() { }
 
-        public ExclusionDateEntity(ExclusionDateDto exclusionDate)
+        public ExclusionDateEntity(ExclusionDateDto exclusionData)
         {
-            if (exclusionDate.GroupId != null)
-            {
-                GroupId = exclusionDate.GroupId.Value;
-            }
-            if (exclusionDate.Date != null)
-            {
-                Date = exclusionDate.Date;
-            }
-            if (exclusionDate.Status != null)
-            {
-                Status = EnumParser.ConvertStringToEnum<ExclusiveDateType>(exclusionDate.Status);
-            }
+            UpdateFromJson(exclusionData);
+        }
+
+        public void UpdateFromJson(ExclusionDateDto exclusionData)
+        {
+            Date = exclusionData.Date;
+            Type = EnumParser.ConvertStringToEnum<ExclusiveDateType>(exclusionData.Type);
+            Description = exclusionData.Description;
+            GroupId = exclusionData.GroupId;
+            ClubId = exclusionData.ClubId;
+            IsRecurring = exclusionData.IsRecurring;
+            RecurringUntil = exclusionData.RecurringUntil;
+            RecurringPattern = exclusionData.RecurrencePattern;
+            IsActive = exclusionData.IsActive;
+            CreatedBy = exclusionData.CreatedBy;
         }
     }
 }

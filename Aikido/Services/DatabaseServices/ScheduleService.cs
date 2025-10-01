@@ -1,114 +1,69 @@
-﻿using Aikido.AdditionalData;
-using Aikido.Data;
+﻿using Aikido.Data;
 using Aikido.Dto;
 using Aikido.Entities;
-using DocumentFormat.OpenXml.InkML;
-using Microsoft.EntityFrameworkCore; // ← обязательно
+using Aikido.Exceptions;
+using Microsoft.EntityFrameworkCore;
 
-
-
-namespace Aikido.Services.DatabaseServices
+namespace Aikido.Services
 {
-    public class ScheduleService : DbService
+    public class ScheduleService
     {
+        private readonly AppDbContext _context;
 
-        public ScheduleService(AppDbContext context) : base(context) { }
-
-        public async Task CreateGroupScheduleDeleteExcess(long groupId, Dictionary<string, string> schedule)
+        public ScheduleService(AppDbContext context)
         {
-            var existingSchedules = await context.Schedule
-                .Where(s => s.GroupId == groupId)
-                .ToListAsync();
-
-            context.Schedule.RemoveRange(existingSchedules);
-
-            foreach (var day in schedule)
-            {
-                var times = day.Value.Split('-');
-                if (times.Length != 2 ||
-                    !TimeSpan.TryParse(times[0], out var startTime) ||
-                    !TimeSpan.TryParse(times[1], out var endTime))
-                {
-                    throw new FormatException($"Неверный формат времени: {day.Value}");
-                }
-
-                if (!TryParseRussianDayOfWeek(day.Key, out var dayOfWeek))
-                {
-                    throw new ArgumentException($"Неверный день недели: {day.Key}");
-                }
-
-                context.Schedule.Add(new ScheduleEntity
-                {
-                    GroupId = groupId,
-                    DayOfWeek = dayOfWeek,
-                    StartTime = startTime,
-                    EndTime = endTime
-                });
-            }
-
-            await SaveChangesAsync();
+            _context = context;
         }
 
-        private bool TryParseRussianDayOfWeek(string input, out DayOfWeek result)
+        public async Task<ScheduleEntity> GetScheduleById(long id)
         {
-            result = input switch
-            {
-                "Пн" => DayOfWeek.Monday,
-                "Вт" => DayOfWeek.Tuesday,
-                "Ср" => DayOfWeek.Wednesday,
-                "Чт" => DayOfWeek.Thursday,
-                "Пт" => DayOfWeek.Friday,
-                "Сб" => DayOfWeek.Saturday,
-                "Вс" => DayOfWeek.Sunday,
-                _ => (DayOfWeek)(-1)
-            };
-
-            return result != (DayOfWeek)(-1);
+            var schedule = await _context.Schedule.FindAsync(id);
+            if (schedule == null)
+                throw new EntityNotFoundException($"Расписание с Id = {id} не найдено");
+            return schedule;
         }
 
-
-
-        public async Task<List<ScheduleEntity>> GetGroupSchedule(long groupId)
+        public async Task<List<ScheduleEntity>> GetSchedulesByGroup(long groupId)
         {
-            return await context.Schedule
-                .Where(s => s.GroupId == groupId)
+            return await _context.Schedule
+                .Where(s => s.GroupId == groupId && s.IsActive)
+                .OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime)
                 .ToListAsync();
         }
 
-        public async Task CreateExclusionDateDeleteExcess(long groupId, List<ExclusionDateDto> dates)
+        public async Task<List<ScheduleEntity>> GetAllSchedules()
         {
-            var existing = await context.ExclusionDates
-                .Where(e => e.GroupId == groupId)
+            return await _context.Schedule
+                .Where(s => s.IsActive)
+                .OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime)
                 .ToListAsync();
-
-            context.ExclusionDates.RemoveRange(existing);
-
-            foreach (var dto in dates)
-            {
-
-                var utcDate = DateTime.SpecifyKind(dto.Date, DateTimeKind.Utc);
-
-                var entity = new ExclusionDateEntity
-                {
-                    GroupId = groupId,
-                    Date = utcDate,
-                    Status = EnumParser.ConvertStringToEnum<ExclusiveDateType>(dto.Status)
-                };
-
-                context.ExclusionDates.Add(entity);
-            }
-
-            await SaveChangesAsync();
         }
 
-        public async Task<List<ExclusionDateEntity>> GetGroupExclusionDates(long groupId, DateTime month)
+        public async Task<long> CreateSchedule(ScheduleDto scheduleData)
         {
-            return await context.ExclusionDates
-                .Where(d => d.GroupId == groupId)
-                .Where(d => d.Date.Month == month.Month)
-                .Where(d => d.Date.Year == month.Year)
-                .ToListAsync();
+            var schedule = new ScheduleEntity(scheduleData);
+            _context.Schedule.Add(schedule);
+            await _context.SaveChangesAsync();
+            return schedule.Id;
+        }
+
+        public async Task UpdateSchedule(long id, ScheduleDto scheduleData)
+        {
+            var schedule = await GetScheduleById(id);
+            schedule.UpdateFromJson(scheduleData);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteSchedule(long id)
+        {
+            var schedule = await GetScheduleById(id);
+            schedule.IsActive = false;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> ScheduleExists(long id)
+        {
+            return await _context.Schedule.AnyAsync(s => s.Id == id);
         }
     }
-
 }

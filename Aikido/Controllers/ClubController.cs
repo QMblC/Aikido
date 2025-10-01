@@ -1,45 +1,27 @@
-﻿using Aikido.AdditionalData;
+﻿using Aikido.Application.Services;
 using Aikido.Dto;
-using Aikido.Entities;
-using Aikido.Entities.Users;
 using Aikido.Requests;
-using Aikido.Services.DatabaseServices;
-using Aikido.Services.DatabaseServices.Club;
-using Aikido.Services.DatabaseServices.Group;
-using Aikido.Services.DatabaseServices.User;
-using DocumentFormat.OpenXml.InkML;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Aikido.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ClubController : Controller
+    public class ClubController : ControllerBase
     {
-        private readonly UserDbService userService;
-        private readonly ClubDbService clubService;
-        private readonly GroupDbService groupService;
-        private readonly ScheduleService scheduleService;
+        private readonly ClubApplicationService _clubApplicationService;
 
-        public ClubController(
-            UserDbService userService, 
-            ClubDbService clubService, 
-            GroupDbService groupService,
-            ScheduleService scheduleService
-            )
+        public ClubController(ClubApplicationService clubApplicationService)
         {
-            this.userService = userService;
-            this.clubService = clubService;
-            this.groupService = groupService;
-            this.scheduleService = scheduleService;
+            _clubApplicationService = clubApplicationService;
         }
 
         [HttpGet("get/{id}")]
-        public async Task<IActionResult> GetClubDataById(long id)
+        public async Task<IActionResult> GetClubById(long id)
         {
             try
             {
-                var club = await clubService.GetByIdOrThrowException(id);
+                var club = await _clubApplicationService.GetClubByIdAsync(id);
                 return Ok(club);
             }
             catch (KeyNotFoundException ex)
@@ -55,11 +37,10 @@ namespace Aikido.Controllers
         [HttpGet("get/details/{id}")]
         public async Task<IActionResult> GetClubDetails(long id)
         {
-            ClubEntity club;
-
             try
             {
-                club = await clubService.GetByIdOrThrowException(id);
+                var clubDetails = await _clubApplicationService.GetClubDetailsAsync(id);
+                return Ok(clubDetails);
             }
             catch (KeyNotFoundException ex)
             {
@@ -69,94 +50,61 @@ namespace Aikido.Controllers
             {
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
-
-            var result = await BuildClubDetailsDto(club);
-            return Ok(result);
         }
 
-        [HttpGet("get/details/list")]
-        public async Task<IActionResult> GetAllClubDetails()
-        {
-            var clubs = await clubService.GetAll();
-            var result = new List<ClubDetailsDto>();
-
-            foreach (var club in clubs)
-            {
-                var dto = await BuildClubDetailsDto(club);
-                result.Add(dto);
-            }
-
-            return Ok(result);
-        }
-
-        private async Task<ClubDetailsDto> BuildClubDetailsDto(ClubEntity club)
-        {
-            var groupEntities = await groupService.GetGroupsByClubId(club.Id);
-            var groupDtos = new List<GroupDetailsDto>();
-
-            foreach (var group in groupEntities)
-            {
-                UserEntity coach;
-                try
-                {
-                    coach = await userService.GetByIdOrThrowException(group.CoachId.Value);
-                }
-                catch
-                {
-                    coach = null;
-                }
-
-                var scheduleEntities = await scheduleService.GetGroupSchedule(group.Id);
-
-                var scheduleDict = scheduleEntities
-                    .GroupBy(s => s.DayOfWeek)
-                    .ToDictionary(
-                        g => DayOfWeekToRussian(g.Key),
-                        g => string.Join("-", g.First().StartTime.ToString(@"hh\:mm"), g.First().EndTime.ToString(@"hh\:mm")),
-                        StringComparer.OrdinalIgnoreCase);
-
-                groupDtos.Add(new GroupDetailsDto
-                {
-                    Name = group.Name,
-                    Coach = coach == null ? null : new CoachDto
-                    {
-                        Name = coach.FullName,
-                        Grade = EnumParser.ConvertEnumToString(coach.Grade),
-                        Phone = coach.PhoneNumber
-                    },
-                    Schedule = scheduleDict
-                });
-            }
-
-            return new ClubDetailsDto
-            {
-                Id = club.Id,
-                Name = club.Name,
-                City = club.City,
-                Address = club.Address,
-                Groups = groupDtos
-            };
-        }
-
-        private string DayOfWeekToRussian(DayOfWeek dayOfWeek) => dayOfWeek switch
-        {
-            DayOfWeek.Monday => "Пн",
-            DayOfWeek.Tuesday => "Вт",
-            DayOfWeek.Wednesday => "Ср",
-            DayOfWeek.Thursday => "Чт",
-            DayOfWeek.Friday => "Пт",
-            DayOfWeek.Saturday => "Сб",
-            DayOfWeek.Sunday => "Вс",
-            _ => ""
-        };
-
-        [HttpGet("get/list")]
-        public async Task<IActionResult> GetClubsList()
+        [HttpGet("get/all")]
+        public async Task<IActionResult> GetAllClubs()
         {
             try
             {
-                var clubs = await clubService.GetAll();
+                var clubs = await _clubApplicationService.GetAllClubsAsync();
                 return Ok(clubs);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при получении списка клубов", Details = ex.Message });
+            }
+        }
+
+        [HttpGet("get/{clubId}/members")]
+        public async Task<IActionResult> GetClubMembers(long clubId)
+        {
+            try
+            {
+                var members = await _clubApplicationService.GetClubMembersAsync(clubId);
+                return Ok(members);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при получении участников клуба", Details = ex.Message });
+            }
+        }
+
+        [HttpPost("{clubId}/members/{userId}")]
+        public async Task<IActionResult> AddMemberToClub(long clubId, long userId)
+        {
+            try
+            {
+                await _clubApplicationService.AddMemberToClubAsync(clubId, userId);
+                return Ok(new { Message = "Участник успешно добавлен в клуб" });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        [HttpDelete("{clubId}/members/{userId}")]
+        public async Task<IActionResult> RemoveMemberFromClub(long clubId, long userId)
+        {
+            try
+            {
+                await _clubApplicationService.RemoveMemberFromClubAsync(clubId, userId);
+                return Ok(new { Message = "Участник успешно удален из клуба" });
             }
             catch (Exception ex)
             {
@@ -165,10 +113,9 @@ namespace Aikido.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> Create([FromForm] ClubRequest request)
+        public async Task<IActionResult> CreateClub([FromForm] ClubRequest request)
         {
             ClubDto clubData;
-
             try
             {
                 clubData = await request.Parse();
@@ -178,65 +125,51 @@ namespace Aikido.Controllers
                 return BadRequest($"Ошибка при обработке JSON: {ex.Message}");
             }
 
-            long clubId;
-
             try
             {
-                clubId = await clubService.CreateClub(clubData);
+                var clubId = await _clubApplicationService.CreateClubAsync(clubData);
+                return Ok(new { id = clubId });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
-
-            return Ok(new { id = clubId });
         }
 
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> Update(long id, [FromForm] ClubRequest request)
+        public async Task<IActionResult> UpdateClub(long id, [FromForm] ClubRequest request)
         {
-            var updatedClub = await request.Parse();
-
-            if (updatedClub == null)
+            ClubDto clubData;
+            try
             {
-                return BadRequest("Данные клуба не переданы.");
+                clubData = await request.Parse();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Ошибка при обработке JSON: {ex.Message}");
             }
 
             try
             {
-                await clubService.UpdateClub(id, updatedClub);
+                await _clubApplicationService.UpdateClubAsync(id, clubData);
+                return Ok();
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { Message = ex.Message });
+                return NotFound(new { ex.Message });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
-
-            return Ok(new { Message = "Клуб успешно обновлён." });
         }
 
         [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> Delete(long id)
+        public async Task<IActionResult> DeleteClub(long id)
         {
             try
-            {   var groupsDelete = clubService.GetByIdOrThrowException(id).Result.Groups;
-
-                var isClubEmpty = userService.GetClubMembers(id)
-                    .Result
-                    .FirstOrDefault() == null;
-
-                if (!isClubEmpty)
-                    return StatusCode(500, "Пользователи привязаны к клубу");
-
-                foreach (var group in groupsDelete)
-                {
-                    await groupService.DeleteGroup(group, false);
-                }
-
-                await clubService.DeleteById(id);
+            {
+                await _clubApplicationService.DeleteClubAsync(id);
                 return Ok();
             }
             catch (KeyNotFoundException ex)

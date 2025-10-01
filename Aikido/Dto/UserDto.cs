@@ -1,96 +1,87 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Entities;
-using Aikido.Entities.Users;
+using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Dto
 {
     public class UserDto : DtoBase
     {
-        public string Role { get; set; }
-        public string Login { get; set; }
+        public long? Id { get; set; }
+        public string? Role { get; set; }
+        public string? Login { get; set; }
         public string? Password { get; set; }
-        public string Name { get; set; }
-
-        public string LastName { get; set; }
-        public string FirstName { get; set; }
-        public string SecondName { get; set; }
-
+        [Required]
+        public string Name { get; set; } = string.Empty;
+        public string? Sex { get; set; }
         public string? Photo { get; set; }
         public string? PhoneNumber { get; set; }
         public DateTime? Birthday { get; set; }
-        public string? Sex { get; set; }
-        public string? Education { get; set; }
-
         public string? Grade { get; set; }
         public string? ProgramType { get; set; }
+        public string? Education { get; set; }
         public List<DateTime>? CertificationDates { get; set; }
-        public List<DateTime>? PaymentDates { get; set; }
+        public bool HasBudoPassport { get; set; }
+        public List<DateTime> PaymentDates { get; set; } = new();
 
-        public long? ClubId { get; set; }
-        public string? ClubName { get; set; }
+        // Изменено с одиночных ID на массивы для many-to-many связей
+        public List<long>? ClubIds { get; set; }
+        public List<string>? ClubNames { get; set; }
+        public List<long>? GroupIds { get; set; }
+        public List<string>? GroupNames { get; set; }
+
         public string? City { get; set; }
-        public long? GroupId { get; set; }
-        public string? GroupName { get; set; }
-
         public string? ParentFullName { get; set; }
         public string? ParentPhoneNumber { get; set; }
-
         public DateTime? RegistrationDate { get; set; }
+
+        // Дополнительная информация о связях
+        public List<UserClubDto>? UserClubs { get; set; }
+        public List<UserGroupDto>? UserGroups { get; set; }
 
         public UserDto() { }
 
         public UserDto(UserEntity user)
         {
-            UpdateFromEntity(user);
-        }
-        public UserDto(UserEntity user, ClubEntity club)
-        {
-            UpdateFromEntity(user);
-            AddClubName(club);
-        }
-        public UserDto(UserEntity user, ClubEntity club, GroupEntity group)
-        {
-            UpdateFromEntity(user);
-            AddClubName(club);
-            AddGroupName(group);
-        }
-
-        public void UpdateFromEntity(UserEntity user)
-        {
-            if (user == null) throw new ArgumentNullException(nameof(user));
-
             Id = user.Id;
-            Name = user.FullName;
-            Role = EnumParser.ConvertEnumToString(user.Role);
+            Role = user.Role.ToString();
             Login = user.Login;
             Password = user.Password;
-            Photo = Convert.ToBase64String(user.AvatarPath);
+            Name = user.FullName;
+            Sex = user.Sex.ToString();
+            Photo = user.Photo?.Length > 0 ? Convert.ToBase64String(user.Photo) : null;
             PhoneNumber = user.PhoneNumber;
             Birthday = user.Birthday;
-            Sex = EnumParser.ConvertEnumToString(user.Sex);
-            Education = EnumParser.ConvertEnumToString(user.Education);
-            Grade = EnumParser.ConvertEnumToString(user.Grade);
-            ProgramType = EnumParser.ConvertEnumToString(user.ProgramType);
-            CertificationDates = user.CertificationDates;
-            PaymentDates = user.PaymentDates;
-            ClubId = user.ClubId;
+            Grade = user.Grade.ToString();
+            ProgramType = user.ProgramType.ToString();
+            Education = user.Education.ToString();
+            CertificationDates = user.CertificationDates?.ToList();
+            HasBudoPassport = user.HasBudoPassport;
+            PaymentDates = user.PaymentDates?.ToList() ?? new List<DateTime>();
             City = user.City;
-            GroupId = user.GroupId;
             ParentFullName = user.ParentFullName;
             ParentPhoneNumber = user.ParentPhoneNumber;
             RegistrationDate = user.RegistrationDate;
+
+            // Инициализация пустых списков
+            ClubIds = new List<long>();
+            ClubNames = new List<string>();
+            GroupIds = new List<long>();
+            GroupNames = new List<string>();
+            UserClubs = new List<UserClubDto>();
+            UserGroups = new List<UserGroupDto>();
         }
 
-
-
-        public void AddClubName(ClubEntity club)
+        public UserDto(UserEntity user, List<UserClub> userClubs, List<UserGroup> userGroups) : this(user)
         {
-            ClubName = club.Name;
-        }
+            // Заполнение информации о клубах
+            ClubIds = userClubs.Where(uc => uc.IsActive).Select(uc => uc.ClubId).ToList();
+            ClubNames = userClubs.Where(uc => uc.IsActive && uc.Club != null).Select(uc => uc.Club!.Name).ToList();
+            UserClubs = userClubs.Select(uc => new UserClubDto(uc)).ToList();
 
-        public void AddGroupName(GroupEntity group)
-        {
-            GroupName = group.Name;
+            // Заполнение информации о группах
+            GroupIds = userGroups.Where(ug => ug.IsActive).Select(ug => ug.GroupId).ToList();
+            GroupNames = userGroups.Where(ug => ug.IsActive && ug.Group != null).Select(ug => ug.Group!.Name).ToList();
+            UserGroups = userGroups.Select(ug => new UserGroupDto(ug)).ToList();
         }
     }
 }

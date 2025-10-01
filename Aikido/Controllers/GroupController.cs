@@ -1,44 +1,28 @@
-﻿using Aikido.AdditionalData;
+﻿using Aikido.Application.Services;
 using Aikido.Dto;
 using Aikido.Requests;
-using Aikido.Services.DatabaseServices;
-using Aikido.Services.DatabaseServices.Club;
-using Aikido.Services.DatabaseServices.Group;
-using Aikido.Services.DatabaseServices.User;
-using DocumentFormat.OpenXml.InkML;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Aikido.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class GroupController : Controller
+    public class GroupController : ControllerBase
     {
-        private readonly UserDbService userService;
-        private readonly ClubDbService clubService;
-        private readonly GroupDbService groupService;
-        private readonly ScheduleService scheduleService;
+        private readonly GroupApplicationService _groupApplicationService;
 
-        public GroupController(
-            UserDbService userService,
-            ClubDbService clubService,
-            GroupDbService groupService,
-            ScheduleService scheduleService
-            )
+        public GroupController(GroupApplicationService groupApplicationService)
         {
-            this.userService = userService;
-            this.clubService = clubService;
-            this.groupService = groupService;
-            this.scheduleService = scheduleService;
+            _groupApplicationService = groupApplicationService;
         }
 
         [HttpGet("get/{id}")]
-        public async Task<IActionResult> GetGroupDataById(long id)
+        public async Task<IActionResult> GetGroupById(long id)
         {
             try
             {
-                var group = await groupService.GetByIdOrThrowException(id);
-                return Ok(new GroupDto(group));
+                var group = await _groupApplicationService.GetGroupByIdAsync(id);
+                return Ok(group);
             }
             catch (KeyNotFoundException ex)
             {
@@ -50,200 +34,164 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpGet("get/list-by-club/{clubId}")]
-        public async Task<IActionResult> GetGroupList(long clubId)
+        [HttpGet("get/info/{id}")]
+        public async Task<IActionResult> GetGroupInfo(long id)
         {
-            var groups = await groupService.GetGroupsByClubId(clubId);
+            try
+            {
+                var groupInfo = await _groupApplicationService.GetGroupInfoAsync(id);
+                return Ok(groupInfo);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
 
-            return Ok(groups.Select(group => new GroupDto(group)));
+        [HttpGet("get/all")]
+        public async Task<IActionResult> GetAllGroups()
+        {
+            try
+            {
+                var groups = await _groupApplicationService.GetAllGroupsAsync();
+                return Ok(groups);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при получении списка групп", Details = ex.Message });
+            }
+        }
+
+        [HttpGet("get/by-user/{userId}")]
+        public async Task<IActionResult> GetGroupsByUser(long userId)
+        {
+            try
+            {
+                var groups = await _groupApplicationService.GetGroupsByUserAsync(userId);
+                return Ok(groups);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при получении групп пользователя", Details = ex.Message });
+            }
+        }
+
+        [HttpGet("get/{groupId}/members")]
+        public async Task<IActionResult> GetGroupMembers(long groupId)
+        {
+            try
+            {
+                var members = await _groupApplicationService.GetGroupMembersAsync(groupId);
+                return Ok(members);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при получении участников группы", Details = ex.Message });
+            }
+        }
+
+        [HttpPost("{groupId}/members/{userId}")]
+        public async Task<IActionResult> AddUserToGroup(long groupId, long userId)
+        {
+            try
+            {
+                await _groupApplicationService.AddUserToGroupAsync(groupId, userId);
+                return Ok(new { Message = "Пользователь успешно добавлен в группу" });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        [HttpDelete("{groupId}/members/{userId}")]
+        public async Task<IActionResult> RemoveUserFromGroup(long groupId, long userId)
+        {
+            try
+            {
+                await _groupApplicationService.RemoveUserFromGroupAsync(groupId, userId);
+                return Ok(new { Message = "Пользователь успешно удален из группы" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> Create([FromForm] GroupInfoRequest request)
+        public async Task<IActionResult> CreateGroup([FromForm] GroupRequest request)
         {
-            GroupInfoDto groupData;
-
+            GroupDto groupData;
             try
             {
-                groupData = await request.ParseGroupInfoAsync();
+                groupData = await request.Parse();
             }
             catch (Exception ex)
             {
                 return BadRequest($"Ошибка при обработке JSON: {ex.Message}");
             }
 
-            long groupId;
-
             try
             {
-                await userService.GetByIdOrThrowException((long)groupData.CoachId);
+                var groupId = await _groupApplicationService.CreateGroupAsync(groupData);
+                return Ok(new { id = groupId });
             }
-            catch
+            catch (ArgumentException ex)
             {
-                groupData.CoachId = null;
-            }
-
-            try
-            {
-                var groupDto = new GroupDto
-                {
-                    Name = groupData.Name,
-                    AgeGroup = groupData.AgeGroup,
-                    CoachId = groupData.CoachId,
-                    ClubId = groupData.ClubId,
-                    GroupMembers = groupData.GroupMembers?.Select(m => m.Id).ToList()
-                };
-
-                groupId = await groupService.CreateGroup(groupDto);
-                await clubService.AddGroupToClub((long)groupData.ClubId, groupId);
-                
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = "Ошибка создания группы", Details = ex.Message });
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
-
-            try
-            {
-                if (groupData.Schedule != null)
-                {
-                    await scheduleService.CreateGroupScheduleDeleteExcess(groupId, groupData.Schedule);
-                }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Ошибка при создании расписания", Details = ex.Message });
-            }
-
-            try
-            {
-                var allDates = new List<ExclusionDateDto>();
-
-                if (groupData.ExtraDates != null)
-                {
-                    allDates.AddRange(groupData.ExtraDates.Select(d => new ExclusionDateDto
-                    {
-                        GroupId = groupId,
-                        Date = d,
-                        Status = "Extra"
-                    }));
-                }
-
-                if (groupData.MinorDates != null)
-                {
-                    allDates.AddRange(groupData.MinorDates.Select(d => new ExclusionDateDto
-                    {
-                        GroupId = groupId,
-                        Date = d,
-                        Status = "Minor"
-                    }));
-                }
-
-                if (allDates.Any())
-                {
-                    await scheduleService.CreateExclusionDateDeleteExcess(groupId, allDates);
-                }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Ошибка при сохранении исключений", Details = ex.Message });
-            }
-
-            return Ok(new { id = groupId });
         }
 
-
-
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> Update(long id, [FromForm] GroupInfoRequest request)
+        public async Task<IActionResult> UpdateGroup(long id, [FromForm] GroupRequest request)
         {
-            GroupInfoDto groupData;
-
+            GroupDto groupData;
             try
             {
-                groupData = await request.ParseGroupInfoAsync();
+                groupData = await request.Parse();
             }
             catch (Exception ex)
             {
-                return BadRequest($"Ошибка при обработке JSON группы: {ex.Message}");
+                return BadRequest($"Ошибка при обработке JSON: {ex.Message}");
             }
 
             try
             {
-                var groupDto = new GroupDto
-                {
-                    Name = groupData.Name,
-                    AgeGroup = groupData.AgeGroup,
-                    CoachId = groupData.CoachId,
-                    ClubId = groupData.ClubId,
-                    GroupMembers = (groupData.GroupMembers != null && groupData.GroupMembers.Any())
-                        ? groupData.GroupMembers.Select(m => m.Id).ToList()
-                        : null
-                };
-
-                await groupService.UpdateGroup(id, groupDto);
+                await _groupApplicationService.UpdateGroupAsync(id, groupData);
+                return Ok();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { Message = ex.Message });
+                return NotFound(new { ex.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = "Ошибка обновления группы", Details = ex.Message });
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
-
-            try
-            {
-                if (groupData.Schedule != null)
-                {
-                    await scheduleService.CreateGroupScheduleDeleteExcess(id, groupData.Schedule);
-                }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Ошибка обновления расписания", Details = ex.Message });
-            }
-
-            try
-            {
-                var exclusions = new List<ExclusionDateDto>();
-
-                if (groupData.ExtraDates != null)
-                {
-                    exclusions.AddRange(groupData.ExtraDates.Select(date => new ExclusionDateDto
-                    {
-                        GroupId = id,
-                        Date = date,
-                        Status = "Extra"
-                    }));
-                }
-
-                if (groupData.MinorDates != null)
-                {
-                    exclusions.AddRange(groupData.MinorDates.Select(date => new ExclusionDateDto
-                    {
-                        GroupId = id,
-                        Date = date,
-                        Status = "Minor"
-                    }));
-                }
-
-                await scheduleService.CreateExclusionDateDeleteExcess(id, exclusions);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Ошибка при обновлении исключений", Details = ex.Message });
-            }
-
-            return Ok(new { Message = "Группа успешно обновлена", Id = id });
         }
 
         [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> Delete(long id)
+        public async Task<IActionResult> DeleteGroup(long id)
         {
             try
             {
-                await groupService.DeleteById(id);
+                await _groupApplicationService.DeleteGroupAsync(id);
                 return Ok();
             }
             catch (KeyNotFoundException ex)
@@ -254,136 +202,6 @@ namespace Aikido.Controllers
             {
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
-        }
-
-        [HttpGet("get-by-club/{clubId}")]
-        public async Task<IActionResult> GetGroupsByClubId(long clubId)
-        {
-            try
-            {
-                var groups = await groupService.GetGroupsByClubId(clubId);
-                return Ok(groups);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
-            }
-        }
-
-        [HttpGet("get/list")]
-        public async Task<IActionResult> GetList()
-        {
-            var groups = await groupService.GetAll();
-
-            return Ok(groups.Select(group => new GroupDto(group)));
-        }
-
-        [HttpGet("get/info/{groupId}")]
-        public async Task<IActionResult> GetGroupInfo(long groupId)
-        {
-            var groupInfo = new GroupInfoDto();
-
-            var group = await groupService.GetByIdOrThrowException(groupId);
-            if (group == null)
-                return NotFound(new { Message = $"Группа с Id = {groupId} не найдена." });
-
-            groupInfo.Id = group.Id;
-            groupInfo.Name = group.Name;
-            groupInfo.AgeGroup = EnumParser.ConvertEnumToString(group.AgeGroup);
-            groupInfo.ClubId = group.ClubId;
-
-            if (group.ClubId != null)
-            {
-                try
-                {
-                    var club = await clubService.GetByIdOrThrowException((long)group.ClubId);
-                    groupInfo.Club = club.Name;
-                }
-                catch (KeyNotFoundException)
-                {
-                    groupInfo.Club = null;
-                }
-            }
-            else
-            {
-                groupInfo.Club = null;
-            }
-
-            groupInfo.CoachId = group.CoachId;
-
-            if (group.CoachId != null)
-            {
-                try
-                {
-                    var coach = await userService.GetByIdOrThrowException((long)group.CoachId);
-                    groupInfo.Coach = coach.FullName;
-                }
-                catch (KeyNotFoundException)
-                {
-                    groupInfo.Coach = null;
-                }
-            }
-            else
-            {
-                groupInfo.Coach = null;
-            }
-
-            groupInfo.GroupMembers = new List<UserShortDto>();
-            if (group.UserIds != null)
-            {
-                foreach (var userId in group.UserIds)
-                {
-                    try
-                    {
-                        var user = await userService.GetUserById(userId);
-                        groupInfo.GroupMembers.Add(new UserShortDto
-                        {
-                            Id = userId,
-                            Name = user.FullName
-                        });
-                    }
-                    catch (KeyNotFoundException)
-                    {
-                        continue;
-                    }
-                }
-            }
-
-            var scheduleEntities = await scheduleService.GetGroupSchedule(groupId);
-            var scheduleDict = new Dictionary<string, string>();
-            foreach (var scheduleItem in scheduleEntities)
-            {
-                string dayKey = scheduleItem.DayOfWeek switch
-                {
-                    DayOfWeek.Monday => "Пн",
-                    DayOfWeek.Tuesday => "Вт",
-                    DayOfWeek.Wednesday => "Ср",
-                    DayOfWeek.Thursday => "Чт",
-                    DayOfWeek.Friday => "Пт",
-                    DayOfWeek.Saturday => "Сб",
-                    DayOfWeek.Sunday => "Вс",
-                    _ => null
-                };
-
-                if (dayKey != null)
-                {
-                    scheduleDict[dayKey] = $"{scheduleItem.StartTime:hh\\:mm}-{scheduleItem.EndTime:hh\\:mm}";
-                }
-            }
-            groupInfo.Schedule = scheduleDict;
-
-            var exclusionDates = await scheduleService.GetGroupExclusionDates(groupId, DateTime.Now);
-            groupInfo.ExtraDates = exclusionDates
-                .Where(d => d.Status == ExclusiveDateType.Extra)
-                .Select(d => d.Date.Date)
-                .ToList();
-
-            groupInfo.MinorDates = exclusionDates
-                .Where(d => d.Status == ExclusiveDateType.Minor)
-                .Select(d => d.Date.Date)
-                .ToList();
-
-            return Ok(groupInfo);
         }
     }
 }

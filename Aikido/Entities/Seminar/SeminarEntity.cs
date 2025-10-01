@@ -1,7 +1,6 @@
-﻿using Aikido.Dto.Seminars;
-using Aikido.Entities.Users;
+﻿using Aikido.Dto;
+using Aikido.Dto.Seminars;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Aikido.Entities.Seminar
 {
@@ -9,117 +8,56 @@ namespace Aikido.Entities.Seminar
     {
         [Key]
         public long Id { get; set; }
-        public string? Name { get; set; }
-        public DateTime Date { get; set; }
-
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
         public string? Location { get; set; }
-        public string? Description { get; set; } = "";
+        public string? Address { get; set; }
+        public decimal? Cost { get; set; }
+        public int MaxParticipants { get; set; }
+        public int CurrentParticipants { get; set; }
+        public string? InstructorName { get; set; }
+        public long? InstructorId { get; set; }
+        public virtual UserEntity? Instructor { get; set; }
+        public string? Requirements { get; set; }
+        public bool IsActive { get; set; } = true;
+        public DateTime? RegistrationDeadline { get; set; }
+        public string? ContactInfo { get; set; }
+        public List<string> Materials { get; set; } = new();
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedDate { get; set; }
 
-        public List<SeminarScheduleEntity> Schedule { get; set; } = [];
-        public List<SeminarContactEntity> Contacts { get; set; } = []; 
-        public List<SeminarGroupEntity> Groups { get; set; } = [];
-
-        public List<SeminarMemberEntity> Members { get; set; } = [];
-
-
-        public decimal? PriceSeminarInRubles { get; set; }
-        public decimal? PriceAnnualFeeRubles { get; set; }
-        public decimal? PriceBudoPassportRubles { get; set; }
-        public decimal? Price5to2KyuCertificationInRubles { get; set; }
-        public decimal? Price1KyuCertificationInRubles { get; set; }
-        public decimal? PriceDanCertificationInRubles { get; set; }
-
-        public List<SeminarCoachStatementEntity> CoachStatements { get; set; } = [];
-        public string? RegulationPath { get; set; }
-
-        public string? FinalStatementPath { get; set; }
-        public bool IsFinalStatementApplied { get; set; }
-
-        public DateTime? CreationDate { get; set; }
-
-        [ForeignKey(nameof(Creator))]
-        public long? CreatorId { get; set; }
-        public UserEntity? Creator { get; set; }
+        // Навигационные свойства
+        public virtual ICollection<SeminarMemberEntity> SeminarMembers { get; set; } = new List<SeminarMemberEntity>();
 
         public SeminarEntity() { }
 
-        public SeminarEntity(SeminarDto dto)
+        public SeminarEntity(SeminarDto seminarData)
         {
-            ArgumentNullException.ThrowIfNull(dto);
-
-            Name = dto.Name;
-
-            if (dto.Date.HasValue)
-                Date = DateTime.SpecifyKind(dto.Date.Value, DateTimeKind.Utc);
-
-            Location = dto.Location ?? "";
-            Schedule = dto.Schedule ?? [];
-            Contacts = dto.Contacts ?? [];
-            Description = dto.Description ?? "";
-            Groups = dto.Groups ?? [];
-
-            PriceSeminarInRubles = dto.PriceSeminarInRubles ?? 0;
-            PriceAnnualFeeRubles = dto.PriceAnnualFeeRubles ?? 0;
-            PriceBudoPassportRubles = dto.PriceBudoPassportRubles ?? 0;
-            Price5to2KyuCertificationInRubles = dto.Price5to2KyuCertificationInRubles ?? 0;
-            Price1KyuCertificationInRubles = dto.Price1KyuCertificationInRubles ?? 0;
-            PriceDanCertificationInRubles = dto.PriceDanCertificationInRubles ?? 0;
-
-            if (dto.CreationDate.HasValue)
-                CreationDate = DateTime.SpecifyKind(dto.CreationDate.Value, DateTimeKind.Utc);
-
-            CreatorId = dto.CreatorId ?? null;
-            RegulationPath = dto.Regulation != null ? Convert.FromBase64String(dto.Regulation) : null;
-            CoachStatements = [];
+            UpdateFromJson(seminarData);
         }
 
-        public void UpdateFromJson(SeminarDto seminarNewData)
+        public void UpdateFromJson(SeminarDto seminarData)
         {
-            if (seminarNewData.Name != null)
-                Name = seminarNewData.Name;
-
-            if (seminarNewData.Date.HasValue)
-                Date = seminarNewData.Date.Value;
-
-            if (seminarNewData.Location != null)
-                Location = seminarNewData.Location;
-
-            if (seminarNewData.Schedule != null)
-                Schedule = seminarNewData.Schedule;
-
-            if (seminarNewData.Contacts != null)
-                Contacts = seminarNewData.Contacts;
-
-            if (seminarNewData.Groups != null)
-                Groups = seminarNewData.Groups;
-
-            if (seminarNewData.Description != null)
-                Description = seminarNewData.Description;
-
-            if (seminarNewData.PriceSeminarInRubles.HasValue)
-                PriceSeminarInRubles = seminarNewData.PriceSeminarInRubles.Value;
-
-            if (seminarNewData.PriceAnnualFeeRubles.HasValue)
-                PriceAnnualFeeRubles = seminarNewData.PriceAnnualFeeRubles.Value;
-
-            if (seminarNewData.PriceBudoPassportRubles.HasValue)
-                PriceBudoPassportRubles = seminarNewData.PriceBudoPassportRubles.Value;
-
-            if (seminarNewData.Price5to2KyuCertificationInRubles.HasValue)
-                Price5to2KyuCertificationInRubles = seminarNewData.Price5to2KyuCertificationInRubles.Value;
-
-            if (seminarNewData.Price1KyuCertificationInRubles.HasValue)
-                Price1KyuCertificationInRubles = seminarNewData.Price1KyuCertificationInRubles.Value;
-
-            if (seminarNewData.PriceDanCertificationInRubles.HasValue)
-                PriceDanCertificationInRubles = seminarNewData.PriceDanCertificationInRubles.Value;
-
-            if (seminarNewData.CreationDate != null)
-                CreationDate = seminarNewData.CreationDate;
-
-            CreatorId = seminarNewData.CreatorId;
-
-            RegulationPath = seminarNewData.Regulation != null ? Convert.FromBase64String(seminarNewData.Regulation) : null;
+            if (!string.IsNullOrEmpty(seminarData.Name))
+                Name = seminarData.Name;
+            Description = seminarData.Description;
+            StartDate = seminarData.StartDate;
+            EndDate = seminarData.EndDate;
+            Location = seminarData.Location;
+            Address = seminarData.Address;
+            Cost = seminarData.Cost;
+            MaxParticipants = seminarData.MaxParticipants;
+            CurrentParticipants = seminarData.CurrentParticipants;
+            InstructorName = seminarData.InstructorName;
+            InstructorId = seminarData.InstructorId;
+            Requirements = seminarData.Requirements;
+            IsActive = seminarData.IsActive;
+            RegistrationDeadline = seminarData.RegistrationDeadline;
+            ContactInfo = seminarData.ContactInfo;
+            Materials = seminarData.Materials?.ToList() ?? new List<string>();
+            UpdatedDate = DateTime.UtcNow;
         }
     }
 }

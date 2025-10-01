@@ -1,5 +1,4 @@
 ﻿using Aikido.AdditionalData;
-using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities

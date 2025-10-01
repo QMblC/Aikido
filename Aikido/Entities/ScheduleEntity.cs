@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Aikido.Dto;
+using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities
 {
@@ -7,13 +8,39 @@ namespace Aikido.Entities
         [Key]
         public long Id { get; set; }
 
-        public long GroupId { get; set; }          
-        public GroupEntity Group { get; set; }     
+        public long? GroupId { get; set; }
+        public virtual GroupEntity? Group { get; set; }
 
         public DayOfWeek DayOfWeek { get; set; }
-
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
-    }
+        public string? Location { get; set; }
+        public string? Notes { get; set; }
+        public bool IsActive { get; set; } = true;
+        public DateTime? ValidFrom { get; set; }
+        public DateTime? ValidTo { get; set; }
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedDate { get; set; }
 
+        public ScheduleEntity() { }
+
+        public ScheduleEntity(ScheduleDto scheduleData)
+        {
+            UpdateFromJson(scheduleData);
+        }
+
+        public void UpdateFromJson(ScheduleDto scheduleData)
+        {
+            GroupId = scheduleData.GroupId;
+            DayOfWeek = scheduleData.DayOfWeek;
+            StartTime = scheduleData.StartTime;
+            EndTime = scheduleData.EndTime;
+            Location = scheduleData.Location;
+            Notes = scheduleData.Notes;
+            IsActive = scheduleData.IsActive;
+            ValidFrom = scheduleData.ValidFrom;
+            ValidTo = scheduleData.ValidTo;
+            UpdatedDate = DateTime.UtcNow;
+        }
+    }
 }
