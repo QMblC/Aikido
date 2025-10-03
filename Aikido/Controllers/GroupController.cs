@@ -127,18 +127,8 @@ namespace Aikido.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreateGroup([FromForm] GroupRequest request)
+        public async Task<IActionResult> CreateGroup([FromBody] GroupDto groupData)
         {
-            GroupDto groupData;
-            try
-            {
-                groupData = await request.Parse();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при обработке JSON: {ex.Message}");
-            }
-
             try
             {
                 var groupId = await _groupApplicationService.CreateGroupAsync(groupData);
@@ -155,18 +145,8 @@ namespace Aikido.Controllers
         }
 
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateGroup(long id, [FromForm] GroupRequest request)
+        public async Task<IActionResult> UpdateGroup(long id, [FromBody] GroupDto groupData)
         {
-            GroupDto groupData;
-            try
-            {
-                groupData = await request.Parse();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при обработке JSON: {ex.Message}");
-            }
-
             try
             {
                 await _groupApplicationService.UpdateGroupAsync(id, groupData);
