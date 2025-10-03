@@ -69,7 +69,9 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
     });
+
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -78,9 +80,10 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "Aikido Club Management API",
         Version = "v1",
-        Description = "API для управления клубами айкидо с поддержкой 3НФ"
+        Description = "API для управления клубами айкидо"
     });
 });
+
 
 var app = builder.Build();
 

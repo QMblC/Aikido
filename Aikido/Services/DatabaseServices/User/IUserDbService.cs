@@ -18,8 +18,8 @@ namespace Aikido.Services.DatabaseServices.User
         Task Delete(long id);
 
         // Новые методы для работы с many-to-many связями
-        Task<List<UserClub>> GetUserClubsAsync(long userId);
-        Task<List<UserGroup>> GetUserGroupsAsync(long userId);
+        Task<List<UserClubEntity>> GetUserClubsAsync(long userId);
+        Task<List<UserGroupEntity>> GetUserGroupsAsync(long userId);
         Task AddUserToClubAsync(long userId, long clubId, string membershipType = "Regular");
         Task RemoveUserFromClubAsync(long userId, long clubId);
         Task RemoveUserFromAllClubsAsync(long userId);

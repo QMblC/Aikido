@@ -26,7 +26,6 @@ namespace Aikido.Services
         public async Task<List<ScheduleEntity>> GetSchedulesByGroup(long groupId)
         {
             return await _context.Schedule
-                .Where(s => s.GroupId == groupId && s.IsActive)
                 .OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime)
                 .ToListAsync();
         }
@@ -34,7 +33,6 @@ namespace Aikido.Services
         public async Task<List<ScheduleEntity>> GetAllSchedules()
         {
             return await _context.Schedule
-                .Where(s => s.IsActive)
                 .OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime)
                 .ToListAsync();
         }
@@ -57,7 +55,7 @@ namespace Aikido.Services
         public async Task DeleteSchedule(long id)
         {
             var schedule = await GetScheduleById(id);
-            schedule.IsActive = false;
+            _context.Remove(schedule);
             await _context.SaveChangesAsync();
         }
 

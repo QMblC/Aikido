@@ -178,7 +178,7 @@ namespace Aikido.Services.DatabaseServices.User
         }
 
         // Методы для работы с клубами
-        public async Task<List<UserClub>> GetUserClubsAsync(long userId)
+        public async Task<List<UserClubEntity>> GetUserClubsAsync(long userId)
         {
             return await _context.UserClubs
                 .Include(uc => uc.Club)
@@ -194,7 +194,7 @@ namespace Aikido.Services.DatabaseServices.User
 
             if (existingMembership == null)
             {
-                var userClub = new UserClub(userId, clubId)
+                var userClub = new UserClubEntity(userId, clubId)
                 {
                     MembershipType = membershipType
                 };
@@ -239,7 +239,7 @@ namespace Aikido.Services.DatabaseServices.User
         }
 
         // Методы для работы с группами
-        public async Task<List<UserGroup>> GetUserGroupsAsync(long userId)
+        public async Task<List<UserGroupEntity>> GetUserGroupsAsync(long userId)
         {
             return await _context.UserGroups
                 .Include(ug => ug.Group)
@@ -255,7 +255,7 @@ namespace Aikido.Services.DatabaseServices.User
 
             if (existingMembership == null)
             {
-                var userGroup = new UserGroup(userId, groupId, roleInGroup);
+                var userGroup = new UserGroupEntity(userId, groupId, roleInGroup);
                 _context.UserGroups.Add(userGroup);
                 await _context.SaveChangesAsync();
             }

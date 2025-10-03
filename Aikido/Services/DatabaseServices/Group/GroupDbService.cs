@@ -2,6 +2,7 @@
 using Aikido.Dto;
 using Aikido.Entities;
 using Aikido.Exceptions;
+using DocumentFormat.OpenXml.Office2016.Drawing.Command;
 using Microsoft.EntityFrameworkCore;
 
 namespace Aikido.Services.DatabaseServices.Group
@@ -22,7 +23,8 @@ namespace Aikido.Services.DatabaseServices.Group
                 .Include(g => g.Club)
                 .Include(g => g.UserGroups)
                     .ThenInclude(ug => ug.User)
-                .Include(g => g.Schedules)
+                .Include(g => g.Schedule)
+                .Include(g => g.ExclusionDates)
                 .FirstOrDefaultAsync(g => g.Id == id);
 
             if (group == null)
@@ -47,7 +49,8 @@ namespace Aikido.Services.DatabaseServices.Group
             return await _context.Groups
                 .Include(g => g.Coach)
                 .Include(g => g.Club)
-                .Where(g => g.IsActive)
+                .Include(g => g.Schedule)
+                .Include(g => g.ExclusionDates)
                 .OrderBy(g => g.Name)
                 .ToListAsync();
         }
@@ -62,14 +65,28 @@ namespace Aikido.Services.DatabaseServices.Group
                 .ToListAsync();
         }
 
-        public async Task<long> CreateAsync(GroupDto groupData)
+        public async Task<long> CreateAsync(GroupDto groupDto)
         {
             var group = new GroupEntity();
-            group.UpdateFromJson(groupData);
+
+            group.UpdateFromJson(groupDto);
+
+            if (group.ClubId == 0 || group.ClubId == null)
+                throw new ArgumentException("ClubId is required");
+
             _context.Groups.Add(group);
+            var club = _context.Clubs.Find(group.ClubId);
+            if (club != null)
+                club.Groups.Add(group);
+
+            _context.Schedule.AddRange(group.Schedule);
+            _context.ExclusionDates.AddRange(group.ExclusionDates);
+
             await _context.SaveChangesAsync();
+
             return group.Id;
         }
+
 
         public async Task UpdateAsync(long id, GroupDto groupData)
         {
@@ -81,16 +98,25 @@ namespace Aikido.Services.DatabaseServices.Group
         public async Task DeleteAsync(long id)
         {
             var group = await GetByIdOrThrowException(id);
-            group.IsActive = false;
+            var club = _context.Clubs.Find(group.ClubId);
+            if (club != null)
+                club.Groups.Remove(group);
+
+            _context.Schedule.RemoveRange(group.Schedule);
+            _context.ExclusionDates.RemoveRange(group.ExclusionDates);
+
+            _context.Remove(group);
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<UserGroup>> GetGroupMembersAsync(long groupId)
+        public async Task<List<UserGroupEntity>> GetGroupMembersAsync(long groupId)
         {
             return await _context.UserGroups
                 .Include(ug => ug.User)
                 .Where(ug => ug.GroupId == groupId)
-                .OrderBy(ug => ug.User!.FullName)
+                .OrderBy(ug => ug.User!.LastName)
+                .ThenBy(ug => ug.User!.FirstName)
+                .ThenBy(ug => ug.User!.SecondName)
                 .ToListAsync();
         }
 

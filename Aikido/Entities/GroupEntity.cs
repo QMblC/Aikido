@@ -22,11 +22,11 @@ namespace Aikido.Entities
         public DateTime? UpdatedDate { get; set; }
         public string? Description { get; set; }
         public Grade MinGrade { get; set; } = Grade.None;
-        public Grade MaxGrade { get; set; } = Grade.Dan10;
+        public Grade MaxGrade { get; set; } = Grade.None;
 
-        // Навигационное свойство для many-to-many связи с пользователями
-        public virtual ICollection<UserGroup> UserGroups { get; set; } = new List<UserGroup>();
-        public virtual ICollection<ScheduleEntity> Schedules { get; set; } = new List<ScheduleEntity>();
+        public virtual List<UserGroupEntity> UserGroups { get; set; } = new();
+        public virtual List<ScheduleEntity> Schedule { get; set; } = new();
+        public virtual List<ExclusionDateEntity> ExclusionDates { get; set; } = new();
 
         public GroupEntity() { }
 
@@ -40,8 +40,18 @@ namespace Aikido.Entities
                 Name = groupNewData.Name;
             if (!string.IsNullOrEmpty(groupNewData.AgeGroup))
                 AgeGroup = EnumParser.ConvertStringToEnum<AgeGroup>(groupNewData.AgeGroup);
-            IsActive = groupNewData.IsActive;
+            if (groupNewData.IsActive.HasValue)
+            {
+                IsActive = groupNewData.IsActive.Value;
+            }          
             UpdatedDate = DateTime.UtcNow;
+
+            Schedule = groupNewData.Schedule
+                .Select(s => new ScheduleEntity(s))
+                .ToList();
+            ExclusionDates = groupNewData.ExclusionDates
+                .Select(s => new ExclusionDateEntity(s))
+                .ToList();
         }
 
         public void UpdateFromJson(GroupInfoDto groupNewData)
@@ -54,7 +64,10 @@ namespace Aikido.Entities
                 Name = groupNewData.Name;
             if (!string.IsNullOrEmpty(groupNewData.AgeGroup))
                 AgeGroup = EnumParser.ConvertStringToEnum<AgeGroup>(groupNewData.AgeGroup);
-            IsActive = groupNewData.IsActive;
+            if (groupNewData.IsActive.HasValue)
+            {
+                IsActive = groupNewData.IsActive.Value;
+            }
             UpdatedDate = DateTime.UtcNow;
         }
     }

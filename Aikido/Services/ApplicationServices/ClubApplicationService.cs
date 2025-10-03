@@ -3,6 +3,7 @@ using Aikido.Services.DatabaseServices.Club;
 using Aikido.Services.DatabaseServices.Group;
 using Aikido.Services.DatabaseServices.User;
 using Aikido.Exceptions;
+using Aikido.Entities;
 
 namespace Aikido.Application.Services
 {
@@ -38,7 +39,12 @@ namespace Aikido.Application.Services
         {
             var club = await _clubDbService.GetByIdOrThrowException(id);
             var groups = await _groupDbService.GetGroupsByClub(id);
-            var members = await _clubDbService.GetClubMembersAsync(id);
+            var members = new List<UserClubEntity>();
+            if (groups.Count > 0)
+            {
+                members = await _clubDbService.GetClubMembersAsync(id);
+            }
+            
 
             return new ClubDetailsDto(club, groups, members);
         }

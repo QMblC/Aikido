@@ -14,13 +14,7 @@ namespace Aikido.Entities
         public DayOfWeek DayOfWeek { get; set; }
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
-        public string? Location { get; set; }
-        public string? Notes { get; set; }
-        public bool IsActive { get; set; } = true;
-        public DateTime? ValidFrom { get; set; }
-        public DateTime? ValidTo { get; set; }
-        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
-        public DateTime? UpdatedDate { get; set; }
+
 
         public ScheduleEntity() { }
 
@@ -35,12 +29,6 @@ namespace Aikido.Entities
             DayOfWeek = scheduleData.DayOfWeek;
             StartTime = scheduleData.StartTime;
             EndTime = scheduleData.EndTime;
-            Location = scheduleData.Location;
-            Notes = scheduleData.Notes;
-            IsActive = scheduleData.IsActive;
-            ValidFrom = scheduleData.ValidFrom;
-            ValidTo = scheduleData.ValidTo;
-            UpdatedDate = DateTime.UtcNow;
         }
     }
 }

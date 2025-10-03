@@ -22,8 +22,8 @@ namespace Aikido.Data
         public DbSet<StatementEntity> Statements { get; set; }
 
         // Промежуточные таблицы для many-to-many связей
-        public DbSet<UserClub> UserClubs { get; set; }
-        public DbSet<UserGroup> UserGroups { get; set; }
+        public DbSet<UserClubEntity> UserClubs { get; set; }
+        public DbSet<UserGroupEntity> UserGroups { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -63,7 +63,7 @@ namespace Aikido.Data
             });
 
             // Конфигурация UserClub (промежуточная таблица для User-Club many-to-many)
-            modelBuilder.Entity<UserClub>(entity =>
+            modelBuilder.Entity<UserClubEntity>(entity =>
             {
                 entity.HasKey(e => e.Id);
 
@@ -85,7 +85,7 @@ namespace Aikido.Data
             });
 
             // Конфигурация UserGroup (промежуточная таблица для User-Group many-to-many)
-            modelBuilder.Entity<UserGroup>(entity =>
+            modelBuilder.Entity<UserGroupEntity>(entity =>
             {
                 entity.HasKey(e => e.Id);
 
@@ -143,6 +143,7 @@ namespace Aikido.Data
                     .WithMany(c => c.Groups)
                     .HasForeignKey(g => g.ClubId)
                     .OnDelete(DeleteBehavior.SetNull);
+
 
                 // Индексы
                 entity.HasIndex(e => e.Name);
@@ -303,11 +304,10 @@ namespace Aikido.Data
             modelBuilder.Entity<ScheduleEntity>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Location).HasMaxLength(300);
 
                 // Связь с группой
                 entity.HasOne(s => s.Group)
-                    .WithMany(g => g.Schedules)
+                    .WithMany(g => g.Schedule)
                     .HasForeignKey(s => s.GroupId)
                     .OnDelete(DeleteBehavior.Cascade);
 
@@ -322,7 +322,6 @@ namespace Aikido.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Description).HasMaxLength(500);
-                entity.Property(e => e.RecurringPattern).HasMaxLength(200);
 
                 // Связи
                 entity.HasOne(ed => ed.Group)
@@ -330,20 +329,9 @@ namespace Aikido.Data
                     .HasForeignKey(ed => ed.GroupId)
                     .OnDelete(DeleteBehavior.SetNull);
 
-                entity.HasOne(ed => ed.Club)
-                    .WithMany()
-                    .HasForeignKey(ed => ed.ClubId)
-                    .OnDelete(DeleteBehavior.SetNull);
-
-                entity.HasOne(ed => ed.CreatedByUser)
-                    .WithMany()
-                    .HasForeignKey(ed => ed.CreatedBy)
-                    .OnDelete(DeleteBehavior.SetNull);
-
                 // Индексы
                 entity.HasIndex(e => e.Date);
                 entity.HasIndex(e => e.GroupId);
-                entity.HasIndex(e => e.ClubId);
             });
         }
 

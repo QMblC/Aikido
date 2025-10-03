@@ -22,7 +22,7 @@ namespace Aikido.Entities
         public DateTime? UpdatedDate { get; set; }
 
         // Навигационные свойства
-        public virtual ICollection<UserClub> UserClubs { get; set; } = new List<UserClub>();
+        public virtual ICollection<UserClubEntity> UserClubs { get; set; } = new List<UserClubEntity>();
         public virtual ICollection<GroupEntity> Groups { get; set; } = new List<GroupEntity>();
 
         public ClubEntity() { }

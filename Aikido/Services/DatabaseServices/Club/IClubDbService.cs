@@ -15,7 +15,7 @@ namespace Aikido.Services.DatabaseServices.Club
         Task DeleteAsync(long id);
 
         // Новые методы для работы с участниками клуба
-        Task<List<UserClub>> GetClubMembersAsync(long clubId);
+        Task<List<UserClubEntity>> GetClubMembersAsync(long clubId);
         Task RemoveAllMembersFromClubAsync(long clubId);
         Task<int> GetClubMemberCountAsync(long clubId);
         Task<List<GroupEntity>> GetClubGroupsAsync(long clubId);

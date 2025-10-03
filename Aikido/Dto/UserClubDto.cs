@@ -19,7 +19,7 @@ namespace Aikido.Dto
 
         public UserClubDto() { }
 
-        public UserClubDto(UserClub userClub)
+        public UserClubDto(UserClubEntity userClub)
         {
             Id = userClub.Id;
             UserId = userClub.UserId;

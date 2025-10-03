@@ -38,7 +38,7 @@ namespace Aikido.Dto
             IsActive = club.IsActive;
         }
 
-        public ClubDetailsDto(ClubEntity club, List<GroupEntity> groups, List<UserClub> members) : this(club)
+        public ClubDetailsDto(ClubEntity club, List<GroupEntity> groups, List<UserClubEntity> members) : this(club)
         {
             Groups = groups.Where(g => g.IsActive).Select(g => new GroupDto(g)).ToList();
             Members = members.Where(m => m.IsActive && m.User != null)

@@ -74,7 +74,7 @@ namespace Aikido.Dto
             UserGroups = new List<UserGroupDto>();
         }
 
-        public UserDto(UserEntity user, List<UserClub> userClubs, List<UserGroup> userGroups) : this(user)
+        public UserDto(UserEntity user, List<UserClubEntity> userClubs, List<UserGroupEntity> userGroups) : this(user)
         {
             ClubIds = userClubs.Where(uc => uc.IsActive).Select(uc => uc.ClubId).ToList();
             ClubNames = userClubs.Where(uc => uc.IsActive && uc.Club != null).Select(uc => uc.Club!.Name).ToList();

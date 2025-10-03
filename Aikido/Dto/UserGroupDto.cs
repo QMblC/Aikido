@@ -20,7 +20,7 @@ namespace Aikido.Dto
 
         public UserGroupDto() { }
 
-        public UserGroupDto(UserGroup userGroup)
+        public UserGroupDto(UserGroupEntity userGroup)
         {
             Id = userGroup.Id;
             UserId = userGroup.UserId;

@@ -2,7 +2,7 @@
 
 namespace Aikido.Entities
 {
-    public class UserClub : IDbEntity
+    public class UserClubEntity : IDbEntity
     {
         [Key]
         public long Id { get; set; }
@@ -23,9 +23,9 @@ namespace Aikido.Entities
         public decimal? MembershipFee { get; set; }
         public DateTime? LastPaymentDate { get; set; }
 
-        public UserClub() { }
+        public UserClubEntity() { }
 
-        public UserClub(long userId, long clubId)
+        public UserClubEntity(long userId, long clubId)
         {
             UserId = userId;
             ClubId = clubId;

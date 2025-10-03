@@ -15,7 +15,7 @@ namespace Aikido.Services.DatabaseServices.Group
         Task DeleteAsync(long id);
 
         // Новые методы для работы с участниками группы
-        Task<List<UserGroup>> GetGroupMembersAsync(long groupId);
+        Task<List<UserGroupEntity>> GetGroupMembersAsync(long groupId);
         Task RemoveAllMembersFromGroupAsync(long groupId);
         Task<int> GetGroupMemberCountAsync(long groupId);
     }

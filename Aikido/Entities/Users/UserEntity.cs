@@ -33,8 +33,8 @@ namespace Aikido.Entities
         public string? ParentPhoneNumber { get; set; }
         public DateTime? RegistrationDate { get; set; }
 
-        public virtual ICollection<UserClub> UserClubs { get; set; } = new List<UserClub>();
-        public virtual ICollection<UserGroup> UserGroups { get; set; } = new List<UserGroup>();
+        public virtual ICollection<UserClubEntity> UserClubs { get; set; } = new List<UserClubEntity>();
+        public virtual ICollection<UserGroupEntity> UserGroups { get; set; } = new List<UserGroupEntity>();
 
         [NotMapped]
         public string FullName => $"{LastName} {FirstName} {SecondName}";

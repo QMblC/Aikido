@@ -113,18 +113,8 @@ namespace Aikido.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreateClub([FromForm] ClubRequest request)
+        public async Task<IActionResult> CreateClub([FromBody] ClubDto clubData)
         {
-            ClubDto clubData;
-            try
-            {
-                clubData = await request.Parse();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при обработке JSON: {ex.Message}");
-            }
-
             try
             {
                 var clubId = await _clubApplicationService.CreateClubAsync(clubData);
@@ -137,18 +127,8 @@ namespace Aikido.Controllers
         }
 
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateClub(long id, [FromForm] ClubRequest request)
+        public async Task<IActionResult> UpdateClub(long id, [FromBody] ClubDto clubData)
         {
-            ClubDto clubData;
-            try
-            {
-                clubData = await request.Parse();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при обработке JSON: {ex.Message}");
-            }
-
             try
             {
                 await _clubApplicationService.UpdateClubAsync(id, clubData);

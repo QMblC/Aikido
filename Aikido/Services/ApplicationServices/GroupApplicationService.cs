@@ -3,6 +3,7 @@ using Aikido.Services.DatabaseServices.Group;
 using Aikido.Services.DatabaseServices.User;
 using Aikido.Services.DatabaseServices.Club;
 using Aikido.Exceptions;
+using Aikido.Services.UnitOfWork;
 
 namespace Aikido.Application.Services
 {
@@ -11,15 +12,18 @@ namespace Aikido.Application.Services
         private readonly IGroupDbService _groupDbService;
         private readonly IUserDbService _userDbService;
         private readonly IClubDbService _clubDbService;
+        private readonly IUnitOfWork _unitOfWork;
 
         public GroupApplicationService(
             IGroupDbService groupDbService,
             IUserDbService userDbService,
-            IClubDbService clubDbService)
+            IClubDbService clubDbService,
+            IUnitOfWork unitOfWork)
         {
             _groupDbService = groupDbService;
             _userDbService = userDbService;
             _clubDbService = clubDbService;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<GroupDto> GetGroupByIdAsync(long id)
@@ -84,8 +88,10 @@ namespace Aikido.Application.Services
                 throw new EntityNotFoundException($"Клуба с Id = {groupData.ClubId} не существует");
             }
 
+            
             return await _groupDbService.CreateAsync(groupData);
         }
+
 
         public async Task UpdateGroupAsync(long id, GroupDto groupData)
         {

@@ -68,18 +68,26 @@ namespace Aikido.Services.DatabaseServices.Club
         public async Task DeleteAsync(long id)
         {
             var club = await GetByIdOrThrowException(id);
+            if (club.Groups.Count > 0)
+            {
+                throw new Exception("Club can\'t contain any groups before deleting");
+            }
             _context.Remove(club); 
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<UserClub>> GetClubMembersAsync(long clubId)
+        public async Task<List<UserClubEntity>> GetClubMembersAsync(long clubId)
         {
             return await _context.UserClubs
                 .Include(uc => uc.User)
-                .Where(uc => uc.ClubId == clubId)
-                .OrderBy(uc => uc.User!.FullName)
+                .Where(uc => uc.ClubId == clubId && uc.User != null)
+                .OrderBy(uc => uc.User.LastName)
+                .ThenBy(uc => uc.User.FirstName)
+                .ThenBy(uc => uc.User.SecondName)
                 .ToListAsync();
         }
+
+
 
         public async Task RemoveAllMembersFromClubAsync(long clubId)
         {

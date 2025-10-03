@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities
 {
-    public class UserGroup : IDbEntity
+    public class UserGroupEntity : IDbEntity
     {
         [Key]
         public long Id { get; set; }
@@ -25,9 +25,9 @@ namespace Aikido.Entities
         public DateTime? LastAttendanceDate { get; set; }
         public bool IsRegular { get; set; } = true; // Regular or substitute
 
-        public UserGroup() { }
+        public UserGroupEntity() { }
 
-        public UserGroup(long userId, long groupId, Role roleInGroup = Role.User)
+        public UserGroupEntity(long userId, long groupId, Role roleInGroup = Role.User)
         {
             UserId = userId;
             GroupId = groupId;
