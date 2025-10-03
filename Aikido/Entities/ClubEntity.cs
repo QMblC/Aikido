@@ -1,4 +1,5 @@
 ﻿using Aikido.Dto;
+using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities
@@ -22,8 +23,9 @@ namespace Aikido.Entities
         public DateTime? UpdatedDate { get; set; }
 
         // Навигационные свойства
-        public virtual ICollection<UserClubEntity> UserClubs { get; set; } = new List<UserClubEntity>();
+
         public virtual ICollection<GroupEntity> Groups { get; set; } = new List<GroupEntity>();
+        public virtual ICollection<UserMembershipEntity> UserMemberships { get; set; } = new List<UserMembershipEntity>();
 
         public ClubEntity() { }
 

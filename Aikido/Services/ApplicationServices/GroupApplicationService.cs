@@ -37,7 +37,7 @@ namespace Aikido.Application.Services
             var group = await _groupDbService.GetByIdOrThrowException(id);
             var members = await _groupDbService.GetGroupMembersAsync(id);
 
-            var memberDtos = members.Where(m => m.IsActive && m.User != null)
+            var memberDtos = members.Where(m => m.User != null)
                                   .Select(m => new UserShortDto(m.User!))
                                   .ToList();
 
@@ -70,8 +70,8 @@ namespace Aikido.Application.Services
 
         public async Task<List<GroupDto>> GetGroupsByUserAsync(long userId)
         {
-            var userGroups = await _userDbService.GetUserGroupsAsync(userId);
-            return userGroups.Where(ug => ug.IsActive && ug.Group != null)
+            var userGroups = await _userDbService.GetUserMembershipsAsync(userId);
+            return userGroups.Where(ug => ug.Group != null)
                            .Select(ug => new GroupDto(ug.Group!))
                            .ToList();
         }
@@ -120,7 +120,6 @@ namespace Aikido.Application.Services
                 throw new EntityNotFoundException($"Группа с Id = {id} не найдена");
             }
 
-            // Удаляем всех участников из группы
             await _groupDbService.RemoveAllMembersFromGroupAsync(id);
             await _groupDbService.DeleteAsync(id);
         }
@@ -137,12 +136,12 @@ namespace Aikido.Application.Services
                 throw new EntityNotFoundException($"Пользователя с Id = {userId} не существует");
             }
 
-            await _userDbService.AddUserToGroupAsync(userId, groupId);
+            //await _userDbService.AddUserToGroupAsync(userId, groupId);
         }
 
         public async Task RemoveUserFromGroupAsync(long groupId, long userId)
         {
-            await _userDbService.RemoveUserFromGroupAsync(userId, groupId);
+            await _userDbService.RemoveUserMembershipAsync(userId, groupId);
         }
 
         public async Task<bool> GroupExistsAsync(long id)
@@ -153,7 +152,7 @@ namespace Aikido.Application.Services
         public async Task<List<UserShortDto>> GetGroupMembersAsync(long groupId)
         {
             var members = await _groupDbService.GetGroupMembersAsync(groupId);
-            return members.Where(m => m.IsActive && m.User != null)
+            return members.Where(m => m.User != null)
                          .Select(m => new UserShortDto(m.User!))
                          .ToList();
         }

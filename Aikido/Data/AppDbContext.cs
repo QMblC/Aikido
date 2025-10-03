@@ -1,5 +1,6 @@
 ﻿using Aikido.Entities;
 using Aikido.Entities.Seminar;
+using Aikido.Entities.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace Aikido.Data
@@ -22,8 +23,8 @@ namespace Aikido.Data
         public DbSet<StatementEntity> Statements { get; set; }
 
         // Промежуточные таблицы для many-to-many связей
-        public DbSet<UserClubEntity> UserClubs { get; set; }
-        public DbSet<UserGroupEntity> UserGroups { get; set; }
+
+        public DbSet<UserMembershipEntity> UserMemberships { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -62,46 +63,26 @@ namespace Aikido.Data
                 entity.HasIndex(e => e.PhoneNumber);
             });
 
-            // Конфигурация UserClub (промежуточная таблица для User-Club many-to-many)
-            modelBuilder.Entity<UserClubEntity>(entity =>
+            modelBuilder.Entity<UserMembershipEntity>(entity =>
             {
-                entity.HasKey(e => e.Id);
+                entity.HasKey(m => m.Id);
 
-                entity.HasOne(uc => uc.User)
-                    .WithMany(u => u.UserClubs)
-                    .HasForeignKey(uc => uc.UserId)
+                entity.HasOne(m => m.User)
+                    .WithMany(u => u.UserMemberships)
+                    .HasForeignKey(m => m.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasOne(uc => uc.Club)
-                    .WithMany(c => c.UserClubs)
-                    .HasForeignKey(uc => uc.ClubId)
+                entity.HasOne(m => m.Club)
+                    .WithMany(c => c.UserMemberships)
+                    .HasForeignKey(m => m.ClubId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                entity.Property(e => e.MembershipType).HasMaxLength(50);
-                entity.Property(e => e.MembershipFee).HasPrecision(18, 2);
-
-                // Уникальный индекс - пользователь может состоять в клубе только один раз активно
-                entity.HasIndex(e => new { e.UserId, e.ClubId, e.IsActive });
+                entity.HasOne(m => m.Group)
+                    .WithMany(g => g.UserMemberships)
+                    .HasForeignKey(m => m.GroupId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // Конфигурация UserGroup (промежуточная таблица для User-Group many-to-many)
-            modelBuilder.Entity<UserGroupEntity>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-
-                entity.HasOne(ug => ug.User)
-                    .WithMany(u => u.UserGroups)
-                    .HasForeignKey(ug => ug.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(ug => ug.Group)
-                    .WithMany(g => g.UserGroups)
-                    .HasForeignKey(ug => ug.GroupId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                // Уникальный индекс - пользователь может состоять в группе только один раз активно
-                entity.HasIndex(e => new { e.UserId, e.GroupId, e.IsActive });
-            });
 
             // Конфигурация ClubEntity
             modelBuilder.Entity<ClubEntity>(entity =>

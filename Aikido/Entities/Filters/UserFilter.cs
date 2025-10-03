@@ -38,11 +38,11 @@ namespace Aikido.Entities.Filters
 
             // Исправлено для новой 3НФ архитектуры - используем UserClubs
             if (ClubIds?.Any() == true)
-                query = query.Where(u => u.UserClubs.Any(uc => uc.IsActive && ClubIds.Contains(uc.ClubId)));
+                query = query.Where(u => u.UserMemberships.Any(um => ClubIds.Contains(um.ClubId)));
 
             // Исправлено для новой 3НФ архитектуры - используем UserGroups
             if (GroupIds?.Any() == true)
-                query = query.Where(u => u.UserGroups.Any(ug => ug.IsActive && GroupIds.Contains(ug.GroupId)));
+                query = query.Where(u => u.UserMemberships.Any(um => GroupIds.Contains(um.GroupId)));
 
             if (Sex?.Any() == true)
             {

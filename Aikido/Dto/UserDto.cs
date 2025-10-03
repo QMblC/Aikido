@@ -1,5 +1,6 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Entities;
+using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Dto
@@ -27,18 +28,13 @@ namespace Aikido.Dto
         public bool HasBudoPassport { get; set; }
         public List<DateTime> PaymentDates { get; set; } = new();
 
-        public List<long>? ClubIds { get; set; }
-        public List<string>? ClubNames { get; set; }
-        public List<long>? GroupIds { get; set; }
-        public List<string>? GroupNames { get; set; }
-
         public string? City { get; set; }
         public string? ParentFullName { get; set; }
         public string? ParentPhoneNumber { get; set; }
         public DateTime? RegistrationDate { get; set; }
 
-        public List<UserClubDto>? UserClubs { get; set; }
-        public List<UserGroupDto>? UserGroups { get; set; }
+        public List<long>? UserMembershipIds { get; set; } = new();
+        public List<UserMembershipDto>? UserMembershipDtos { get; set; } = new();
 
         public UserDto() { }
 
@@ -66,23 +62,13 @@ namespace Aikido.Dto
             ParentPhoneNumber = user.ParentPhoneNumber;
             RegistrationDate = user.RegistrationDate;
 
-            ClubIds = new List<long>();
-            ClubNames = new List<string>();
-            GroupIds = new List<long>();
-            GroupNames = new List<string>();
-            UserClubs = new List<UserClubDto>();
-            UserGroups = new List<UserGroupDto>();
         }
 
-        public UserDto(UserEntity user, List<UserClubEntity> userClubs, List<UserGroupEntity> userGroups) : this(user)
+        public UserDto(UserEntity user, List<UserMembershipEntity> userMemberships) : this(user)
         {
-            ClubIds = userClubs.Where(uc => uc.IsActive).Select(uc => uc.ClubId).ToList();
-            ClubNames = userClubs.Where(uc => uc.IsActive && uc.Club != null).Select(uc => uc.Club!.Name).ToList();
-            UserClubs = userClubs.Select(uc => new UserClubDto(uc)).ToList();
 
-            GroupIds = userGroups.Where(ug => ug.IsActive).Select(ug => ug.GroupId).ToList();
-            GroupNames = userGroups.Where(ug => ug.IsActive && ug.Group != null).Select(ug => ug.Group!.Name).ToList();
-            UserGroups = userGroups.Select(ug => new UserGroupDto(ug)).ToList();
+            UserMembershipIds = userMemberships.Select(um => um.Id).ToList();
+            UserMembershipDtos = userMemberships.Select(um =>  new UserMembershipDto(um)).ToList();
         }
     }
 }

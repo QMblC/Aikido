@@ -4,6 +4,7 @@ using Aikido.Services.DatabaseServices.Group;
 using Aikido.Services.DatabaseServices.User;
 using Aikido.Exceptions;
 using Aikido.Entities;
+using Aikido.Entities.Users;
 
 namespace Aikido.Application.Services
 {
@@ -39,13 +40,12 @@ namespace Aikido.Application.Services
         {
             var club = await _clubDbService.GetByIdOrThrowException(id);
             var groups = await _groupDbService.GetGroupsByClub(id);
-            var members = new List<UserClubEntity>();
+            var members = new List<UserMembershipEntity>();
             if (groups.Count > 0)
             {
                 members = await _clubDbService.GetClubMembersAsync(id);
             }
             
-
             return new ClubDetailsDto(club, groups, members);
         }
 
@@ -83,29 +83,9 @@ namespace Aikido.Application.Services
         public async Task<List<UserShortDto>> GetClubMembersAsync(long clubId)
         {
             var members = await _clubDbService.GetClubMembersAsync(clubId);
-            return members.Where(m => m.IsActive && m.User != null)
+            return members.Where(m => m.User != null)
                          .Select(m => new UserShortDto(m.User!))
                          .ToList();
-        }
-
-        public async Task AddMemberToClubAsync(long clubId, long userId)
-        {
-            if (!await _clubDbService.Exists(clubId))
-            {
-                throw new EntityNotFoundException($"Клуба с Id = {clubId} не существует");
-            }
-
-            if (!await _userDbService.Exists(userId))
-            {
-                throw new EntityNotFoundException($"Пользователя с Id = {userId} не существует");
-            }
-
-            await _userDbService.AddUserToClubAsync(userId, clubId);
-        }
-
-        public async Task RemoveMemberFromClubAsync(long clubId, long userId)
-        {
-            await _userDbService.RemoveUserFromClubAsync(userId, clubId);
         }
     }
 }

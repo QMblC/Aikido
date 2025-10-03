@@ -1,5 +1,6 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Dto;
+using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -33,8 +34,7 @@ namespace Aikido.Entities
         public string? ParentPhoneNumber { get; set; }
         public DateTime? RegistrationDate { get; set; }
 
-        public virtual ICollection<UserClubEntity> UserClubs { get; set; } = new List<UserClubEntity>();
-        public virtual ICollection<UserGroupEntity> UserGroups { get; set; } = new List<UserGroupEntity>();
+        public virtual ICollection<UserMembershipEntity> UserMemberships { get; set; } = new List<UserMembershipEntity>();
 
         [NotMapped]
         public string FullName => $"{LastName} {FirstName} {SecondName}";

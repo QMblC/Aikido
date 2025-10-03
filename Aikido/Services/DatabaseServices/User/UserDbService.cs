@@ -3,6 +3,7 @@ using Aikido.Data;
 using Aikido.Dto;
 using Aikido.Entities;
 using Aikido.Entities.Filters;
+using Aikido.Entities.Users;
 using Aikido.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,9 +21,9 @@ namespace Aikido.Services.DatabaseServices.User
         public async Task<UserEntity> GetByIdOrThrowException(long id)
         {
             var user = await _context.Users
-                .Include(u => u.UserClubs)
+                .Include(u => u.UserMemberships)
                     .ThenInclude(uc => uc.Club)
-                .Include(u => u.UserGroups)
+                .Include(u => u.UserMemberships)
                     .ThenInclude(ug => ug.Group)
                 .FirstOrDefaultAsync(u => u.Id == id);
 
@@ -41,10 +42,10 @@ namespace Aikido.Services.DatabaseServices.User
         public async Task<List<UserShortDto>> GetUserIdAndNamesAsync()
         {
             var users = await _context.Users
-                .Include(u => u.UserClubs)
-                    .ThenInclude(uc => uc.Club)
-                .Include(u => u.UserGroups)
-                    .ThenInclude(ug => ug.Group)
+                .Include(u => u.UserMemberships)
+                    .ThenInclude(um => um.Club)
+                .Include(u => u.UserMemberships)
+                    .ThenInclude(um => um.Group)
                 .Select(u => new UserShortDto
                 {
                     Id = u.Id,
@@ -55,10 +56,10 @@ namespace Aikido.Services.DatabaseServices.User
                     Grade = u.Grade.ToString(),
                     PhoneNumber = u.PhoneNumber,
                     City = u.City,
-                    ClubNames = u.UserClubs.Where(uc => uc.IsActive && uc.Club != null)
-                                          .Select(uc => uc.Club!.Name).ToList(),
-                    GroupNames = u.UserGroups.Where(ug => ug.IsActive && ug.Group != null)
-                                            .Select(ug => ug.Group!.Name).ToList()
+                    ClubNames = u.UserMemberships.Where(um => um.Club != null)
+                                          .Select(um => um.Club!.Name).ToList(),
+                    GroupNames = u.UserMemberships.Where(um => um.Group != null)
+                                            .Select(um => um.Group!.Name).ToList()
                 })
                 .OrderBy(u => u.LastName)
                 .ThenBy(u => u.FirstName)
@@ -70,9 +71,9 @@ namespace Aikido.Services.DatabaseServices.User
         public async Task<(List<UserDto> Users, int TotalCount)> GetUserListAlphabetAscending(int startIndex, int finishIndex, UserFilter filter)
         {
             var query = _context.Users
-                .Include(u => u.UserClubs)
+                .Include(u => u.UserMemberships)
                     .ThenInclude(uc => uc.Club)
-                .Include(u => u.UserGroups)
+                .Include(u => u.UserMemberships)
                     .ThenInclude(ug => ug.Group)
                 .AsQueryable();
 
@@ -100,12 +101,12 @@ namespace Aikido.Services.DatabaseServices.User
 
             if (filter.ClubIds != null && filter.ClubIds.Any())
             {
-                query = query.Where(u => u.UserClubs.Any(uc => filter.ClubIds.Contains(uc.ClubId) && uc.IsActive));
+                query = query.Where(u => u.UserMemberships.Any(uc => filter.ClubIds.Contains(uc.ClubId)));
             }
 
             if (filter.GroupIds != null && filter.GroupIds.Any())
             {
-                query = query.Where(u => u.UserGroups.Any(ug => filter.GroupIds.Contains(ug.GroupId) && ug.IsActive));
+                query = query.Where(u => u.UserMemberships.Any(ug => filter.GroupIds.Contains(ug.GroupId)));
             }
 
             if (filter.Cities != null && filter.Cities.Any())
@@ -124,15 +125,10 @@ namespace Aikido.Services.DatabaseServices.User
                 .Take(finishIndex - startIndex)
                 .ToListAsync();
 
-            var userDtos = users.Select(u => new UserDto(u,
-                u.UserClubs.ToList(),
-                u.UserGroups.ToList())).ToList();
+            var userDtos = users.Select(u => new UserDto(u, u.UserMemberships.ToList())).ToList();
 
             return (userDtos, totalCount);
         }
-
-
-
 
         public async Task<long> CreateUser(UserDto userData)
         {
@@ -177,151 +173,66 @@ namespace Aikido.Services.DatabaseServices.User
             await _context.SaveChangesAsync();
         }
 
-        // Методы для работы с клубами
-        public async Task<List<UserClubEntity>> GetUserClubsAsync(long userId)
-        {
-            return await _context.UserClubs
-                .Include(uc => uc.Club)
-                .Where(uc => uc.UserId == userId)
-                .OrderByDescending(uc => uc.JoinDate)
-                .ToListAsync();
-        }
-
-        public async Task AddUserToClubAsync(long userId, long clubId, string membershipType = "Regular")
-        {
-            var existingMembership = await _context.UserClubs
-                .FirstOrDefaultAsync(uc => uc.UserId == userId && uc.ClubId == clubId);
-
-            if (existingMembership == null)
-            {
-                var userClub = new UserClubEntity(userId, clubId)
-                {
-                    MembershipType = membershipType
-                };
-                _context.UserClubs.Add(userClub);
-                await _context.SaveChangesAsync();
-            }
-            else if (!existingMembership.IsActive)
-            {
-                existingMembership.IsActive = true;
-                existingMembership.JoinDate = DateTime.UtcNow;
-                existingMembership.LeaveDate = null;
-                await _context.SaveChangesAsync();
-            }
-        }
-
-        public async Task RemoveUserFromClubAsync(long userId, long clubId)
-        {
-            var userClub = await _context.UserClubs
-                .FirstOrDefaultAsync(uc => uc.UserId == userId && uc.ClubId == clubId);
-
-            if (userClub != null)
-            {
-                userClub.IsActive = false;
-                userClub.LeaveDate = DateTime.UtcNow;
-                await _context.SaveChangesAsync();
-            }
-        }
-
-        public async Task RemoveUserFromAllClubsAsync(long userId)
-        {
-            var userClubs = await _context.UserClubs
-                .Where(uc => uc.UserId == userId && uc.IsActive)
-                .ToListAsync();
-
-            foreach (var userClub in userClubs)
-            {
-                userClub.IsActive = false;
-                userClub.LeaveDate = DateTime.UtcNow;
-            }
-
-            await _context.SaveChangesAsync();
-        }
-
         // Методы для работы с группами
-        public async Task<List<UserGroupEntity>> GetUserGroupsAsync(long userId)
+        public async Task<List<UserMembershipEntity>> GetUserMembershipsAsync(long userId)
         {
-            return await _context.UserGroups
+            return await _context.UserMemberships
                 .Include(ug => ug.Group)
+                    .ThenInclude(g => g.Coach)
+                .Include(ug => ug.Group)
+                    .ThenInclude(g => g.Club)
                 .Where(ug => ug.UserId == userId)
                 .OrderByDescending(ug => ug.JoinDate)
                 .ToListAsync();
         }
 
-        public async Task AddUserToGroupAsync(long userId, long groupId, Role roleInGroup = Role.User)
+        public async Task AddUserMembershipAsync(long userId, long groupId, long clubId, Role roleInGroup = Role.User)
         {
-            var existingMembership = await _context.UserGroups
-                .FirstOrDefaultAsync(ug => ug.UserId == userId && ug.GroupId == groupId);
+            var existingMembership = await _context.UserMemberships
+                .FirstOrDefaultAsync(um => um.UserId == userId && um.ClubId == clubId && um.GroupId == groupId);
 
             if (existingMembership == null)
             {
-                var userGroup = new UserGroupEntity(userId, groupId, roleInGroup);
-                _context.UserGroups.Add(userGroup);
-                await _context.SaveChangesAsync();
-            }
-            else if (!existingMembership.IsActive)
-            {
-                existingMembership.IsActive = true;
-                existingMembership.JoinDate = DateTime.UtcNow;
-                existingMembership.LeaveDate = null;
-                existingMembership.RoleInGroup = roleInGroup;
+                var userMembership = new UserMembershipEntity(userId, groupId, clubId, roleInGroup);
+                _context.UserMemberships.Add(userMembership);
                 await _context.SaveChangesAsync();
             }
         }
 
-        public async Task RemoveUserFromGroupAsync(long userId, long groupId)
+        public async Task RemoveUserMembershipAsync(long userId, long groupId)
         {
-            var userGroup = await _context.UserGroups
-                .FirstOrDefaultAsync(ug => ug.UserId == userId && ug.GroupId == groupId);
+            var userMembership = await _context.UserMemberships
+                .FirstOrDefaultAsync(um => um.UserId == userId && um.GroupId == groupId);
 
-            if (userGroup != null)
+            if (userMembership != null)
             {
-                userGroup.IsActive = false;
-                userGroup.LeaveDate = DateTime.UtcNow;
+                _context.Remove(userMembership);
                 await _context.SaveChangesAsync();
             }
         }
 
-        public async Task RemoveUserFromAllGroupsAsync(long userId)
+        public async Task RemoveUserMemberships(long userId)
         {
-            var userGroups = await _context.UserGroups
-                .Where(ug => ug.UserId == userId && ug.IsActive)
+            var userMemberships = await _context.UserMemberships
+                .Where(um => um.UserId == userId)
                 .ToListAsync();
 
-            foreach (var userGroup in userGroups)
+            foreach (var userMembership in userMemberships)
             {
-                userGroup.IsActive = false;
-                userGroup.LeaveDate = DateTime.UtcNow;
+                _context.Remove(userMembership);
             }
 
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateUserClubMembershipAsync(long userId, long clubId, UserClubDto membershipInfo)
+        public async Task UpdateUserMembershipAsync(long userId, long groupId, UserMembershipDto membershipInfo)
         {
-            var userClub = await _context.UserClubs
-                .FirstOrDefaultAsync(uc => uc.UserId == userId && uc.ClubId == clubId);
+            var userMembership = await _context.UserMemberships
+                .FirstOrDefaultAsync(um => um.UserId == userId && um.GroupId == groupId);
 
-            if (userClub != null)
+            if (userMembership != null)
             {
-                userClub.MembershipType = membershipInfo.MembershipType;
-                userClub.MembershipFee = membershipInfo.MembershipFee;
-                userClub.LastPaymentDate = membershipInfo.LastPaymentDate;
-                userClub.Notes = membershipInfo.Notes;
-                await _context.SaveChangesAsync();
-            }
-        }
-
-        public async Task UpdateUserGroupRoleAsync(long userId, long groupId, UserGroupDto groupInfo)
-        {
-            var userGroup = await _context.UserGroups
-                .FirstOrDefaultAsync(ug => ug.UserId == userId && ug.GroupId == groupId);
-
-            if (userGroup != null)
-            {
-                userGroup.RoleInGroup = EnumParser.ConvertStringToEnum<Role>(groupInfo.RoleInGroup);
-                userGroup.Notes = groupInfo.Notes;
-                userGroup.IsRegular = groupInfo.IsRegular;
+                userMembership.RoleInGroup = EnumParser.ConvertStringToEnum<Role>(membershipInfo.RoleInGroup);
                 await _context.SaveChangesAsync();
             }
         }

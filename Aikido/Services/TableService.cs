@@ -20,10 +20,10 @@ namespace Aikido.Services
         public async Task<MemoryStream> ExportUsersToExcelAsync()
         {
             var users = await _context.Users
-                .Include(u => u.UserClubs)
-                    .ThenInclude(uc => uc.Club)
-                .Include(u => u.UserGroups)
-                    .ThenInclude(ug => ug.Group)
+                .Include(u => u.UserMemberships)
+                    .ThenInclude(um => um.Club)
+                .Include(u => u.UserMemberships)
+                    .ThenInclude(um => um.Group)
                 .ToListAsync();
 
             var stream = new MemoryStream();
@@ -64,11 +64,11 @@ namespace Aikido.Services
             foreach (var user in users)
             {
                 var clubNames = string.Join(", ",
-                    user.UserClubs.Where(uc => uc.IsActive && uc.Club != null)
+                    user.UserMemberships.Where(um => um.Club != null)
                                   .Select(uc => uc.Club!.Name));
 
                 var groupNames = string.Join(", ",
-                    user.UserGroups.Where(ug => ug.IsActive && ug.Group != null)
+                    user.UserMemberships.Where(um => um.Club != null)
                                    .Select(ug => ug.Group!.Name));
 
                 var row = new Row();

@@ -34,7 +34,7 @@ namespace Aikido.Dto
             ClubId = group.ClubId;
             ClubName = group.Club?.Name;
             AgeGroup = group.AgeGroup.ToString();
-            MemberCount = group.UserGroups?.Count(ug => ug.IsActive) ?? 0;
+            MemberCount = group.UserMemberships?.Count() ?? 0;
             MaxMembers = group.MaxMembers;
             IsActive = group.IsActive;
             CreatedDate = group.CreatedDate;

@@ -2,6 +2,7 @@
 using Aikido.Dto;
 using Aikido.Entities;
 using Aikido.Entities.Filters;
+using Aikido.Entities.Users;
 
 namespace Aikido.Services.DatabaseServices.User
 {
@@ -18,15 +19,9 @@ namespace Aikido.Services.DatabaseServices.User
         Task Delete(long id);
 
         // Новые методы для работы с many-to-many связями
-        Task<List<UserClubEntity>> GetUserClubsAsync(long userId);
-        Task<List<UserGroupEntity>> GetUserGroupsAsync(long userId);
-        Task AddUserToClubAsync(long userId, long clubId, string membershipType = "Regular");
-        Task RemoveUserFromClubAsync(long userId, long clubId);
-        Task RemoveUserFromAllClubsAsync(long userId);
-        Task AddUserToGroupAsync(long userId, long groupId, Role roleInGroup = Role.User);
-        Task RemoveUserFromGroupAsync(long userId, long groupId);
-        Task RemoveUserFromAllGroupsAsync(long userId);
-        Task UpdateUserClubMembershipAsync(long userId, long clubId, UserClubDto membershipInfo);
-        Task UpdateUserGroupRoleAsync(long userId, long groupId, UserGroupDto groupInfo);
+        Task<List<UserMembershipEntity>> GetUserMembershipsAsync(long userId);
+        Task AddUserMembershipAsync(long userId, long groupId, long clubId, Role roleInGroup = Role.User);
+        Task RemoveUserMembershipAsync(long userId, long groupId);
+        Task RemoveUserMemberships(long userId);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Aikido.Dto;
 using Aikido.Entities;
+using Aikido.Entities.Users;
 using Aikido.Services.DatabaseServices.Base;
 
 namespace Aikido.Services.DatabaseServices.Club
@@ -15,7 +16,7 @@ namespace Aikido.Services.DatabaseServices.Club
         Task DeleteAsync(long id);
 
         // Новые методы для работы с участниками клуба
-        Task<List<UserClubEntity>> GetClubMembersAsync(long clubId);
+        Task<List<UserMembershipEntity>> GetClubMembersAsync(long clubId);
         Task RemoveAllMembersFromClubAsync(long clubId);
         Task<int> GetClubMemberCountAsync(long clubId);
         Task<List<GroupEntity>> GetClubGroupsAsync(long clubId);

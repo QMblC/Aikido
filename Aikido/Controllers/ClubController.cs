@@ -80,38 +80,6 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpPost("{clubId}/members/{userId}")]
-        public async Task<IActionResult> AddMemberToClub(long clubId, long userId)
-        {
-            try
-            {
-                await _clubApplicationService.AddMemberToClubAsync(clubId, userId);
-                return Ok(new { Message = "Участник успешно добавлен в клуб" });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
-            }
-        }
-
-        [HttpDelete("{clubId}/members/{userId}")]
-        public async Task<IActionResult> RemoveMemberFromClub(long clubId, long userId)
-        {
-            try
-            {
-                await _clubApplicationService.RemoveMemberFromClubAsync(clubId, userId);
-                return Ok(new { Message = "Участник успешно удален из клуба" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
-            }
-        }
-
         [HttpPost("create")]
         public async Task<IActionResult> CreateClub([FromBody] ClubDto clubData)
         {

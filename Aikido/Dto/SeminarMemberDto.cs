@@ -79,7 +79,7 @@ namespace Aikido.Dto
             }
 
             // Заполняем клубы пользователя
-            ClubNames = user.UserClubs?.Where(uc => uc.IsActive && uc.Club != null)
+            ClubNames = user.UserMemberships?.Where(um => um.Club != null)
                                      .Select(uc => uc.Club!.Name)
                                      .ToList() ?? new List<string>();
         }

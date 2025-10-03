@@ -1,5 +1,6 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Dto;
+using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities
@@ -24,7 +25,7 @@ namespace Aikido.Entities
         public Grade MinGrade { get; set; } = Grade.None;
         public Grade MaxGrade { get; set; } = Grade.None;
 
-        public virtual List<UserGroupEntity> UserGroups { get; set; } = new();
+        public virtual List<UserMembershipEntity> UserMemberships { get; set; } = new();
         public virtual List<ScheduleEntity> Schedule { get; set; } = new();
         public virtual List<ExclusionDateEntity> ExclusionDates { get; set; } = new();
 

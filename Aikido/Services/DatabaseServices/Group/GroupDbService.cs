@@ -1,6 +1,7 @@
 ﻿using Aikido.Data;
 using Aikido.Dto;
 using Aikido.Entities;
+using Aikido.Entities.Users;
 using Aikido.Exceptions;
 using DocumentFormat.OpenXml.Office2016.Drawing.Command;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +22,7 @@ namespace Aikido.Services.DatabaseServices.Group
             var group = await _context.Groups
                 .Include(g => g.Coach)
                 .Include(g => g.Club)
-                .Include(g => g.UserGroups)
+                .Include(g => g.UserMemberships)
                     .ThenInclude(ug => ug.User)
                 .Include(g => g.Schedule)
                 .Include(g => g.ExclusionDates)
@@ -109,27 +110,26 @@ namespace Aikido.Services.DatabaseServices.Group
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<UserGroupEntity>> GetGroupMembersAsync(long groupId)
+        public async Task<List<UserMembershipEntity>> GetGroupMembersAsync(long groupId)
         {
-            return await _context.UserGroups
-                .Include(ug => ug.User)
-                .Where(ug => ug.GroupId == groupId)
-                .OrderBy(ug => ug.User!.LastName)
-                .ThenBy(ug => ug.User!.FirstName)
-                .ThenBy(ug => ug.User!.SecondName)
+            return await _context.UserMemberships
+                .Include(um => um.User)
+                .Where(um => um.GroupId == groupId)
+                .OrderBy(um => um.User!.LastName)
+                .ThenBy(um => um.User!.FirstName)
+                .ThenBy(um => um.User!.SecondName)
                 .ToListAsync();
         }
 
         public async Task RemoveAllMembersFromGroupAsync(long groupId)
         {
-            var members = await _context.UserGroups
-                .Where(ug => ug.GroupId == groupId && ug.IsActive)
+            var members = await _context.UserMemberships
+                .Where(um => um.GroupId == groupId)
                 .ToListAsync();
 
             foreach (var member in members)
             {
-                member.IsActive = false;
-                member.LeaveDate = DateTime.UtcNow;
+                _context.Remove(member);
             }
 
             await _context.SaveChangesAsync();
@@ -137,8 +137,8 @@ namespace Aikido.Services.DatabaseServices.Group
 
         public async Task<int> GetGroupMemberCountAsync(long groupId)
         {
-            return await _context.UserGroups
-                .CountAsync(ug => ug.GroupId == groupId && ug.IsActive);
+            return await _context.UserMemberships
+                .CountAsync(um => um.GroupId == groupId);
         }
     }
 }

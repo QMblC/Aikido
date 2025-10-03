@@ -1,5 +1,6 @@
 ﻿using Aikido.Dto;
 using Aikido.Entities;
+using Aikido.Entities.Users;
 
 namespace Aikido.Services.DatabaseServices.Group
 {
@@ -15,7 +16,7 @@ namespace Aikido.Services.DatabaseServices.Group
         Task DeleteAsync(long id);
 
         // Новые методы для работы с участниками группы
-        Task<List<UserGroupEntity>> GetGroupMembersAsync(long groupId);
+        Task<List<UserMembershipEntity>> GetGroupMembersAsync(long groupId);
         Task RemoveAllMembersFromGroupAsync(long groupId);
         Task<int> GetGroupMemberCountAsync(long groupId);
     }

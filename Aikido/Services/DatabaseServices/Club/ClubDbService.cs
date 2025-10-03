@@ -1,6 +1,7 @@
 ﻿using Aikido.Data;
 using Aikido.Dto;
 using Aikido.Entities;
+using Aikido.Entities.Users;
 using Aikido.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,9 +19,9 @@ namespace Aikido.Services.DatabaseServices.Club
         public async Task<ClubEntity> GetByIdOrThrowException(long id)
         {
             var club = await _context.Clubs
-                .Include(c => c.Manager)
-                .Include(c => c.UserClubs)
-                    .ThenInclude(uc => uc.User)
+                .Include(c => c.Manager)             
+                .Include(c => c.UserMemberships)
+                    .ThenInclude(um => um.User)
                 .Include(c => c.Groups)
                 .FirstOrDefaultAsync(c => c.Id == id);
 
@@ -76,14 +77,14 @@ namespace Aikido.Services.DatabaseServices.Club
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<UserClubEntity>> GetClubMembersAsync(long clubId)
+        public async Task<List<UserMembershipEntity>> GetClubMembersAsync(long clubId)
         {
-            return await _context.UserClubs
-                .Include(uc => uc.User)
-                .Where(uc => uc.ClubId == clubId && uc.User != null)
-                .OrderBy(uc => uc.User.LastName)
-                .ThenBy(uc => uc.User.FirstName)
-                .ThenBy(uc => uc.User.SecondName)
+            return await _context.UserMemberships
+                .Include(um => um.User)
+                .Where(um => um.ClubId == clubId && um.User != null)
+                .OrderBy(um => um.User.LastName)
+                .ThenBy(um => um.User.FirstName)
+                .ThenBy(um => um.User.SecondName)
                 .ToListAsync();
         }
 
@@ -91,14 +92,13 @@ namespace Aikido.Services.DatabaseServices.Club
 
         public async Task RemoveAllMembersFromClubAsync(long clubId)
         {
-            var members = await _context.UserClubs
-                .Where(uc => uc.ClubId == clubId && uc.IsActive)
+            var members = await _context.UserMemberships
+                .Where(uc => uc.ClubId == clubId)
                 .ToListAsync();
 
             foreach (var member in members)
             {
-                member.IsActive = false;
-                member.LeaveDate = DateTime.UtcNow;
+                _context.Remove(member);
             }
 
             await _context.SaveChangesAsync();
@@ -106,8 +106,8 @@ namespace Aikido.Services.DatabaseServices.Club
 
         public async Task<int> GetClubMemberCountAsync(long clubId)
         {
-            return await _context.UserClubs
-                .CountAsync(uc => uc.ClubId == clubId && uc.IsActive);
+            return await _context.UserMemberships
+                .CountAsync(uc => uc.ClubId == clubId);
         }
 
         public async Task<List<GroupEntity>> GetClubGroupsAsync(long clubId)

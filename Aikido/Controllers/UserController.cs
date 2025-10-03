@@ -1,4 +1,5 @@
-﻿using Aikido.Application.Services;
+﻿using Aikido.AdditionalData;
+using Aikido.Application.Services;
 using Aikido.Dto;
 using Aikido.Entities.Filters;
 using Aikido.Requests;
@@ -108,7 +109,10 @@ namespace Aikido.Controllers
         {
             try
             {
-                var clubs = await _userApplicationService.GetUserClubsAsync(userId);
+                var memberships = await _userApplicationService.GetUserMembershipsAsync(userId);
+                var clubs = memberships
+                    .Select(c => c.ClubName)
+                    .Distinct();
                 return Ok(clubs);
             }
             catch (Exception ex)
@@ -122,7 +126,7 @@ namespace Aikido.Controllers
         {
             try
             {
-                var groups = await _userApplicationService.GetUserGroupsAsync(userId);
+                var groups = await _userApplicationService.GetUserMembershipsAsync(userId);
                 return Ok(groups);
             }
             catch (Exception ex)
@@ -131,44 +135,15 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpPost("{userId}/clubs/{clubId}")]
-        public async Task<IActionResult> AddUserToClub(long userId, long clubId, [FromBody] AddUserToClubRequest? request = null)
+        [HttpPost("{userId}/clubs/{clubId}/groups/{groupId}")]
+        public async Task<IActionResult> AddUserMembership(long userId, long clubId, long groupId, [FromBody] string roleInGroup = "User")
         {
             try
             {
-                await _userApplicationService.AddUserToClubAsync(userId, clubId);
-                return Ok(new { Message = "Пользователь успешно добавлен в клуб" });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
-            }
-        }
-
-        [HttpDelete("{userId}/clubs/{clubId}")]
-        public async Task<IActionResult> RemoveUserFromClub(long userId, long clubId)
-        {
-            try
-            {
-                await _userApplicationService.RemoveUserFromClubAsync(userId, clubId);
-                return Ok(new { Message = "Пользователь успешно удален из клуба" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
-            }
-        }
-
-        [HttpPost("{userId}/groups/{groupId}")]
-        public async Task<IActionResult> AddUserToGroup(long userId, long groupId, [FromBody] AddUserToGroupRequest? request = null)
-        {
-            try
-            {
-                await _userApplicationService.AddUserToGroupAsync(userId, groupId);
+                await _userApplicationService.AddUserMembershipAsync(userId,
+                    clubId,
+                    groupId,
+                    EnumParser.ConvertStringToEnum<Role>(roleInGroup));
                 return Ok(new { Message = "Пользователь успешно добавлен в группу" });
             }
             catch (ArgumentException ex)
@@ -186,7 +161,7 @@ namespace Aikido.Controllers
         {
             try
             {
-                await _userApplicationService.RemoveUserFromGroupAsync(userId, groupId);
+                await _userApplicationService.RemoveUserMembershipAsync(userId, groupId);
                 return Ok(new { Message = "Пользователь успешно удален из группы" });
             }
             catch (Exception ex)
@@ -333,12 +308,7 @@ namespace Aikido.Controllers
         }
     }
 
-    public class AddUserToClubRequest
-    {
-        public string? MembershipType { get; set; } = "Regular";
-    }
-
-    public class AddUserToGroupRequest
+    public class AddUserMembershipRequest
     {
         public string? RoleInGroup { get; set; } = "Student";
     }
