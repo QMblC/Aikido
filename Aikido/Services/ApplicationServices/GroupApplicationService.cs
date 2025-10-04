@@ -4,6 +4,7 @@ using Aikido.Services.DatabaseServices.User;
 using Aikido.Services.DatabaseServices.Club;
 using Aikido.Exceptions;
 using Aikido.Services.UnitOfWork;
+using Aikido.AdditionalData;
 
 namespace Aikido.Application.Services
 {

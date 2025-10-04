@@ -5,6 +5,7 @@ using Aikido.Services.DatabaseServices.User;
 using Aikido.Exceptions;
 using Aikido.Entities;
 using Aikido.Entities.Users;
+using Aikido.AdditionalData;
 
 namespace Aikido.Application.Services
 {
@@ -80,10 +81,10 @@ namespace Aikido.Application.Services
             return await _clubDbService.Exists(id);
         }
 
-        public async Task<List<UserShortDto>> GetClubMembersAsync(long clubId)
+        public async Task<List<UserShortDto>> GetClubMembersAsync(long clubId, Role role = Role.User)
         {
             var members = await _clubDbService.GetClubMembersAsync(clubId);
-            return members.Where(m => m.User != null)
+            return members.Where(m => m.User != null && m.RoleInGroup == role)
                          .Select(m => new UserShortDto(m.User!))
                          .ToList();
         }

@@ -1,4 +1,5 @@
-﻿using Aikido.Application.Services;
+﻿using Aikido.AdditionalData;
+using Aikido.Application.Services;
 using Aikido.Dto;
 using Aikido.Requests;
 using Microsoft.AspNetCore.Mvc;
@@ -63,6 +64,20 @@ namespace Aikido.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Ошибка при получении списка клубов", Details = ex.Message });
+            }
+        }
+
+        [HttpGet("get/{clubId}/staff")]
+        public async Task<IActionResult> GetClubStaff(long clubId)
+        {
+            try
+            {
+                var members = await _clubApplicationService.GetClubMembersAsync(clubId, Role.Coach);
+                return Ok(members);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при получении участников клуба", Details = ex.Message });
             }
         }
 

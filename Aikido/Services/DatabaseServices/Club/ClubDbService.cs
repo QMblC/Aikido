@@ -88,8 +88,6 @@ namespace Aikido.Services.DatabaseServices.Club
                 .ToListAsync();
         }
 
-
-
         public async Task RemoveAllMembersFromClubAsync(long clubId)
         {
             var members = await _context.UserMemberships

@@ -1,4 +1,5 @@
-﻿using Aikido.Data;
+﻿using Aikido.AdditionalData;
+using Aikido.Data;
 using Aikido.Dto;
 using Aikido.Entities;
 using Aikido.Entities.Users;
@@ -110,11 +111,12 @@ namespace Aikido.Services.DatabaseServices.Group
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<UserMembershipEntity>> GetGroupMembersAsync(long groupId)
+        public async Task<List<UserMembershipEntity>> GetGroupMembersAsync(long groupId, Role role = Role.User)
         {
             return await _context.UserMemberships
                 .Include(um => um.User)
-                .Where(um => um.GroupId == groupId)
+                .Where(um => um.GroupId == groupId
+                    && um.RoleInGroup == role)
                 .OrderBy(um => um.User!.LastName)
                 .ThenBy(um => um.User!.FirstName)
                 .ThenBy(um => um.User!.SecondName)
@@ -138,7 +140,8 @@ namespace Aikido.Services.DatabaseServices.Group
         public async Task<int> GetGroupMemberCountAsync(long groupId)
         {
             return await _context.UserMemberships
-                .CountAsync(um => um.GroupId == groupId);
+                .CountAsync(um => um.GroupId == groupId 
+                && um.RoleInGroup == Role.User);
         }
     }
 }

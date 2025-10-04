@@ -1,4 +1,5 @@
-﻿using Aikido.Entities;
+﻿using Aikido.AdditionalData;
+using Aikido.Entities;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Dto
@@ -34,7 +35,7 @@ namespace Aikido.Dto
             ClubId = group.ClubId;
             ClubName = group.Club?.Name;
             AgeGroup = group.AgeGroup.ToString();
-            MemberCount = group.UserMemberships?.Count() ?? 0;
+            MemberCount = group.UserMemberships?.Count(um => um.RoleInGroup == Role.User) ?? 0;
             MaxMembers = group.MaxMembers;
             IsActive = group.IsActive;
             CreatedDate = group.CreatedDate;
