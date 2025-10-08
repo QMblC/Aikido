@@ -62,24 +62,6 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpPost("{seminarId}/members/{userId}")]
-        public async Task<IActionResult> AddMemberToSeminar(long seminarId, long userId)
-        {
-            try
-            {
-                await _seminarApplicationService.AddMemberToSeminarAsync(seminarId, userId);
-                return Ok(new { Message = "Участник успешно добавлен в семинар" });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
-            }
-        }
-
         [HttpDelete("{seminarId}/members/{userId}")]
         public async Task<IActionResult> RemoveMemberFromSeminar(long seminarId, long userId)
         {
@@ -95,18 +77,8 @@ namespace Aikido.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreateSeminar([FromForm] SeminarRequest request)
+        public async Task<IActionResult> CreateSeminar([FromBody] SeminarDto seminarData)
         {
-            SeminarDto seminarData;
-            try
-            {
-                seminarData = await request.Parse();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при обработке JSON: {ex.Message}");
-            }
-
             try
             {
                 var seminarId = await _seminarApplicationService.CreateSeminarAsync(seminarData);
@@ -119,18 +91,8 @@ namespace Aikido.Controllers
         }
 
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateSeminar(long id, [FromForm] SeminarRequest request)
+        public async Task<IActionResult> UpdateSeminar(long id, [FromBody] SeminarDto seminarData)
         {
-            SeminarDto seminarData;
-            try
-            {
-                seminarData = await request.Parse();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при обработке JSON: {ex.Message}");
-            }
-
             try
             {
                 await _seminarApplicationService.UpdateSeminarAsync(id, seminarData);

@@ -19,9 +19,8 @@ namespace Aikido.Entities.Users
 
         public DateTime JoinDate { get; set; } = DateTime.UtcNow;
         public DateTime? LeaveDate { get; set; }
-        public Role RoleInGroup { get; set; } = Role.User; // Student, Assistant, etc.
+        public Role RoleInGroup { get; set; } = Role.User; 
 
-        // Дополнительные поля для группы
         public int AttendanceCount { get; set; } = 0;
         public DateTime? LastAttendanceDate { get; set; }
 

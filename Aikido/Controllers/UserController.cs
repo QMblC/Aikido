@@ -69,24 +69,6 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpGet("get/user/seminar-data/{userId}")]
-        public async Task<IActionResult> GetUserSeminarData(long userId)
-        {
-            try
-            {
-                var seminarData = await _userApplicationService.GetUserSeminarDataAsync(userId);
-                return Ok(seminarData);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
-
         [HttpGet("get/short-list-cut-data/{startIndex}/{finishIndex}")]
         public async Task<IActionResult> GetUserShortListCutData(
             int startIndex,

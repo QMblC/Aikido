@@ -9,27 +9,36 @@ namespace Aikido.Entities.Seminar
         [Key]
         public long Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public string? Description { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
-        public string? Location { get; set; }
-        public string? Address { get; set; }
-        public decimal? Cost { get; set; }
-        public int MaxParticipants { get; set; }
-        public int CurrentParticipants { get; set; }
-        public string? InstructorName { get; set; }
-        public long? InstructorId { get; set; }
-        public virtual UserEntity? Instructor { get; set; }
-        public string? Requirements { get; set; }
-        public bool IsActive { get; set; } = true;
-        public DateTime? RegistrationDeadline { get; set; }
-        public string? ContactInfo { get; set; }
-        public List<string> Materials { get; set; } = new();
-        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
-        public DateTime? UpdatedDate { get; set; }
+        public DateTime Date { get; set; }
 
-        // Навигационные свойства
-        public virtual ICollection<SeminarMemberEntity> SeminarMembers { get; set; } = new List<SeminarMemberEntity>();
+        public string? Description { get; set; }
+        public string? Location { get; set; }
+
+        public decimal? PriceSeminarInRubles { get; set; }
+        public decimal? PriceAnnualFeeRubles { get; set; }
+        public decimal? PriceBudoPassportRubles { get; set; }
+        public decimal? Price5to2KyuCertificationInRubles { get; set; }
+        public decimal? Price1KyuCertificationInRubles { get; set; }
+        public decimal? PriceDanCertificationInRubles { get; set; }
+
+        public DateTime? RegistrationDeadline { get; set; }
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+
+        public long CreatorId { get; set; }
+        public UserEntity Creator { get; set; }
+
+        public long RegulationId { get; set; }
+        public SeminarRegulationEntity Regulation { get; set; }
+
+        public long? FinalStatementId { get; set; }
+        public virtual SeminarStatementEntity? FinalStatement { get; set; }
+        public bool IsFinalStatementApplied { get; set; }
+
+        public virtual ICollection<SeminarCoachStatementEntity> CoachStatements { get; set; } = new List<SeminarCoachStatementEntity>();
+        public virtual ICollection<SeminarContactInfoEntity>? ContactInfo { get; set; } = new List<SeminarContactInfoEntity>();
+        public virtual ICollection<SeminarMemberEntity> Members { get; set; } = new List<SeminarMemberEntity>();
+        public virtual ICollection<SeminarGroupEntity> Groups { get; set; } = new List<SeminarGroupEntity>();
+        public virtual ICollection<SeminarScheduleEntity> Schedule { get; set; } = new List<SeminarScheduleEntity>();
 
         public SeminarEntity() { }
 
@@ -43,21 +52,8 @@ namespace Aikido.Entities.Seminar
             if (!string.IsNullOrEmpty(seminarData.Name))
                 Name = seminarData.Name;
             Description = seminarData.Description;
-            StartDate = seminarData.StartDate;
-            EndDate = seminarData.EndDate;
+            Date = seminarData.Date;
             Location = seminarData.Location;
-            Address = seminarData.Address;
-            Cost = seminarData.Cost;
-            MaxParticipants = seminarData.MaxParticipants;
-            CurrentParticipants = seminarData.CurrentParticipants;
-            InstructorName = seminarData.InstructorName;
-            InstructorId = seminarData.InstructorId;
-            Requirements = seminarData.Requirements;
-            IsActive = seminarData.IsActive;
-            RegistrationDeadline = seminarData.RegistrationDeadline;
-            ContactInfo = seminarData.ContactInfo;
-            Materials = seminarData.Materials?.ToList() ?? new List<string>();
-            UpdatedDate = DateTime.UtcNow;
         }
     }
 }

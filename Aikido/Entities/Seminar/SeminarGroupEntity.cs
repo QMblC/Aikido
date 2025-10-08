@@ -10,6 +10,6 @@ namespace Aikido.Entities.Seminar
         public long SeminarId { get; set; }
         public SeminarEntity Seminar { get; set; }
 
-        public string Group { get; set; }
+        public string Name { get; set; }
     }
 }

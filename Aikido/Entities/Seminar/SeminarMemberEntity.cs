@@ -1,4 +1,5 @@
 ﻿using Aikido.AdditionalData;
+using Aikido.Dto.Seminars;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities.Seminar
@@ -14,16 +15,22 @@ namespace Aikido.Entities.Seminar
         public long UserId { get; set; }
         public virtual UserEntity? User { get; set; }
 
+        public long? GroupId { get; set; }
+        public virtual SeminarGroupEntity? Group { get; set; }
+
         public SeminarMemberStatus Status { get; set; } = SeminarMemberStatus.None;
-        public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
-        public DateTime? PaymentDate { get; set; }
-        public decimal? Amount { get; set; }
-        public bool IsPaid { get; set; }
-        public string? Notes { get; set; }
-        public string? SpecialRequirements { get; set; }
-        public bool NeedsAccommodation { get; set; }
-        public string? EmergencyContact { get; set; }
+        public Grade OldGrade { get; set; }
+        public Grade CertificationGrade { get; set; }
 
         public SeminarMemberEntity() { }
+        public SeminarMemberEntity(long seminarId, SeminarMemberDto seminarMember)
+        {
+            SeminarId = seminarId;
+            UserId = seminarMember.UserId;
+            GroupId = seminarMember.SeminarGroupId;
+            Status = EnumParser.ConvertStringToEnum<SeminarMemberStatus>(seminarMember.Status);
+            OldGrade = EnumParser.ConvertStringToEnum<Grade>(seminarMember.OldGrade); 
+            CertificationGrade = EnumParser.ConvertStringToEnum<Grade>(seminarMember.CertificationGrade);
+        }
     }
 }

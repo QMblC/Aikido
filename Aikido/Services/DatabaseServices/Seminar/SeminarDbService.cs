@@ -3,6 +3,7 @@ using Aikido.Data;
 using Aikido.Dto.Seminars;
 using Aikido.Entities.Seminar;
 using Aikido.Exceptions;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.EntityFrameworkCore;
 
 namespace Aikido.Services.DatabaseServices.Seminar
@@ -19,8 +20,8 @@ namespace Aikido.Services.DatabaseServices.Seminar
         public async Task<SeminarEntity> GetByIdOrThrowException(long id)
         {
             var seminar = await _context.Seminars
-                .Include(s => s.Instructor)
-                .Include(s => s.SeminarMembers)
+                .Include(s => s.Creator)
+                .Include(s => s.Members)
                     .ThenInclude(sm => sm.User)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
@@ -39,9 +40,8 @@ namespace Aikido.Services.DatabaseServices.Seminar
         public async Task<List<SeminarEntity>> GetAllAsync()
         {
             return await _context.Seminars
-                .Include(s => s.Instructor)
-                .Where(s => s.IsActive)
-                .OrderByDescending(s => s.StartDate)
+                .Include(s => s.Creator)
+                .OrderByDescending(s => s.Date)
                 .ToListAsync();
         }
 
@@ -50,6 +50,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
             return await _context.SeminarMembers
                 .Include(sm => sm.User)
                 .Include(sm => sm.Seminar)
+                .Include(sm => sm.Group)
                 .Where(sm => sm.SeminarId == seminarId)
                 .OrderBy(sm => sm.User!.FullName)
                 .ToListAsync();
@@ -73,33 +74,43 @@ namespace Aikido.Services.DatabaseServices.Seminar
         public async Task DeleteAsync(long id)
         {
             var seminar = await GetByIdOrThrowException(id);
-            seminar.IsActive = false; // Мягкое удаление
+            _context.Remove(seminar);
             await _context.SaveChangesAsync();
         }
 
-        public async Task AddMemberAsync(long seminarId, long userId)
+        public async Task AddSeminarMembersAsync(long seminarId, List<SeminarMemberDto> membersDto)//Добавить UnitOfWork
         {
-            var existingMember = await _context.SeminarMembers
-                .FirstOrDefaultAsync(sm => sm.SeminarId == seminarId && sm.UserId == userId);
-
-            if (existingMember == null)
+            foreach (var memberDto in membersDto)
             {
-                var member = new SeminarMemberEntity
+                var existingMember = await _context.SeminarMembers
+                .FirstOrDefaultAsync(sm => sm.SeminarId == seminarId && sm.UserId == memberDto.UserId);
+
+
+                if (existingMember == null)
                 {
-                    SeminarId = seminarId,
-                    UserId = userId,
-                    RegistrationDate = DateTime.UtcNow,
-                    Status = SeminarMemberStatus.None
-                };
+                    var member = new SeminarMemberEntity(seminarId, memberDto);
 
-                _context.SeminarMembers.Add(member);
-                await _context.SaveChangesAsync();
-
-                // Обновить количество участников
-                var seminar = await GetByIdOrThrowException(seminarId);
-                seminar.CurrentParticipants++;
-                await _context.SaveChangesAsync();
+                    _context.SeminarMembers.Add(member);
+                    await _context.SaveChangesAsync();
+                }
+                else
+                {
+                    throw new Exception("Seminar member already exists");
+                }
             }
+        }
+
+        public void RemoveSeminarMembers(long seminarId)
+        {
+            var members = _context.SeminarMembers.Where(sm => sm.SeminarId == seminarId)
+                .ToList();
+
+            foreach(var member in members)
+            {
+                _context.Remove(member);
+            }
+
+            _context.SaveChanges();
         }
 
         public async Task RemoveMemberAsync(long seminarId, long userId)
@@ -111,14 +122,6 @@ namespace Aikido.Services.DatabaseServices.Seminar
             {
                 _context.SeminarMembers.Remove(member);
                 await _context.SaveChangesAsync();
-
-                // Обновить количество участников
-                var seminar = await GetByIdOrThrowException(seminarId);
-                if (seminar.CurrentParticipants > 0)
-                {
-                    seminar.CurrentParticipants--;
-                    await _context.SaveChangesAsync();
-                }
             }
         }
 
@@ -134,21 +137,12 @@ namespace Aikido.Services.DatabaseServices.Seminar
                 .CountAsync(sm => sm.SeminarId == seminarId);
         }
 
-        public async Task<List<SeminarEntity>> GetSeminarsByInstructorAsync(long instructorId)
-        {
-            return await _context.Seminars
-                .Include(s => s.Instructor)
-                .Where(s => s.InstructorId == instructorId && s.IsActive)
-                .OrderByDescending(s => s.StartDate)
-                .ToListAsync();
-        }
-
         public async Task<List<SeminarEntity>> GetSeminarsByDateRangeAsync(DateTime startDate, DateTime endDate)
         {
             return await _context.Seminars
-                .Include(s => s.Instructor)
-                .Where(s => s.StartDate >= startDate && s.EndDate <= endDate && s.IsActive)
-                .OrderBy(s => s.StartDate)
+                .Include(s => s.Creator)
+                .Where(s => s.Date >= startDate && s.Date <= endDate)
+                .OrderBy(s => s.Date)
                 .ToListAsync();
         }
     }

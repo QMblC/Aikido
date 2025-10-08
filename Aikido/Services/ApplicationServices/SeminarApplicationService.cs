@@ -1,5 +1,4 @@
-﻿using Aikido.Dto;
-using Aikido.Dto.Seminars;
+﻿using Aikido.Dto.Seminars;
 using Aikido.Services.DatabaseServices.Seminar;
 using Aikido.Services.DatabaseServices.User;
 using Aikido.Exceptions;
@@ -57,30 +56,9 @@ namespace Aikido.Application.Services
         public async Task<List<SeminarMemberDto>> GetSeminarMembersAsync(long seminarId)
         {
             var members = await _seminarDbService.GetSeminarMembersAsync(seminarId);
-            var result = new List<SeminarMemberDto>();
 
-            foreach (var member in members)
-            {
-                var user = await _userDbService.GetByIdOrThrowException(member.UserId);
-                result.Add(new SeminarMemberDto(member, user));
-            }
-
-            return result;
-        }
-
-        public async Task AddMemberToSeminarAsync(long seminarId, long userId)
-        {
-            if (!await _seminarDbService.Exists(seminarId))
-            {
-                throw new EntityNotFoundException($"Семинара с Id = {seminarId} не существует");
-            }
-
-            if (!await _userDbService.Exists(userId))
-            {
-                throw new EntityNotFoundException($"Пользователя с Id = {userId} не существует");
-            }
-
-            await _seminarDbService.AddMemberAsync(seminarId, userId);
+            return members.Select(sm => new SeminarMemberDto(sm))
+                .ToList();
         }
 
         public async Task RemoveMemberFromSeminarAsync(long seminarId, long userId)

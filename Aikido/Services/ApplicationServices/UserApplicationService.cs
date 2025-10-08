@@ -1,10 +1,12 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Dto;
+using Aikido.Dto.Seminars;
 using Aikido.Entities;
 using Aikido.Entities.Filters;
 using Aikido.Exceptions;
 using Aikido.Services.DatabaseServices.Club;
 using Aikido.Services.DatabaseServices.Group;
+using Aikido.Services.DatabaseServices.Seminar;
 using Aikido.Services.DatabaseServices.User;
 using DocumentFormat.OpenXml.Spreadsheet;
 
@@ -159,29 +161,6 @@ namespace Aikido.Application.Services
                     await UpdateUserAsync(userData.Id.Value, userData);
                 }
             }
-        }
-
-        public async Task<SeminarMemberDto> GetUserSeminarDataAsync(long userId)
-        {
-            var user = await _userDbService.GetByIdOrThrowException(userId);
-
-            var userMembership = await _userDbService.GetUserMembershipsAsync(userId);
-
-            if (!userMembership.Any())
-            {
-                throw new InvalidOperationException("Недостаточно информации о клубе или группе");
-            }
-
-            var primaryClub = userMembership.First().Club;
-            var primaryGroup = userMembership.First().Group;
-
-            UserEntity? coach = null;
-            if (primaryGroup?.CoachId != null)
-            {
-                coach = await _userDbService.GetByIdOrThrowException(primaryGroup.CoachId.Value);
-            }
-
-            return new SeminarMemberDto(user, primaryClub, coach);
         }
 
         public async Task AddUserMembershipAsync(long userId, long clubId, long groupId, Role roleInGroup)

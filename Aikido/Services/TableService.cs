@@ -156,10 +156,9 @@ namespace Aikido.Services
         public async Task<MemoryStream> ExportSeminarsToExcelAsync()
         {
             var seminars = await _context.Seminars
-                .Include(s => s.Instructor)
-                .Include(s => s.SeminarMembers)
+                .Include(s => s.Creator)
+                .Include(s => s.Members)
                     .ThenInclude(sm => sm.User)
-                .Where(s => s.IsActive)
                 .ToListAsync();
 
             var stream = new MemoryStream();
@@ -188,11 +187,8 @@ namespace Aikido.Services
                 new Cell { CellValue = new CellValue("Id"), DataType = CellValues.String },
                 new Cell { CellValue = new CellValue("Name"), DataType = CellValues.String },
                 new Cell { CellValue = new CellValue("StartDate"), DataType = CellValues.String },
-                new Cell { CellValue = new CellValue("EndDate"), DataType = CellValues.String },
-                new Cell { CellValue = new CellValue("Location"), DataType = CellValues.String },
-                new Cell { CellValue = new CellValue("Instructor"), DataType = CellValues.String },
-                new Cell { CellValue = new CellValue("Cost"), DataType = CellValues.String },
-                new Cell { CellValue = new CellValue("Participants"), DataType = CellValues.String }
+                new Cell { CellValue = new CellValue("Location"), DataType = CellValues.String }
+
             );
             sheetData.AppendChild(headerRow);
 
@@ -203,12 +199,8 @@ namespace Aikido.Services
                 row.Append(
                     new Cell { CellValue = new CellValue(seminar.Id.ToString()), DataType = CellValues.String },
                     new Cell { CellValue = new CellValue(seminar.Name), DataType = CellValues.String },
-                    new Cell { CellValue = new CellValue(seminar.StartDate.ToString("yyyy-MM-dd")), DataType = CellValues.String },
-                    new Cell { CellValue = new CellValue(seminar.EndDate.ToString("yyyy-MM-dd")), DataType = CellValues.String },
-                    new Cell { CellValue = new CellValue(seminar.Location ?? ""), DataType = CellValues.String },
-                    new Cell { CellValue = new CellValue(seminar.Instructor?.FullName ?? ""), DataType = CellValues.String },
-                    new Cell { CellValue = new CellValue(seminar.Cost?.ToString() ?? ""), DataType = CellValues.String },
-                    new Cell { CellValue = new CellValue(seminar.CurrentParticipants.ToString()), DataType = CellValues.String }
+                    new Cell { CellValue = new CellValue(seminar.Date.ToString("yyyy-MM-dd")), DataType = CellValues.String },
+                    new Cell { CellValue = new CellValue(seminar.Location ?? ""), DataType = CellValues.String }
                 );
                 sheetData.AppendChild(row);
             }

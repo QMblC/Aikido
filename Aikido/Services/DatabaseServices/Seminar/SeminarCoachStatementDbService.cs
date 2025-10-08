@@ -5,7 +5,7 @@ using Aikido.Services.DatabaseServices.Base;
 namespace Aikido.Services.DatabaseServices.Seminar
 {
     public class SeminarCoachStatementDbService 
-        : DbService<SeminarCoachStatementEntity, SeminarCoachStatementDbService>, ISeminarCoachStatementDbService
+        : DbService<SeminarStatementEntity, SeminarCoachStatementDbService>, ISeminarCoachStatementDbService
     {
         public SeminarCoachStatementDbService(AppDbContext context, ILogger<SeminarCoachStatementDbService> logger) 
             : base(context, logger)

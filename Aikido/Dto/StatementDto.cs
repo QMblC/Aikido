@@ -1,4 +1,5 @@
-﻿using Aikido.Entities;
+﻿using Aikido.Dto.Seminars;
+using Aikido.Entities;
 
 namespace Aikido.Dto
 {
