@@ -1,6 +1,5 @@
 ﻿using Aikido.Application.Services;
 using Aikido.Dto.Seminars;
-using Aikido.Requests;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Aikido.Controllers
@@ -17,7 +16,7 @@ namespace Aikido.Controllers
         }
 
         [HttpGet("get/{id}")]
-        public async Task<IActionResult> GetSeminarById(long id)
+        public async Task<ActionResult<SeminarDto>> GetSeminarById(long id)
         {
             try
             {
@@ -35,7 +34,7 @@ namespace Aikido.Controllers
         }
 
         [HttpGet("get/all")]
-        public async Task<IActionResult> GetAllSeminars()
+        public async Task<ActionResult<List<SeminarDto>>> GetAllSeminars()
         {
             try
             {
@@ -49,7 +48,7 @@ namespace Aikido.Controllers
         }
 
         [HttpGet("get/{seminarId}/members")]
-        public async Task<IActionResult> GetSeminarMembers(long seminarId)
+        public async Task<ActionResult<List<SeminarMemberDto>>> GetSeminarMembers(long seminarId)
         {
             try
             {
@@ -77,7 +76,7 @@ namespace Aikido.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreateSeminar([FromBody] SeminarDto seminarData)
+        public async Task<ActionResult<object>> CreateSeminar([FromBody] SeminarDto seminarData)
         {
             try
             {

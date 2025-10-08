@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Aikido.Dto.Seminars;
+using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities.Seminar
 {
@@ -11,5 +12,13 @@ namespace Aikido.Entities.Seminar
         public SeminarEntity Seminar { get; set; }
 
         public string Name { get; set; }
+
+        public SeminarGroupEntity() { }
+
+        public SeminarGroupEntity(long seminarId, SeminarGroupDto seminarGroup)
+        {
+            SeminarId = seminarId;
+            Name = seminarGroup.Name;
+        }
     }
 }

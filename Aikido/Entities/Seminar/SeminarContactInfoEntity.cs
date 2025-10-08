@@ -14,9 +14,9 @@ namespace Aikido.Entities.Seminar
         public string Description { get; set; }
         public string Value { get; set; }
 
-        public SeminarContactInfoEntity(SeminarEntity seminarEntity, SeminarContactInfoDto seminarContactInfoDto)
+        public SeminarContactInfoEntity(long seminarId, SeminarContactInfoDto seminarContactInfoDto)
         {
-            SeminarId = seminarEntity.Id;
+            SeminarId = seminarId;
             Description = seminarContactInfoDto.Description;
             Value = seminarContactInfoDto.Value;
         }

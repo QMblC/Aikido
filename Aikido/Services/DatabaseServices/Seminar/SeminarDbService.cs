@@ -1,9 +1,7 @@
-﻿using Aikido.AdditionalData;
-using Aikido.Data;
+﻿using Aikido.Data;
 using Aikido.Dto.Seminars;
 using Aikido.Entities.Seminar;
 using Aikido.Exceptions;
-using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.EntityFrameworkCore;
 
 namespace Aikido.Services.DatabaseServices.Seminar
@@ -21,14 +19,15 @@ namespace Aikido.Services.DatabaseServices.Seminar
         {
             var seminar = await _context.Seminars
                 .Include(s => s.Creator)
-                .Include(s => s.Members)
-                    .ThenInclude(sm => sm.User)
+                .Include(s => s.Groups)
+                .Include(s => s.ContactInfo)
+                .Include(s => s.Schedule)
+                .Include(s => s.Regulation)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
             if (seminar == null)
-            {
                 throw new EntityNotFoundException($"Семинар с Id = {id} не найден");
-            }
+
             return seminar;
         }
 
@@ -41,6 +40,10 @@ namespace Aikido.Services.DatabaseServices.Seminar
         {
             return await _context.Seminars
                 .Include(s => s.Creator)
+                .Include(s => s.Groups)
+                .Include(s => s.ContactInfo)
+                .Include(s => s.Schedule)
+                .Include(s => s.Regulation)
                 .OrderByDescending(s => s.Date)
                 .ToListAsync();
         }
@@ -61,7 +64,23 @@ namespace Aikido.Services.DatabaseServices.Seminar
             var seminar = new SeminarEntity(seminarData);
             _context.Seminars.Add(seminar);
             await _context.SaveChangesAsync();
+
+            if (seminarData.Regulation != null)
+            {
+                var regulation = await CreateSeminarRegulationAsync(seminar, seminarData.Regulation);
+            }    
+
             return seminar.Id;
+        }
+
+        private async Task<long> CreateSeminarRegulationAsync(SeminarEntity seminar, string fileInString)
+        {
+            var regulation = new SeminarRegulationEntity(seminar.Id, Convert.FromBase64String(fileInString));
+            seminar.RegulationId = regulation.Id;
+            
+            await _context.SaveChangesAsync();
+
+            return regulation.Id;
         }
 
         public async Task UpdateAsync(long id, SeminarDto seminarData)
@@ -78,18 +97,16 @@ namespace Aikido.Services.DatabaseServices.Seminar
             await _context.SaveChangesAsync();
         }
 
-        public async Task AddSeminarMembersAsync(long seminarId, List<SeminarMemberDto> membersDto)//Добавить UnitOfWork
+        public async Task AddSeminarMembersAsync(long seminarId, List<SeminarMemberDto> membersDto)
         {
             foreach (var memberDto in membersDto)
             {
-                var existingMember = await _context.SeminarMembers
-                .FirstOrDefaultAsync(sm => sm.SeminarId == seminarId && sm.UserId == memberDto.UserId);
+                var exists = await _context.SeminarMembers
+                    .AnyAsync(sm => sm.SeminarId == seminarId && sm.UserId == memberDto.UserId);
 
-
-                if (existingMember == null)
+                if (!exists)
                 {
                     var member = new SeminarMemberEntity(seminarId, memberDto);
-
                     _context.SeminarMembers.Add(member);
                     await _context.SaveChangesAsync();
                 }
@@ -98,19 +115,6 @@ namespace Aikido.Services.DatabaseServices.Seminar
                     throw new Exception("Seminar member already exists");
                 }
             }
-        }
-
-        public void RemoveSeminarMembers(long seminarId)
-        {
-            var members = _context.SeminarMembers.Where(sm => sm.SeminarId == seminarId)
-                .ToList();
-
-            foreach(var member in members)
-            {
-                _context.Remove(member);
-            }
-
-            _context.SaveChanges();
         }
 
         public async Task RemoveMemberAsync(long seminarId, long userId)
@@ -133,8 +137,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
 
         public async Task<int> GetMemberCountAsync(long seminarId)
         {
-            return await _context.SeminarMembers
-                .CountAsync(sm => sm.SeminarId == seminarId);
+            return await _context.SeminarMembers.CountAsync(sm => sm.SeminarId == seminarId);
         }
 
         public async Task<List<SeminarEntity>> GetSeminarsByDateRangeAsync(DateTime startDate, DateTime endDate)

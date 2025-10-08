@@ -13,6 +13,7 @@ namespace Aikido.Dto.Seminars
 
         public SeminarContactInfoDto(SeminarContactInfoEntity seminarContactInfo)
         {
+            Id = seminarContactInfo.Id;
             Description = seminarContactInfo.Description;
             Value = seminarContactInfo.Value;
         }

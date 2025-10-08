@@ -1,13 +1,10 @@
-﻿using Aikido.AdditionalData;
-using Aikido.Entities;
-using Aikido.Entities.Seminar;
+﻿using Aikido.Entities.Seminar;
 
 namespace Aikido.Dto.Seminars
 {
     public class SeminarMemberDto : DtoBase
     {
         public long Id { get; set; }
-
         public long UserId { get; set; }
         public string? UserFullName { get; set; } = string.Empty;
 
@@ -22,20 +19,23 @@ namespace Aikido.Dto.Seminars
 
         public string Status { get; set; } = string.Empty;
 
-
         public SeminarMemberDto() { }
 
         public SeminarMemberDto(SeminarMemberEntity seminarMember)
         {
             Id = seminarMember.Id;
             UserId = seminarMember.UserId;
-            UserFullName = seminarMember.User.FullName;
+            UserFullName = seminarMember.User?.FullName ?? string.Empty;
+
             SeminarId = seminarMember.SeminarId;
-            SeminarName = seminarMember.Seminar.Name;
+            SeminarName = seminarMember.Seminar?.Name ?? string.Empty;
+
+            SeminarGroupId = seminarMember.GroupId;
+            SeminarGroupName = seminarMember.Group?.Name;
+
             OldGrade = seminarMember.OldGrade.ToString();
             CertificationGrade = seminarMember.CertificationGrade.ToString();
             Status = seminarMember.Status.ToString();
         }
-
     }
 }

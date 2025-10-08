@@ -45,15 +45,31 @@ namespace Aikido.Entities.Seminar
         public SeminarEntity(SeminarDto seminarData)
         {
             UpdateFromJson(seminarData);
+            CreatedDate = DateTime.UtcNow;
         }
 
         public void UpdateFromJson(SeminarDto seminarData)
         {
             if (!string.IsNullOrEmpty(seminarData.Name))
                 Name = seminarData.Name;
+
             Description = seminarData.Description;
             Date = seminarData.Date;
             Location = seminarData.Location;
+
+            PriceSeminarInRubles = seminarData.PriceSeminarInRubles;
+            PriceAnnualFeeRubles = seminarData.PriceAnnualFeeRubles;
+            PriceBudoPassportRubles = seminarData.PriceBudoPassportRubles;
+            Price5to2KyuCertificationInRubles = seminarData.Price5to2KyuCertificationInRubles;
+            Price1KyuCertificationInRubles = seminarData.Price1KyuCertificationInRubles;
+            PriceDanCertificationInRubles = seminarData.PriceDanCertificationInRubles;
+
+            RegistrationDeadline = seminarData.RegistrationDeadline;
+            CreatorId = seminarData.CreatorId.Value;
+
+            ContactInfo = seminarData.ContactInfo.Select(ci => new SeminarContactInfoEntity(Id, ci)).ToList();
+            Schedule = seminarData.Schedule.Select(s => new SeminarScheduleEntity(Id, s)).ToList();
+            Groups = seminarData.Groups.Select(s => new SeminarGroupEntity(Id, s)).ToList();
         }
     }
 }

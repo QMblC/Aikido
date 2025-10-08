@@ -1,5 +1,4 @@
 ﻿using Aikido.Entities.Seminar;
-using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Dto.Seminars
 {
@@ -8,7 +7,6 @@ namespace Aikido.Dto.Seminars
         public long? Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public DateTime Date { get; set; }
-
         public string? Description { get; set; }
         public string? Location { get; set; }
 
@@ -19,8 +17,7 @@ namespace Aikido.Dto.Seminars
         public decimal? Price1KyuCertificationInRubles { get; set; }
         public decimal? PriceDanCertificationInRubles { get; set; }
 
-
-        public long? Creator { get; set; }
+        public long? CreatorId { get; set; }
         public string? CreatorName { get; set; }
 
         public DateTime? RegistrationDeadline { get; set; }
@@ -28,8 +25,9 @@ namespace Aikido.Dto.Seminars
 
         public string? Regulation { get; set; }
 
-        public List<string>? ContactInfo { get; set; }//
-        public List<>
+        public List<SeminarContactInfoDto>? ContactInfo { get; set; }
+        public List<SeminarScheduleDto>? Schedule { get; set; }
+        public List<SeminarGroupDto>? Groups { get; set; }
 
         public SeminarDto() { }
 
@@ -40,6 +38,32 @@ namespace Aikido.Dto.Seminars
             Description = seminar.Description;
             Date = seminar.Date;
             Location = seminar.Location;
+
+            PriceSeminarInRubles = seminar.PriceSeminarInRubles;
+            PriceAnnualFeeRubles = seminar.PriceAnnualFeeRubles;
+            PriceBudoPassportRubles = seminar.PriceBudoPassportRubles;
+            Price5to2KyuCertificationInRubles = seminar.Price5to2KyuCertificationInRubles;
+            Price1KyuCertificationInRubles = seminar.Price1KyuCertificationInRubles;
+            PriceDanCertificationInRubles = seminar.PriceDanCertificationInRubles;
+
+            CreatorId = seminar.CreatorId;
+            CreatorName = seminar.Creator?.FullName;
+
+            RegistrationDeadline = seminar.RegistrationDeadline;
+            CreatedTime = seminar.CreatedDate;
+
+            if (seminar.ContactInfo != null)
+                ContactInfo = seminar.ContactInfo.Select(ci => new SeminarContactInfoDto(ci)).ToList();
+
+            if (seminar.Schedule != null)
+            {
+                Schedule = seminar.Schedule.Select(s => new SeminarScheduleDto(s)).ToList();
+            }
+
+            if (seminar.Groups != null)
+            {
+                Groups = seminar.Groups.Select(s => new SeminarGroupDto(s)).ToList();
+            }
         }
     }
 }

@@ -9,7 +9,6 @@ namespace Aikido.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-        // Основные сущности
         public DbSet<UserEntity> Users { get; set; }
         public DbSet<ClubEntity> Clubs { get; set; }
         public DbSet<GroupEntity> Groups { get; set; }
@@ -17,25 +16,26 @@ namespace Aikido.Data
         public DbSet<AttendanceEntity> Attendances { get; set; }
         public DbSet<ScheduleEntity> Schedule { get; set; }
         public DbSet<ExclusionDateEntity> ExclusionDates { get; set; }
-        public DbSet<SeminarEntity> Seminars { get; set; }
-        public DbSet<SeminarMemberEntity> SeminarMembers { get; set; }
-        public DbSet<SeminarRegulationEntity> SeminarRegulation { get; set; }
-        public DbSet<SeminarGroupEntity> SemianrGroups { get; set; }
-        public DbSet<SeminarContactInfoEntity> SeminarContactInfo { get; set; }
         public DbSet<PaymentEntity> Payment { get; set; }
         public DbSet<StatementEntity> Statements { get; set; }
         public DbSet<UserMembershipEntity> UserMemberships { get; set; }
+
+        public DbSet<SeminarEntity> Seminars { get; set; }
+        public DbSet<SeminarMemberEntity> SeminarMembers { get; set; }
+        public DbSet<SeminarRegulationEntity> SeminarRegulation { get; set; }
+        public DbSet<SeminarGroupEntity> SeminarGroups { get; set; }
+        public DbSet<SeminarContactInfoEntity> SeminarContactInfo { get; set; }
+        public DbSet<SeminarStatementEntity> SeminarStatements { get; set; }
+        public DbSet<SeminarCoachStatementEntity> SeminarCoachStatements { get; set; }
+        public DbSet<SeminarScheduleEntity> SeminarSchedule { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Конфигурация UserEntity
             modelBuilder.Entity<UserEntity>(entity =>
             {
                 entity.HasKey(e => e.Id);
-
-                // Исключаем вычисляемое свойство из базы
                 entity.Property(e => e.LastName).HasMaxLength(100);
                 entity.Property(e => e.FirstName).HasMaxLength(100);
                 entity.Property(e => e.SecondName).HasMaxLength(100);
@@ -58,7 +58,6 @@ namespace Aikido.Data
                         v => v.Split(';', StringSplitOptions.RemoveEmptyEntries)
                               .Select(DateTime.Parse).ToList());
 
-                // Индексы
                 entity.HasIndex(e => e.Login).IsUnique();
                 entity.HasIndex(e => e.PhoneNumber);
             });
@@ -83,8 +82,6 @@ namespace Aikido.Data
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-
-            // Конфигурация ClubEntity
             modelBuilder.Entity<ClubEntity>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -95,63 +92,52 @@ namespace Aikido.Data
                 entity.Property(e => e.Email).HasMaxLength(100);
                 entity.Property(e => e.Website).HasMaxLength(200);
 
-                // Связь с главным тренером
                 entity.HasOne(c => c.Manager)
                     .WithMany()
                     .HasForeignKey(c => c.ManagerId)
                     .OnDelete(DeleteBehavior.SetNull);
 
-                // Индексы
                 entity.HasIndex(e => e.Name);
                 entity.HasIndex(e => e.City);
             });
 
-            // Конфигурация GroupEntity
             modelBuilder.Entity<GroupEntity>(entity =>
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).HasMaxLength(200);
                 entity.Property(e => e.Description).HasMaxLength(1000);
 
-                // Связь с тренером
                 entity.HasOne(g => g.Coach)
                     .WithMany()
                     .HasForeignKey(g => g.CoachId)
                     .OnDelete(DeleteBehavior.SetNull);
 
-                // Связь с клубом
                 entity.HasOne(g => g.Club)
                     .WithMany(c => c.Groups)
                     .HasForeignKey(g => g.ClubId)
                     .OnDelete(DeleteBehavior.SetNull);
 
-
-                // Индексы
                 entity.HasIndex(e => e.Name);
                 entity.HasIndex(e => e.ClubId);
                 entity.HasIndex(e => e.CoachId);
             });
 
-            // Конфигурация EventEntity
             modelBuilder.Entity<EventEntity>(entity =>
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
                 entity.Property(e => e.Location).HasMaxLength(300);
 
-                // Связь с группой
                 entity.HasOne(e => e.Group)
                     .WithMany()
                     .HasForeignKey(e => e.GroupId)
                     .OnDelete(DeleteBehavior.SetNull);
 
-                // Связь с клубом
                 entity.HasOne(e => e.Club)
                     .WithMany()
                     .HasForeignKey(e => e.ClubId)
                     .OnDelete(DeleteBehavior.SetNull);
 
-                // Индексы
                 entity.HasIndex(e => e.StartDate);
                 entity.HasIndex(e => e.GroupId);
                 entity.HasIndex(e => e.ClubId);
@@ -159,14 +145,18 @@ namespace Aikido.Data
 
             ConfigureSeminarEntity(modelBuilder);
             ConfigureSeminarMemberEntity(modelBuilder);
+            ConfigureSeminarGroupEntity(modelBuilder);
+            ConfigureSeminarRegulationEntity(modelBuilder);
+            ConfigureSeminarContactInfoEntity(modelBuilder);
+            ConfigureSeminarStatementEntity(modelBuilder);
+            ConfigureSeminarCoachStatementEntity(modelBuilder);
+            ConfigureSeminarScheduleEntity(modelBuilder);
+
             ConfigureAttendanceEntity(modelBuilder);
             ConfigurePaymentEntity(modelBuilder);
             ConfigureScheduleEntity(modelBuilder);
             ConfigureExclusionDateEntity(modelBuilder);
             ConfigureStatementEntity(modelBuilder);
-            ConfigureSeminarContactInfo(modelBuilder);
-            ConfigureSeminarRegulation(modelBuilder);
-
         }
 
         private void ConfigureSeminarEntity(ModelBuilder modelBuilder)
@@ -176,38 +166,20 @@ namespace Aikido.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
                 entity.Property(e => e.Location).HasMaxLength(300);
+                entity.Property(e => e.Description).HasMaxLength(1000);
+
+                entity.HasOne(s => s.Creator)
+                    .WithMany()
+                    .HasForeignKey(s => s.CreatorId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(s => s.FinalStatement)
+                      .WithOne()
+                      .HasForeignKey<SeminarEntity>(s => s.FinalStatementId)
+                      .OnDelete(DeleteBehavior.SetNull);
 
                 entity.HasIndex(e => e.Date);
-            });
-        }
-
-        private void ConfigureSeminarRegulation(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<SeminarRegulationEntity>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-
-                entity.HasOne(e => e.Seminar)
-                    .WithOne(s => s.Regulation)
-                    .HasForeignKey<SeminarRegulationEntity>(e => e.Id)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-            });
-        }
-
-        private void ConfigureSeminarContactInfo(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<SeminarContactInfoEntity>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-
-                entity.HasOne(e => e.Seminar)
-                    .WithMany(s => s.ContactInfo)
-                    .HasForeignKey(e => e.Id)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasIndex(e => new { e.SeminarId, e.Description, e.Value })
-                    .IsUnique();
+                entity.HasIndex(e => e.CreatorId);
             });
         }
 
@@ -227,8 +199,107 @@ namespace Aikido.Data
                     .HasForeignKey(sm => sm.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasIndex(e => new { e.SeminarId, e.UserId })
-                    .IsUnique();
+                entity.HasOne(sm => sm.Group)
+                    .WithMany()
+                    .HasForeignKey(sm => sm.GroupId)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasIndex(e => new { e.SeminarId, e.UserId }).IsUnique();
+            });
+        }
+
+        private void ConfigureSeminarGroupEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<SeminarGroupEntity>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+
+                entity.HasOne(sg => sg.Seminar)
+                    .WithMany(s => s.Groups)
+                    .HasForeignKey(sg => sg.SeminarId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(e => new { e.SeminarId, e.Name }).IsUnique();
+            });
+        }
+
+        private void ConfigureSeminarRegulationEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<SeminarRegulationEntity>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.HasOne(sr => sr.Seminar)
+                    .WithOne(s => s.Regulation)
+                    .HasForeignKey<SeminarRegulationEntity>(sr => sr.SeminarId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(e => e.SeminarId).IsUnique();
+            });
+        }
+
+        private void ConfigureSeminarContactInfoEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<SeminarContactInfoEntity>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Description).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.Value).IsRequired().HasMaxLength(500);
+
+                entity.HasOne(sci => sci.Seminar)
+                    .WithMany(s => s.ContactInfo)
+                    .HasForeignKey(sci => sci.SeminarId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(e => new { e.SeminarId, e.Description, e.Value }).IsUnique();
+            });
+        }
+
+        private void ConfigureSeminarStatementEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<SeminarStatementEntity>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Name).HasMaxLength(300);
+
+                entity.Ignore(ss => ss.Seminar);
+
+                entity.HasIndex(e => e.SeminarId);
+            });
+        }
+
+        private void ConfigureSeminarCoachStatementEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<SeminarCoachStatementEntity>(entity =>
+            {
+                entity.HasOne(scs => scs.Coach)
+                    .WithMany()
+                    .HasForeignKey(scs => scs.CoachId)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasOne(scs => scs.Seminar)
+                    .WithMany(s => s.CoachStatements)
+                    .HasForeignKey(scs => scs.SeminarId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(e => new { e.SeminarId, e.CoachId });
+            });
+        }
+
+        private void ConfigureSeminarScheduleEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<SeminarScheduleEntity>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Description).HasMaxLength(500);
+
+                entity.HasOne(ss => ss.Seminar)
+                    .WithMany(s => s.Schedule)
+                    .HasForeignKey(ss => ss.SeminarId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(e => new { e.SeminarId, e.StartTime });
             });
         }
 
@@ -262,7 +333,6 @@ namespace Aikido.Data
                 entity.Property(e => e.TransactionId).HasMaxLength(100);
                 entity.Property(e => e.PaymentMethod).HasMaxLength(50);
 
-                // Связи
                 entity.HasOne(p => p.User)
                     .WithMany()
                     .HasForeignKey(p => p.UserId)
@@ -283,7 +353,6 @@ namespace Aikido.Data
                     .HasForeignKey(p => p.GroupId)
                     .OnDelete(DeleteBehavior.SetNull);
 
-                // Индексы
                 entity.HasIndex(e => e.PaymentDate);
                 entity.HasIndex(e => e.UserId);
                 entity.HasIndex(e => e.TransactionId);
@@ -296,13 +365,11 @@ namespace Aikido.Data
             {
                 entity.HasKey(e => e.Id);
 
-                // Связь с группой
                 entity.HasOne(s => s.Group)
                     .WithMany(g => g.Schedule)
                     .HasForeignKey(s => s.GroupId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                // Индексы
                 entity.HasIndex(e => new { e.GroupId, e.DayOfWeek, e.StartTime });
             });
         }
@@ -314,13 +381,11 @@ namespace Aikido.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Description).HasMaxLength(500);
 
-                // Связи
                 entity.HasOne(ed => ed.Group)
                     .WithMany()
                     .HasForeignKey(ed => ed.GroupId)
                     .OnDelete(DeleteBehavior.SetNull);
 
-                // Индексы
                 entity.HasIndex(e => e.Date);
                 entity.HasIndex(e => e.GroupId);
             });
@@ -334,7 +399,6 @@ namespace Aikido.Data
                 entity.Property(e => e.Title).HasMaxLength(300);
                 entity.Property(e => e.FilePath).HasMaxLength(500);
 
-                // Связи
                 entity.HasOne(s => s.User)
                     .WithMany()
                     .HasForeignKey(s => s.UserId)
@@ -350,7 +414,6 @@ namespace Aikido.Data
                     .HasForeignKey(s => s.GroupId)
                     .OnDelete(DeleteBehavior.SetNull);
 
-                // Индексы
                 entity.HasIndex(e => e.CreatedDate);
                 entity.HasIndex(e => e.Status);
                 entity.HasIndex(e => e.Type);

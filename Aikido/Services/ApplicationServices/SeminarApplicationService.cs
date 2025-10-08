@@ -38,27 +38,23 @@ namespace Aikido.Application.Services
         public async Task UpdateSeminarAsync(long id, SeminarDto seminarData)
         {
             if (!await _seminarDbService.Exists(id))
-            {
                 throw new EntityNotFoundException($"Семинар с Id = {id} не найден");
-            }
+
             await _seminarDbService.UpdateAsync(id, seminarData);
         }
 
         public async Task DeleteSeminarAsync(long id)
         {
             if (!await _seminarDbService.Exists(id))
-            {
                 throw new EntityNotFoundException($"Семинар с Id = {id} не найден");
-            }
+
             await _seminarDbService.DeleteAsync(id);
         }
 
         public async Task<List<SeminarMemberDto>> GetSeminarMembersAsync(long seminarId)
         {
             var members = await _seminarDbService.GetSeminarMembersAsync(seminarId);
-
-            return members.Select(sm => new SeminarMemberDto(sm))
-                .ToList();
+            return members.Select(sm => new SeminarMemberDto(sm)).ToList();
         }
 
         public async Task RemoveMemberFromSeminarAsync(long seminarId, long userId)
