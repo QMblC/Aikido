@@ -79,54 +79,18 @@ namespace Aikido.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreateWithFiles([FromForm] SeminarRequest files)
+        public async Task<IActionResult> CreateSeminar([FromBody] SeminarDto seminarData)
         {
-            if (files.SeminarData == null)
-                return BadRequest("SeminarData обязательно");
-
-            var seminar = files.SeminarData;
-            seminar.ContactInfo = files.ContactInfo;
-            seminar.Schedule = files.Schedule;
-            seminar.Groups = files.Groups;
-
-            var seminarId = await _seminarApplicationService.CreateSeminarAsync(seminar);
-
-            if (files.PdfFile != null && files.PdfFile.Length > 0)
+            try
             {
-                using var pdfMs = new MemoryStream();
-                await files.PdfFile.CopyToAsync(pdfMs);
-                var pdfBytes = pdfMs.ToArray();
-
-                await _seminarApplicationService.AddSeminarRegulationAsync(seminarId, pdfBytes);
+                var seminarId = await _seminarApplicationService.CreateSeminarAsync(seminarData);
+                return Ok(new { id = seminarId });
             }
-
-            return Ok(new { id = seminarId });
-        }
-
-
-
-        [HttpGet("get/{seminarId}/regulation")]
-        public async Task<IActionResult> DownloadSeminarRegulation(long seminarId)
-        {
-            var fileBytes = await _seminarApplicationService.GetSeminarRegulationAsync(seminarId);
-            if (fileBytes == null || fileBytes.Length == 0)
+            catch(Exception ex)
             {
-                return NotFound();
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
-
-            var contentType = "application/pdf";
-            var fileName = $"SeminarRegulation_{seminarId}.pdf";
-
-            return File(fileBytes, contentType, fileName);
         }
-
-        [HttpDelete("delete/{seminarId}/regulation")]
-        public async Task<IActionResult> DeleteSeminarRegulation(long seminarId)
-        {
-            await _seminarApplicationService.DeleteSeminarRegulationAsync(seminarId);
-            return NoContent();
-        }
-
 
         [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateSeminar(long id, [FromBody] SeminarDto seminarData)
@@ -141,6 +105,53 @@ namespace Aikido.Controllers
                 return NotFound(new { ex.Message });
             }
             catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        [HttpGet("{seminarId}/regulation")]
+        public async Task<IActionResult> DownloadSeminarRegulation(long seminarId)
+        {
+            var fileBytes = await _seminarApplicationService.GetSeminarRegulationAsync(seminarId);
+            if (fileBytes == null || fileBytes.Length == 0)
+            {
+                return NotFound();
+            }
+
+            var contentType = "application/pdf";
+            var fileName = $"SeminarRegulation_{seminarId}.pdf";
+
+            return File(fileBytes, contentType, fileName);
+        }
+
+        [HttpPost("{seminarId}/regulation")]
+        public async Task<IActionResult> SetSeminarRegulation(long seminarId, [FromForm] RegulationRequest request)
+        {
+            try
+            {
+                using var pdfMs = new MemoryStream();
+                await request.RegulationFile.CopyToAsync(pdfMs);
+                var filesInBytes = pdfMs.ToArray();
+
+                await _seminarApplicationService.AddSeminarRegulationAsync(seminarId, filesInBytes);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        [HttpDelete("delete/{seminarId}/regulation")]
+        public async Task<IActionResult> DeleteSeminarRegulation(long seminarId)
+        {
+            try
+            {
+                await _seminarApplicationService.DeleteSeminarRegulationAsync(seminarId);
+                return NoContent();
+            }
+            catch(Exception ex)
             {
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }

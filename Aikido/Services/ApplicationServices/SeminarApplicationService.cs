@@ -36,6 +36,8 @@ namespace Aikido.Application.Services
             return await _seminarDbService.CreateAsync(seminarData);
         }
 
+
+
         public async Task UpdateSeminarAsync(long id, SeminarDto seminarData)
         {
             if (!await _seminarDbService.Exists(id))
