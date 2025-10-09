@@ -143,7 +143,7 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpDelete("delete/{seminarId}/regulation")]
+        [HttpDelete("{seminarId}/regulation")]
         public async Task<IActionResult> DeleteSeminarRegulation(long seminarId)
         {
             try
