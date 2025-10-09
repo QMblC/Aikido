@@ -12,6 +12,9 @@ namespace Aikido.Services.DatabaseServices.Seminar
         Task<List<SeminarMemberEntity>> GetSeminarMembersAsync(long seminarId);
 
         Task<long> CreateAsync(SeminarDto seminarData);
+        Task<SeminarRegulationEntity> GetSeminarRegulation(long seminarId);
+        Task CreateSeminarRegulationAsync(long seminarId, byte[] fileInBytes);
+        Task DeleteSeminarRegulationAsync(long seminarId);
         Task UpdateAsync(long id, SeminarDto seminarData);
         Task DeleteAsync(long id);
 

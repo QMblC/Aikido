@@ -10,6 +10,7 @@ using Aikido.Services.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 Directory.CreateDirectory("logs");
 
@@ -65,13 +66,16 @@ builder.Services.AddScoped<AttendanceApplicationService>();
 builder.Services.AddScoped<PaymentApplicationService>();
 builder.Services.AddScoped<ScheduleApplicationService>();
 
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowReadingFromString;
+        options.JsonSerializerOptions.MaxDepth = 32;
     });
-
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

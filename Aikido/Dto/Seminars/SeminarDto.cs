@@ -20,10 +20,10 @@ namespace Aikido.Dto.Seminars
         public long? CreatorId { get; set; }
         public string? CreatorName { get; set; }
 
+        public bool? RegulationExists { get; set; } = false;
+
         public DateTime? RegistrationDeadline { get; set; }
         public DateTime? CreatedTime { get; set; }
-
-        public string? Regulation { get; set; }
 
         public List<SeminarContactInfoDto>? ContactInfo { get; set; }
         public List<SeminarScheduleDto>? Schedule { get; set; }
@@ -48,6 +48,8 @@ namespace Aikido.Dto.Seminars
 
             CreatorId = seminar.CreatorId;
             CreatorName = seminar.Creator?.FullName;
+
+            RegulationExists = seminar.RegulationId != null;
 
             RegistrationDeadline = seminar.RegistrationDeadline;
             CreatedTime = seminar.CreatedDate;

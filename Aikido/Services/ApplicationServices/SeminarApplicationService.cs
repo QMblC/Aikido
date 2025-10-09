@@ -1,7 +1,8 @@
 ﻿using Aikido.Dto.Seminars;
+using Aikido.Entities.Seminar;
+using Aikido.Exceptions;
 using Aikido.Services.DatabaseServices.Seminar;
 using Aikido.Services.DatabaseServices.User;
-using Aikido.Exceptions;
 
 namespace Aikido.Application.Services
 {
@@ -65,6 +66,23 @@ namespace Aikido.Application.Services
         public async Task<bool> SeminarExistsAsync(long id)
         {
             return await _seminarDbService.Exists(id);
+        }
+
+        public async Task<byte[]> GetSeminarRegulationAsync(long seminarId)
+        {
+            var regulation = await _seminarDbService.GetSeminarRegulation(seminarId);
+
+            return regulation.File;
+        }
+
+        public async Task AddSeminarRegulationAsync(long seminarId, byte[] fileInBytes)
+        {
+            await _seminarDbService.CreateSeminarRegulationAsync(seminarId, fileInBytes);
+        }
+
+        public async Task DeleteSeminarRegulationAsync(long seminarId)
+        {
+            await _seminarDbService.DeleteSeminarRegulationAsync(seminarId);
         }
     }
 }

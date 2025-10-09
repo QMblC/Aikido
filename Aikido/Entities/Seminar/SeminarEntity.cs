@@ -27,8 +27,8 @@ namespace Aikido.Entities.Seminar
         public long CreatorId { get; set; }
         public UserEntity Creator { get; set; }
 
-        public long RegulationId { get; set; }
-        public SeminarRegulationEntity Regulation { get; set; }
+        public long? RegulationId { get; set; }
+        public SeminarRegulationEntity? Regulation { get; set; }
 
         public long? FinalStatementId { get; set; }
         public virtual SeminarStatementEntity? FinalStatement { get; set; }
@@ -37,8 +37,8 @@ namespace Aikido.Entities.Seminar
         public virtual ICollection<SeminarCoachStatementEntity> CoachStatements { get; set; } = new List<SeminarCoachStatementEntity>();
         public virtual ICollection<SeminarContactInfoEntity>? ContactInfo { get; set; } = new List<SeminarContactInfoEntity>();
         public virtual ICollection<SeminarMemberEntity> Members { get; set; } = new List<SeminarMemberEntity>();
-        public virtual ICollection<SeminarGroupEntity> Groups { get; set; } = new List<SeminarGroupEntity>();
-        public virtual ICollection<SeminarScheduleEntity> Schedule { get; set; } = new List<SeminarScheduleEntity>();
+        public virtual ICollection<SeminarGroupEntity>? Groups { get; set; } = new List<SeminarGroupEntity>();
+        public virtual ICollection<SeminarScheduleEntity>? Schedule { get; set; } = new List<SeminarScheduleEntity>();
 
         public SeminarEntity() { }
 
@@ -67,9 +67,9 @@ namespace Aikido.Entities.Seminar
             RegistrationDeadline = seminarData.RegistrationDeadline;
             CreatorId = seminarData.CreatorId.Value;
 
-            ContactInfo = seminarData.ContactInfo.Select(ci => new SeminarContactInfoEntity(Id, ci)).ToList();
-            Schedule = seminarData.Schedule.Select(s => new SeminarScheduleEntity(Id, s)).ToList();
-            Groups = seminarData.Groups.Select(s => new SeminarGroupEntity(Id, s)).ToList();
+            ContactInfo = seminarData.ContactInfo != null? seminarData.ContactInfo.Select(ci => new SeminarContactInfoEntity(Id, ci)).ToList() : null;
+            Schedule = seminarData.Schedule != null ? seminarData.Schedule.Select(s => new SeminarScheduleEntity(Id, s)).ToList() : null;
+            Groups = seminarData.Groups != null? seminarData.Groups.Select(s => new SeminarGroupEntity(Id, s)).ToList() : null;
         }
     }
 }

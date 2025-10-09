@@ -1,6 +1,9 @@
 ﻿using Aikido.Application.Services;
 using Aikido.Dto.Seminars;
+using Aikido.Requests;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Aikido.Controllers
 {
@@ -76,18 +79,54 @@ namespace Aikido.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<ActionResult<object>> CreateSeminar([FromBody] SeminarDto seminarData)
+        public async Task<IActionResult> CreateWithFiles([FromForm] SeminarRequest files)
         {
-            try
+            if (files.SeminarData == null)
+                return BadRequest("SeminarData обязательно");
+
+            var seminar = files.SeminarData;
+            seminar.ContactInfo = files.ContactInfo;
+            seminar.Schedule = files.Schedule;
+            seminar.Groups = files.Groups;
+
+            var seminarId = await _seminarApplicationService.CreateSeminarAsync(seminar);
+
+            if (files.PdfFile != null && files.PdfFile.Length > 0)
             {
-                var seminarId = await _seminarApplicationService.CreateSeminarAsync(seminarData);
-                return Ok(new { id = seminarId });
+                using var pdfMs = new MemoryStream();
+                await files.PdfFile.CopyToAsync(pdfMs);
+                var pdfBytes = pdfMs.ToArray();
+
+                await _seminarApplicationService.AddSeminarRegulationAsync(seminarId, pdfBytes);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
-            }
+
+            return Ok(new { id = seminarId });
         }
+
+
+
+        [HttpGet("get/{seminarId}/regulation")]
+        public async Task<IActionResult> DownloadSeminarRegulation(long seminarId)
+        {
+            var fileBytes = await _seminarApplicationService.GetSeminarRegulationAsync(seminarId);
+            if (fileBytes == null || fileBytes.Length == 0)
+            {
+                return NotFound();
+            }
+
+            var contentType = "application/pdf";
+            var fileName = $"SeminarRegulation_{seminarId}.pdf";
+
+            return File(fileBytes, contentType, fileName);
+        }
+
+        [HttpDelete("delete/{seminarId}/regulation")]
+        public async Task<IActionResult> DeleteSeminarRegulation(long seminarId)
+        {
+            await _seminarApplicationService.DeleteSeminarRegulationAsync(seminarId);
+            return NoContent();
+        }
+
 
         [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateSeminar(long id, [FromBody] SeminarDto seminarData)
@@ -113,7 +152,7 @@ namespace Aikido.Controllers
             try
             {
                 await _seminarApplicationService.DeleteSeminarAsync(id);
-                return Ok();
+                return NoContent();
             }
             catch (KeyNotFoundException ex)
             {

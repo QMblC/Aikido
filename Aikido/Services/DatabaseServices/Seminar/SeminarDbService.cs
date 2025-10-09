@@ -63,24 +63,9 @@ namespace Aikido.Services.DatabaseServices.Seminar
         {
             var seminar = new SeminarEntity(seminarData);
             _context.Seminars.Add(seminar);
-            await _context.SaveChangesAsync();
-
-            if (seminarData.Regulation != null)
-            {
-                var regulation = await CreateSeminarRegulationAsync(seminar, seminarData.Regulation);
-            }    
+            await _context.SaveChangesAsync(); 
 
             return seminar.Id;
-        }
-
-        private async Task<long> CreateSeminarRegulationAsync(SeminarEntity seminar, string fileInString)
-        {
-            var regulation = new SeminarRegulationEntity(seminar.Id, Convert.FromBase64String(fileInString));
-            seminar.RegulationId = regulation.Id;
-            
-            await _context.SaveChangesAsync();
-
-            return regulation.Id;
         }
 
         public async Task UpdateAsync(long id, SeminarDto seminarData)
@@ -147,6 +132,54 @@ namespace Aikido.Services.DatabaseServices.Seminar
                 .Where(s => s.Date >= startDate && s.Date <= endDate)
                 .OrderBy(s => s.Date)
                 .ToListAsync();
+        }
+
+        public async Task<SeminarRegulationEntity> GetSeminarRegulation(long seminarId)
+        {
+            var regulation = await _context.SeminarRegulation.FirstOrDefaultAsync(r => r.SeminarId == seminarId);
+
+            return regulation 
+                ?? throw new EntityNotFoundException(nameof(SeminarRegulationEntity));
+        }
+
+        public async Task CreateSeminarRegulationAsync(long seminarId, byte[] fileInBytes)
+        {
+            var seminar = await _context.Seminars.FindAsync(seminarId);
+            var oldRegulation = await _context.SeminarRegulation.FirstOrDefaultAsync(r => r.SeminarId == seminarId);
+            if (seminar == null)
+            {
+                throw new EntityNotFoundException(nameof(seminar));
+            }
+
+            if (oldRegulation != null)
+            {
+                _context.Remove(oldRegulation);
+            }
+
+            var regulation = new SeminarRegulationEntity(seminarId, fileInBytes);
+            seminar.RegulationId = regulation.Id;
+
+            await _context.SaveChangesAsync();
+        }
+
+
+        public async Task DeleteSeminarRegulationAsync(long seminarId)
+        {
+            var seminar = _context.Seminars.Find(seminarId);
+            var regulation = _context.SeminarRegulation.FirstOrDefaultAsync(r => r.SeminarId == seminarId);
+
+            if (seminar == null)
+            {
+                throw new EntityNotFoundException(nameof(SeminarEntity));
+            }
+            if (regulation == null)
+            {
+                throw new EntityNotFoundException(nameof(SeminarRegulationEntity));
+            }
+            
+            _context.Remove(regulation);
+            seminar.RegulationId = null;
+            await _context.SaveChangesAsync();
         }
     }
 }
