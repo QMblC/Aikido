@@ -32,29 +32,6 @@ namespace Aikido.Application.Services
             return schedules.Select(s => new ScheduleDto(s)).ToList();
         }
 
-        public async Task<long> CreateScheduleAsync(ScheduleDto scheduleData)
-        {
-            return await _scheduleService.CreateSchedule(scheduleData);
-        }
-
-        public async Task UpdateScheduleAsync(long id, ScheduleDto scheduleData)
-        {
-            if (!await _scheduleService.ScheduleExists(id))
-            {
-                throw new EntityNotFoundException($"Расписание с Id = {id} не найдено");
-            }
-            await _scheduleService.UpdateSchedule(id, scheduleData);
-        }
-
-        public async Task DeleteScheduleAsync(long id)
-        {
-            if (!await _scheduleService.ScheduleExists(id))
-            {
-                throw new EntityNotFoundException($"Расписание с Id = {id} не найдено");
-            }
-            await _scheduleService.DeleteSchedule(id);
-        }
-
         public async Task<bool> ScheduleExistsAsync(long id)
         {
             return await _scheduleService.ScheduleExists(id);

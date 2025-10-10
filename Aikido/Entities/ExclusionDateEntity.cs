@@ -19,17 +19,17 @@ namespace Aikido.Entities
 
         public ExclusionDateEntity() { }
 
-        public ExclusionDateEntity(ExclusionDateDto exclusionData)
+        public ExclusionDateEntity(long groupId, ExclusionDateDto exclusionData)
         {
-            UpdateFromJson(exclusionData);
+            UpdateFromJson(groupId, exclusionData);
         }
 
-        public void UpdateFromJson(ExclusionDateDto exclusionData)
+        public void UpdateFromJson(long groupId, ExclusionDateDto exclusionData)
         {
             Date = exclusionData.Date;
             Type = EnumParser.ConvertStringToEnum<ExclusiveDateType>(exclusionData.Type);
             Description = exclusionData.Description;
-            GroupId = exclusionData.GroupId;
+            GroupId = groupId;
             StartTime = exclusionData.StartTime;
             EndTime = exclusionData.EndTime;
         }

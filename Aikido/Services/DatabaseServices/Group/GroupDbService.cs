@@ -69,9 +69,7 @@ namespace Aikido.Services.DatabaseServices.Group
 
         public async Task<long> CreateAsync(GroupDto groupDto)
         {
-            var group = new GroupEntity();
-
-            group.UpdateFromJson(groupDto);
+            var group = new GroupEntity(groupDto);
 
             if (group.ClubId == 0 || group.ClubId == null)
                 throw new ArgumentException("ClubId is required");

@@ -18,14 +18,14 @@ namespace Aikido.Entities
 
         public ScheduleEntity() { }
 
-        public ScheduleEntity(ScheduleDto scheduleData)
+        public ScheduleEntity(long groupId, ScheduleDto scheduleData)
         {
-            UpdateFromJson(scheduleData);
+            UpdateFromJson(groupId, scheduleData);
         }
 
-        public void UpdateFromJson(ScheduleDto scheduleData)
+        public void UpdateFromJson(long groupId, ScheduleDto scheduleData)
         {
-            GroupId = scheduleData.GroupId;
+            GroupId = groupId;
             DayOfWeek = scheduleData.DayOfWeek;
             StartTime = scheduleData.StartTime;
             EndTime = scheduleData.EndTime;

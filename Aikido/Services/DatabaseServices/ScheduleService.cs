@@ -37,28 +37,6 @@ namespace Aikido.Services
                 .ToListAsync();
         }
 
-        public async Task<long> CreateSchedule(ScheduleDto scheduleData)
-        {
-            var schedule = new ScheduleEntity(scheduleData);
-            _context.Schedule.Add(schedule);
-            await _context.SaveChangesAsync();
-            return schedule.Id;
-        }
-
-        public async Task UpdateSchedule(long id, ScheduleDto scheduleData)
-        {
-            var schedule = await GetScheduleById(id);
-            schedule.UpdateFromJson(scheduleData);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task DeleteSchedule(long id)
-        {
-            var schedule = await GetScheduleById(id);
-            _context.Remove(schedule);
-            await _context.SaveChangesAsync();
-        }
-
         public async Task<bool> ScheduleExists(long id)
         {
             return await _context.Schedule.AnyAsync(s => s.Id == id);

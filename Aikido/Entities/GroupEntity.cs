@@ -31,6 +31,11 @@ namespace Aikido.Entities
 
         public GroupEntity() { }
 
+        public GroupEntity(GroupDto group)
+        {
+            UpdateFromJson(group);
+        }
+
         public void UpdateFromJson(GroupDto groupNewData)
         {
             if (groupNewData.CoachId != null)
@@ -48,10 +53,10 @@ namespace Aikido.Entities
             UpdatedDate = DateTime.UtcNow;
 
             Schedule = groupNewData.Schedule
-                .Select(s => new ScheduleEntity(s))
+                .Select(s => new ScheduleEntity(Id, s))
                 .ToList();
             ExclusionDates = groupNewData.ExclusionDates
-                .Select(s => new ExclusionDateEntity(s))
+                .Select(s => new ExclusionDateEntity(Id, s))
                 .ToList();
         }
 
