@@ -157,6 +157,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
             }
 
             var regulation = new SeminarRegulationEntity(seminarId, fileInBytes);
+            _context.SeminarRegulation.Add(regulation);
             seminar.RegulationId = regulation.Id;
 
             await _context.SaveChangesAsync();
