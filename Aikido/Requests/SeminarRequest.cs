@@ -1,28 +1,15 @@
-﻿using Aikido.Dto;
+﻿using Aikido.Dto.Seminars;
 using System.Text.Json;
 
 namespace Aikido.Requests
 {
     public class SeminarRequest
     {
-        public IFormFile SeminarDataJson { get; set; }
-
-        public async Task<SeminarDto> Parse()
-        {
-            using var reader = new StreamReader(SeminarDataJson.OpenReadStream());
-            var jsonString = await reader.ReadToEndAsync();
-
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-
-            var seminarData = JsonSerializer.Deserialize<SeminarDto>(jsonString, options);
-
-            if (seminarData == null)
-                throw new Exception("Не удалось десериализовать JSON.");
-
-            return seminarData;
-        }
+        public SeminarDto SeminarData { get; set; }
+        public List<SeminarScheduleDto>? Schedule { get; set; }
+        public List<SeminarContactInfoDto>? ContactInfo { get; set; }
+        public List<SeminarGroupDto>? Groups { get; set; }
+        public IFormFile? PdfFile { get; set; }
     }
 }
+

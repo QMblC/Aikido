@@ -8,28 +8,30 @@ namespace Aikido.Entities
     {
         [Key]
         public long Id { get; set; }
-        public long GroupId { get; set; }
         public DateTime Date { get; set; }
-        //public TimeSpan StartTime { get; set; }
-        //public TimeSpan EndTime { get; set; }
-        public ExclusiveDateType Status { get; set; }
+        public TimeSpan StartTime { get; set; }
+        public TimeSpan EndTime { get; set; }
+        public ExclusiveDateType Type { get; set; }
+        public string? Description { get; set; }
+
+        public long? GroupId { get; set; }
+        public virtual GroupEntity? Group { get; set; }
 
         public ExclusionDateEntity() { }
 
-        public ExclusionDateEntity(ExclusionDateDto exclusionDate)
+        public ExclusionDateEntity(long groupId, ExclusionDateDto exclusionData)
         {
-            if (exclusionDate.GroupId != null)
-            {
-                GroupId = exclusionDate.GroupId.Value;
-            }
-            if (exclusionDate.Date != null)
-            {
-                Date = exclusionDate.Date;
-            }
-            if (exclusionDate.Status != null)
-            {
-                Status = EnumParser.ConvertStringToEnum<ExclusiveDateType>(exclusionDate.Status);
-            }
+            UpdateFromJson(groupId, exclusionData);
+        }
+
+        public void UpdateFromJson(long groupId, ExclusionDateDto exclusionData)
+        {
+            Date = exclusionData.Date;
+            Type = EnumParser.ConvertStringToEnum<ExclusiveDateType>(exclusionData.Type);
+            Description = exclusionData.Description;
+            GroupId = groupId;
+            StartTime = exclusionData.StartTime;
+            EndTime = exclusionData.EndTime;
         }
     }
 }

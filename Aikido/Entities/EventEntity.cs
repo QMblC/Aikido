@@ -1,4 +1,6 @@
-﻿using Aikido.Dto;
+﻿using Aikido.AdditionalData;
+using Aikido.Dto;
+using DocumentFormat.OpenXml.Features;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities
@@ -7,29 +9,55 @@ namespace Aikido.Entities
     {
         [Key]
         public long Id { get; set; }
-        public long? UserId { get; set; }
-        public DateTime? PublishDate { get; set; }
-        public string? City { get; set; }
-        public string? Title { get; set; }
-        public DateTime? EventDate { get; set; }
+        public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
-        public byte[] File { get; set; } = [];
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string? Location { get; set; }
+        public EventType? EventType { get; set; }
 
-        public async Task UpdateFromJson(EventDto eventNewData)
+        public long? GroupId { get; set; }
+        public virtual GroupEntity? Group { get; set; }
+
+        public long? ClubId { get; set; }
+        public virtual ClubEntity? Club { get; set; }
+
+        public bool IsRecurring { get; set; }
+        public string? RecurrencePattern { get; set; }
+        public bool IsActive { get; set; } = true;
+        public int MaxParticipants { get; set; }
+        public int CurrentParticipants { get; set; }
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedDate { get; set; }
+
+        // Навигационные свойства
+        public virtual ICollection<AttendanceEntity> Attendances { get; set; } = new List<AttendanceEntity>();
+
+        public EventEntity() { }
+
+        public EventEntity(EventDto eventData)
         {
-            UserId = eventNewData.UserId;
-            PublishDate = eventNewData.PublishDate;
-            City = eventNewData.City;
-            Title = eventNewData.Title;
-            EventDate = eventNewData.EventDate;
-            Description = eventNewData.Description;
+            UpdateFromJson(eventData);
+        }
 
-            if (eventNewData.File != null && eventNewData.File.Length > 0)
-            {
-                using var memoryStream = new MemoryStream();
-                await eventNewData.File.CopyToAsync(memoryStream);
-                File = memoryStream.ToArray();
-            }
+        public void UpdateFromJson(EventDto eventData)
+        {
+            if (!string.IsNullOrEmpty(eventData.Name))
+                Name = eventData.Name;
+            Description = eventData.Description;
+            StartDate = eventData.StartDate;
+            EndDate = eventData.EndDate;
+            Location = eventData.Location;
+            if (!string.IsNullOrEmpty(eventData.EventType))
+                EventType = EnumParser.ConvertStringToEnum<EventType>(eventData.EventType);
+            GroupId = eventData.GroupId;
+            ClubId = eventData.ClubId;
+            IsRecurring = eventData.IsRecurring;
+            RecurrencePattern = eventData.RecurrencePattern;
+            IsActive = eventData.IsActive;
+            MaxParticipants = eventData.MaxParticipants;
+            CurrentParticipants = eventData.CurrentParticipants;
+            UpdatedDate = DateTime.UtcNow;
         }
     }
 }

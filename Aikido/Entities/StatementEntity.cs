@@ -1,5 +1,4 @@
-﻿using Aikido.Dto;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities
 {
@@ -7,46 +6,40 @@ namespace Aikido.Entities
     {
         [Key]
         public long Id { get; set; }
-        public string? Name { get; set; }
-        public long SeminarId { get; set; }
-        public long CoachId { get; set; }
-        public byte[]? StatementFile { get; set; }  
+        public string? Title { get; set; }
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+        public DateTime? SubmittedDate { get; set; }
+        public StatementStatus? Status { get; set; }
+        public StatementType? Type { get; set; }
+
+        public long? UserId { get; set; }
+        public virtual UserEntity? User { get; set; }
+
+        public long? ClubId { get; set; }
+        public virtual ClubEntity? Club { get; set; }
+
+        public long? GroupId { get; set; }
+        public virtual GroupEntity? Group { get; set; }
+
+        public string? Notes { get; set; }
+        public string? FilePath { get; set; }
 
         public StatementEntity() { }
+    }
 
-        public StatementEntity(StatementDto statementDto)
-        {
-            if (statementDto.SeminarId != null)
-            {
-                SeminarId = statementDto.SeminarId.Value;
-            }
-            if (statementDto.CoachId != null)
-            {
-                CoachId = statementDto.CoachId.Value;
-            }
-            if (statementDto.File != null)
-            {
-                StatementFile = Convert.FromBase64String(statementDto.File);
-            }
-            else
-            {
-                StatementFile = null;
-            }
-            Name = statementDto.Name;
-        }
+    public enum StatementStatus
+    {
+        Draft,
+        Submitted,
+        Approved,
+        Rejected
+    }
 
-        public StatementEntity(long seminarId, long coachId, byte[] table, string name)
-        {
-            SeminarId = seminarId;
-            CoachId = coachId;
-            StatementFile = table;
-            Name = name;
-        }
-
-        public void UpdateStatement(byte[] table, string name)
-        {
-            StatementFile = table;
-            Name = name;
-        }
+    public enum StatementType
+    {
+        Certification,
+        Tournament,
+        Seminar,
+        Other
     }
 }

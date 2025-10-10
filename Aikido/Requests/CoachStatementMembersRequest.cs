@@ -1,4 +1,4 @@
-﻿using Aikido.Dto;
+﻿using Aikido.Dto.Seminars;
 using System.Text.Json;
 
 namespace Aikido.Requests
@@ -7,7 +7,7 @@ namespace Aikido.Requests
     {
         public IFormFile MembersListJson { get; set; }
 
-        public async Task<List<CoachStatementMemberDto>> Parse()
+        public async Task<List<SeminarMemberDto>> Parse()
         {
             using var reader = new StreamReader(MembersListJson.OpenReadStream());
             var jsonString = await reader.ReadToEndAsync();
@@ -18,7 +18,7 @@ namespace Aikido.Requests
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             };
 
-            var members = JsonSerializer.Deserialize<List<CoachStatementMemberDto>>(jsonString, options);
+            var members = JsonSerializer.Deserialize<List<SeminarMemberDto>>(jsonString, options);
 
             if (members == null || !members.Any())
                 throw new Exception("Не удалось десериализовать JSON или список пуст.");

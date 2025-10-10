@@ -9,18 +9,6 @@ namespace Aikido.Requests
 
         public async Task<ClubDto> Parse()
         {
-            //using var reader = new StreamReader(ClubDataJson.OpenReadStream());
-            //var jsonString = await reader.ReadToEndAsync();
-
-            //var options = new JsonSerializerOptions
-            //{
-            //    PropertyNameCaseInsensitive = true
-            //};
-
-            //var userData = JsonSerializer.Deserialize<ClubDto>(jsonString, options);
-
-            //if (userData == null)
-            //    throw new Exception("Не удалось десериализовать JSON.");
 
             return await JsonHelper.DeserializeJsonFormFileAsync<ClubDto>(ClubDataJson);
             

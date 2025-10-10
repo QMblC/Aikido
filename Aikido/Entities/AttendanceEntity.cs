@@ -7,29 +7,46 @@ namespace Aikido.Entities
     {
         [Key]
         public long Id { get; set; }
-        public long? UserId { get; set; }
-        public long? GroupId { get; set; }
-        public DateTime? VisitDate { get; set; }
 
-        public async Task UpdateFromJson(AttendanceDto attendanceDto)
+        public long UserId { get; set; }
+        public virtual UserEntity? User { get; set; }
+
+        public long EventId { get; set; }
+        public virtual EventEntity? Event { get; set; }
+
+        public DateTime Date { get; set; }
+        public bool IsPresent { get; set; }
+        public DateTime? CheckInTime { get; set; }
+        public DateTime? CheckOutTime { get; set; }
+        public string? Notes { get; set; }
+        public AttendanceStatus? Status { get; set; }
+
+        public AttendanceEntity() { }
+
+        public AttendanceEntity(AttendanceDto attendanceData)
         {
-            if (attendanceDto.UserId != null)
-            {
-                UserId = attendanceDto.UserId;
-            }
-
-            if (attendanceDto.GroupId != null)
-            {
-                GroupId = attendanceDto.GroupId;
-            }
-
-            if (attendanceDto.VisitDate != null)
-            {
-                VisitDate = DateTime.SpecifyKind(attendanceDto.VisitDate.Value, DateTimeKind.Utc);
-            }
+            UpdateFromJson(attendanceData);
         }
-    
+
+        public void UpdateFromJson(AttendanceDto attendanceData)
+        {
+            UserId = attendanceData.UserId;
+            EventId = attendanceData.EventId;
+            Date = attendanceData.Date;
+            IsPresent = attendanceData.IsPresent;
+            CheckInTime = attendanceData.CheckInTime;
+            CheckOutTime = attendanceData.CheckOutTime;
+            Notes = attendanceData.Notes;
+            if (!string.IsNullOrEmpty(attendanceData.Status))
+                Status = EnumParser.ConvertStringToEnum<AttendanceStatus>(attendanceData.Status);
+        }
     }
 
-
+    public enum AttendanceStatus
+    {
+        Present,
+        Late,
+        Absent,
+        Excused
+    }
 }

@@ -1,22 +1,44 @@
 ﻿using Aikido.Entities;
+using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Dto
 {
-    public class ClubDto
+    public class ClubDto : DtoBase
     {
         public long? Id { get; set; }
-        public string Name { get; set; }
-        public string City { get; set; }
-        public string Address { get; set; }
+        [Required]
+        public string? Name { get; set; } = string.Empty;
+        public string? City { get; set; }
+        public string? Address { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? Email { get; set; }
+        public string? Website { get; set; }
+        public string? Description { get; set; }
+        public long? ManagerId { get; set; }
+        public string? ManagerName { get; set; }
+        public DateTime? FoundedDate { get; set; }
+        public bool? IsActive { get; set; } = true;
+        public int? MemberCount { get; set; }
+        public int? GroupCount { get; set; }
 
         public ClubDto() { }
 
-        public ClubDto(ClubEntity clubEntity)
+        public ClubDto(ClubEntity club)
         {
-            Id = clubEntity.Id;
-            Name = clubEntity.Name;
-            City = clubEntity.City;
-            Address = clubEntity.Address;
+            Id = club.Id;
+            Name = club.Name;
+            City = club.City;
+            Address = club.Address;
+            PhoneNumber = club.PhoneNumber;
+            Email = club.Email;
+            Website = club.Website;
+            Description = club.Description;
+            ManagerId = club.ManagerId;
+            ManagerName = club.Manager?.FullName;
+            FoundedDate = club.FoundedDate;
+            IsActive = club.IsActive;
+            MemberCount = club.UserMemberships?.Count() ?? 0;
+            GroupCount = club.Groups?.Count(g => g.IsActive) ?? 0;
         }
     }
 }
