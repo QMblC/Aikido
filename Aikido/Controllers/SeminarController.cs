@@ -110,6 +110,24 @@ namespace Aikido.Controllers
             }
         }
 
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> DeleteSeminar(long id)
+        {
+            try
+            {
+                await _seminarApplicationService.DeleteSeminarAsync(id);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
         [HttpGet("{seminarId}/regulation")]
         public async Task<IActionResult> DownloadSeminarRegulation(long seminarId)
         {
@@ -152,24 +170,6 @@ namespace Aikido.Controllers
                 return NoContent();
             }
             catch(Exception ex)
-            {
-                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
-            }
-        }
-
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeleteSeminar(long id)
-        {
-            try
-            {
-                await _seminarApplicationService.DeleteSeminarAsync(id);
-                return NoContent();
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { ex.Message });
-            }
-            catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
