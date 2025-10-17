@@ -51,7 +51,7 @@ namespace Aikido.Services.DatabaseServices.User
                     Id = u.Id,
                     LastName = u.LastName,
                     FirstName = u.FirstName,
-                    SecondName = u.SecondName,
+                    MiddleName = u.SecondName,
                     Role = u.Role.ToString(),
                     Grade = u.Grade.ToString(),
                     PhoneNumber = u.PhoneNumber,
@@ -63,7 +63,7 @@ namespace Aikido.Services.DatabaseServices.User
                 })
                 .OrderBy(u => u.LastName)
                 .ThenBy(u => u.FirstName)
-                .ThenBy(u => u.SecondName)
+                .ThenBy(u => u.MiddleName)
                 .ToListAsync();
             return users;
         }

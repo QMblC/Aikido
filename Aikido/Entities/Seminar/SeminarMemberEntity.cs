@@ -20,17 +20,18 @@ namespace Aikido.Entities.Seminar
 
         public SeminarMemberStatus Status { get; set; } = SeminarMemberStatus.None;
         public Grade OldGrade { get; set; }
-        public Grade CertificationGrade { get; set; }
+        public Grade? CertificationGrade { get; set; }
 
         public SeminarMemberEntity() { }
-        public SeminarMemberEntity(long seminarId, SeminarMemberDto seminarMember)
+        public SeminarMemberEntity(long seminarId, UserEntity user, SeminarMemberDto seminarMember)
         {
             SeminarId = seminarId;
             UserId = seminarMember.UserId;
             GroupId = seminarMember.SeminarGroupId;
             Status = EnumParser.ConvertStringToEnum<SeminarMemberStatus>(seminarMember.Status);
-            OldGrade = EnumParser.ConvertStringToEnum<Grade>(seminarMember.OldGrade); 
-            CertificationGrade = EnumParser.ConvertStringToEnum<Grade>(seminarMember.CertificationGrade);
+            OldGrade = user.Grade;
+            CertificationGrade = seminarMember.CertificationGrade != null 
+                ? EnumParser.ConvertStringToEnum<Grade>(seminarMember.CertificationGrade) : null;
         }
     }
 }

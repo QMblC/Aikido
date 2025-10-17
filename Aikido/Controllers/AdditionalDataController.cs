@@ -1,6 +1,9 @@
 ﻿using Aikido.AdditionalData;
+using Aikido.Dto;
 using DocumentFormat.OpenXml.Features;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi.Extensions;
+using System.Runtime.Serialization;
 
 namespace Aikido.Controllers
 {
@@ -169,24 +172,76 @@ namespace Aikido.Controllers
         }
 
         [HttpGet("all")]
-        public IActionResult GetAllEnums()
+        public ActionResult<List<EnumItemDto>> GetAllEnums()
         {
             try
             {
-                var result = new
+                var result = new 
                 {
-                    Roles = Enum.GetValues<Role>().Select(r => new { Value = (int)r, Name = r.ToString() }),
-                    Grades = Enum.GetValues<Grade>().Select(g => new { Value = (int)g, Name = g.ToString() }),
-                    Sex = Enum.GetValues<Sex>().Select(s => new { Value = (int)s, Name = s.ToString() }),
-                    Education = Enum.GetValues<Education>().Select(e => new { Value = (int)e, Name = e.ToString() }),
-                    ProgramTypes = Enum.GetValues<ProgramType>().Select(p => new { Value = (int)p, Name = p.ToString() }),
-                    AgeGroups = Enum.GetValues<AgeGroup>().Select(a => new { Value = (int)a, Name = a.ToString() }),
-                    PaymentTypes = Enum.GetValues<PaymentType>().Select(p => new { Value = (int)p, Name = p.ToString() }),
-                    EventTypes = Enum.GetValues<EventType>().Select(e => new { Value = (int)e, Name = e.ToString() }),
-                    SeminarMemberStatuses = Enum.GetValues<SeminarMemberStatus>().Select(s => new { Value = (int)s, Name = s.ToString() }),
-                    ExclusionDateTypes = Enum.GetValues<ExclusiveDateType>().Select(t => new { Value = (int)t, Name = t.ToString() })
+                    Roles = Enum.GetValues<Role>().Select(r =>
+                        new EnumItemDto(
+                            r.ToString(),
+                            r.GetAttributeOfType<EnumMemberAttribute>()?.Value ?? r.ToString()
+                        )
+    ),
+                    Grades = Enum.GetValues<Grade>().Select(g =>
+                        new EnumItemDto(
+                            ((int)g).ToString(),
+                            g.GetAttributeOfType<EnumMemberAttribute>()?.Value ?? g.ToString()
+                        )
+    ),
+                    Sex = Enum.GetValues<Sex>().Select(s =>
+                        new EnumItemDto(
+                            ((int)s).ToString(),
+                            s.GetAttributeOfType<EnumMemberAttribute>()?.Value ?? s.ToString()
+                        )
+    ),
+                    Education = Enum.GetValues<Education>().Select(e =>
+                        new EnumItemDto(
+                            ((int)e).ToString(),
+                            e.GetAttributeOfType<EnumMemberAttribute>()?.Value ?? e.ToString()
+                        )
+    ),
+                    ProgramTypes = Enum.GetValues<ProgramType>().Select(p =>
+                        new EnumItemDto(
+                            ((int)p).ToString(),
+                            p.GetAttributeOfType<EnumMemberAttribute>()?.Value ?? p.ToString()
+                        )
+    ),
+                    AgeGroups = Enum.GetValues<AgeGroup>().Select(a =>
+                        new EnumItemDto(
+                            ((int)a).ToString(),
+                            a.GetAttributeOfType<EnumMemberAttribute>()?.Value ?? a.ToString()
+                        )
+    ),
+                    PaymentTypes = Enum.GetValues<PaymentType>().Select(p =>
+                        new EnumItemDto(
+                            ((int)p).ToString(),
+                            p.GetAttributeOfType<EnumMemberAttribute>()?.Value ?? p.ToString()
+                        )
+    ),
+                    EventTypes = Enum.GetValues<EventType>().Select(e =>
+                        new EnumItemDto(
+                            ((int)e).ToString(),
+                            e.GetAttributeOfType<EnumMemberAttribute>()?.Value ?? e.ToString()
+                        )
+    ),
+                    SeminarMemberStatuses = Enum.GetValues<SeminarMemberStatus>().Select(s =>
+                        new EnumItemDto(
+                            ((int)s).ToString(),
+                            s.GetAttributeOfType<EnumMemberAttribute>()?.Value ?? s.ToString()
+                        )
+    ),
+                    ExclusionDateTypes = Enum.GetValues<ExclusiveDateType>().Select(t =>
+                        new EnumItemDto(
+                            ((int)t).ToString(),
+                            t.GetAttributeOfType<EnumMemberAttribute>()?.Value ?? t.ToString()
+                        )
+    )
                 };
+
                 return Ok(result);
+
             }
             catch (Exception ex)
             {

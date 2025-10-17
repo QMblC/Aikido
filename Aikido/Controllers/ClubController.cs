@@ -18,7 +18,7 @@ namespace Aikido.Controllers
         }
 
         [HttpGet("get/{id}")]
-        public async Task<IActionResult> GetClubById(long id)
+        public async Task<ActionResult<ClubDto>> GetClubById(long id)
         {
             try
             {
@@ -36,7 +36,7 @@ namespace Aikido.Controllers
         }
 
         [HttpGet("get/details/{id}")]
-        public async Task<IActionResult> GetClubDetails(long id)
+        public async Task<ActionResult<ClubDetailsDto>> GetClubDetails(long id)
         {
             try
             {
@@ -54,7 +54,7 @@ namespace Aikido.Controllers
         }
 
         [HttpGet("get/all")]
-        public async Task<IActionResult> GetAllClubs()
+        public async Task<ActionResult<List<ClubDto>>> GetAllClubs()
         {
             try
             {
@@ -68,7 +68,7 @@ namespace Aikido.Controllers
         }
 
         [HttpGet("get/{clubId}/staff")]
-        public async Task<IActionResult> GetClubStaff(long clubId)
+        public async Task<ActionResult<UserShortDto>> GetClubStaff(long clubId)
         {
             try
             {
@@ -82,7 +82,7 @@ namespace Aikido.Controllers
         }
 
         [HttpGet("get/{clubId}/members")]
-        public async Task<IActionResult> GetClubMembers(long clubId)
+        public async Task<ActionResult<UserShortDto>> GetClubMembers(long clubId)
         {
             try
             {

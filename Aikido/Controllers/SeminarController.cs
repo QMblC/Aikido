@@ -174,5 +174,19 @@ namespace Aikido.Controllers
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
         }
+
+        [HttpPost("{seminarId}/members")]
+        public async Task<IActionResult> CreateSeminarMembers(long seminarId, List<SeminarMemberDto> members)
+        {
+            try
+            {
+                await _seminarApplicationService.AddSeminarMembersAsync(seminarId, members);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
     }
 }

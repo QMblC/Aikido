@@ -66,8 +66,8 @@ namespace Aikido.Entities
                 LastName = userNewData.LastName;
             if (!string.IsNullOrEmpty(userNewData.FirstName))
                 FirstName = userNewData.FirstName;
-            if (!string.IsNullOrEmpty(userNewData.SecondName))
-                SecondName = userNewData.SecondName;
+            if (!string.IsNullOrEmpty(userNewData.MiddleName))
+                SecondName = userNewData.MiddleName;
             if (!string.IsNullOrEmpty(userNewData.Photo))
             {
                 try

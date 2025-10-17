@@ -8,7 +8,7 @@ namespace Aikido.Dto
         public long? Id { get; set; }
         public string LastName { get; set; }
         public string FirstName { get; set; }
-        public string? SecondName { get; set; }
+        public string? MiddleName { get; set; }
         public List<string>? ClubNames { get; set; }
         public List<string>? GroupNames { get; set; }
         public string? Role { get; set; }
@@ -16,7 +16,7 @@ namespace Aikido.Dto
         public string? PhoneNumber { get; set; }
         public string? City { get; set; }
 
-        public string FullName => $"{LastName} {FirstName} {SecondName}";
+        public string FullName => $"{LastName} {FirstName} {MiddleName}";
 
         public UserShortDto() { }
 
@@ -25,7 +25,7 @@ namespace Aikido.Dto
             Id = user.Id;
             LastName = user.LastName;
             FirstName = user.FirstName;
-            SecondName = user.SecondName;
+            MiddleName = user.SecondName;
             Role = user.Role.ToString();
             Grade = user.Grade.ToString();
             PhoneNumber = user.PhoneNumber;
