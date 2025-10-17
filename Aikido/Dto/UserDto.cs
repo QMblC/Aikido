@@ -14,9 +14,9 @@ namespace Aikido.Dto
 
         public string LastName { get; set; }
         public string FirstName { get; set; }
-        public string? SecondName { get; set; }
+        public string? MiddleName { get; set; }
 
-        public string FullName => $"{LastName} {FirstName} {SecondName}";
+        public string FullName => $"{LastName} {FirstName} {MiddleName}";
         public string? Sex { get; set; }
         public string? Photo { get; set; }
         public string? PhoneNumber { get; set; }
@@ -46,7 +46,7 @@ namespace Aikido.Dto
             Password = user.Password;
             LastName = user.LastName;
             FirstName = user.FirstName;
-            SecondName = user.SecondName;
+            MiddleName = user.SecondName;
             Sex = user.Sex.ToString();
             Photo = user.Photo?.Length > 0 ? Convert.ToBase64String(user.Photo) : null;
             PhoneNumber = user.PhoneNumber;

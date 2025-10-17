@@ -24,7 +24,7 @@ namespace Aikido.Controllers
         }
 
         [HttpGet("get/{id}")]
-        public async Task<IActionResult> GetUserDataById(long id)
+        public async Task<ActionResult<UserDto>> GetUserDataById(long id)
         {
             try
             {
@@ -42,7 +42,7 @@ namespace Aikido.Controllers
         }
 
         [HttpGet("get/short-list")]
-        public async Task<IActionResult> GetUserShortList()
+        public async Task<ActionResult<List<UserDto>>> GetUserShortList()
         {
             try
             {
@@ -56,7 +56,7 @@ namespace Aikido.Controllers
         }
 
         [HttpGet("find")]
-        public async Task<IActionResult> FindUsers([FromQuery] UserFilter filter)
+        public async Task<ActionResult<UserShortDto>> FindUsers([FromQuery] UserFilter filter)
         {
             try
             {
@@ -70,7 +70,7 @@ namespace Aikido.Controllers
         }
 
         [HttpGet("get/short-list-cut-data/{startIndex}/{finishIndex}")]
-        public async Task<IActionResult> GetUserShortListCutData(
+        public async Task<ActionResult<UsersDataDto>> GetUserShortListCutData(
             int startIndex,
             int finishIndex,
             [FromQuery] UserFilter filter)
@@ -87,15 +87,14 @@ namespace Aikido.Controllers
         }
 
         [HttpGet("get/{userId}/clubs")]
-        public async Task<IActionResult> GetUserClubs(long userId)
+        public async Task<ActionResult<List<UserMembershipDto>>> GetUserMembership(long userId)//Fix 
         {
             try
             {
                 var memberships = await _userApplicationService.GetUserMembershipsAsync(userId);
-                var clubs = memberships
-                    .Select(c => c.ClubName)
-                    .Distinct();
-                return Ok(clubs);
+                return Ok(memberships
+                    .Distinct()
+                    .ToList());
             }
             catch (Exception ex)
             {
@@ -103,19 +102,6 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpGet("get/{userId}/groups")]
-        public async Task<IActionResult> GetUserGroups(long userId)
-        {
-            try
-            {
-                var groups = await _userApplicationService.GetUserMembershipsAsync(userId);
-                return Ok(groups);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Ошибка при получении групп пользователя", Details = ex.Message });
-            }
-        }
 
         [HttpPost("{userId}/clubs/{clubId}/groups/{groupId}")]
         public async Task<IActionResult> AddUserMembership(long userId, long clubId, long groupId, [FromBody] string roleInGroup = "User")
@@ -288,10 +274,5 @@ namespace Aikido.Controllers
                 return StatusCode(500, new { Message = "Ошибка при создании шаблона.", Details = ex.Message });
             }
         }
-    }
-
-    public class AddUserMembershipRequest
-    {
-        public string? RoleInGroup { get; set; } = "Student";
     }
 }

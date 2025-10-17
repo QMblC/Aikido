@@ -4,7 +4,6 @@ namespace Aikido.Dto.Seminars
 {
     public class SeminarMemberDto : DtoBase
     {
-        public long Id { get; set; }
         public long UserId { get; set; }
         public string? UserFullName { get; set; } = string.Empty;
 

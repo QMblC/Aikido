@@ -17,7 +17,7 @@ namespace Aikido.Controllers
         }
 
         [HttpGet("get/{id}")]
-        public async Task<IActionResult> GetGroupById(long id)
+        public async Task<ActionResult<GroupDto>> GetGroupById(long id)
         {
             try
             {
@@ -34,7 +34,7 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpGet("get/info/{id}")]
+        //[HttpGet("get/info/{id}")]
         public async Task<IActionResult> GetGroupInfo(long id)
         {
             try
@@ -53,7 +53,7 @@ namespace Aikido.Controllers
         }
 
         [HttpGet("get/all")]
-        public async Task<IActionResult> GetAllGroups()
+        public async Task<ActionResult<List<GroupDto>>> GetAllGroups()
         {
             try
             {
@@ -67,7 +67,7 @@ namespace Aikido.Controllers
         }
 
         [HttpGet("get/by-user/{userId}")]
-        public async Task<IActionResult> GetGroupsByUser(long userId)
+        public async Task<ActionResult<List<GroupDto>>> GetGroupsByUser(long userId)
         {
             try
             {
@@ -81,7 +81,7 @@ namespace Aikido.Controllers
         }
 
         [HttpGet("get/{groupId}/members")]
-        public async Task<IActionResult> GetGroupMembers(long groupId)
+        public async Task<ActionResult<List<UserShortDto>>> GetGroupMembers(long groupId)
         {
             try
             {

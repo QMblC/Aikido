@@ -1,5 +1,6 @@
 ﻿using Aikido.Data;
 using Aikido.Dto.Seminars;
+using Aikido.Entities;
 using Aikido.Entities.Seminar;
 using Aikido.Exceptions;
 using Microsoft.EntityFrameworkCore;
@@ -55,7 +56,9 @@ namespace Aikido.Services.DatabaseServices.Seminar
                 .Include(sm => sm.Seminar)
                 .Include(sm => sm.Group)
                 .Where(sm => sm.SeminarId == seminarId)
-                .OrderBy(sm => sm.User!.FullName)
+                .OrderBy(sm => sm.User!.LastName)
+                .ThenBy(sm => sm.User!.FirstName)
+                .ThenBy(sm => sm.User!.SecondName)
                 .ToListAsync();
         }
 
@@ -82,22 +85,30 @@ namespace Aikido.Services.DatabaseServices.Seminar
             await _context.SaveChangesAsync();
         }
 
-        public async Task AddSeminarMembersAsync(long seminarId, List<SeminarMemberDto> membersDto)
+        public async Task AddSeminarMembersAsync(long seminarId, List<SeminarMemberDto> membersDto)//UnitOfWork
         {
             foreach (var memberDto in membersDto)
             {
+                var user = _context.Users.Find(memberDto.UserId);
+                if (user == null)
+                {
+                    throw new EntityNotFoundException(nameof(UserEntity));
+                }
+
                 var exists = await _context.SeminarMembers
                     .AnyAsync(sm => sm.SeminarId == seminarId && sm.UserId == memberDto.UserId);
 
                 if (!exists)
                 {
-                    var member = new SeminarMemberEntity(seminarId, memberDto);
+                    
+
+                    var member = new SeminarMemberEntity(seminarId, user, memberDto);
                     _context.SeminarMembers.Add(member);
                     await _context.SaveChangesAsync();
                 }
                 else
                 {
-                    throw new Exception("Seminar member already exists");
+                    throw new Exception("Участник семинара уже добавлен");
                 }
             }
         }

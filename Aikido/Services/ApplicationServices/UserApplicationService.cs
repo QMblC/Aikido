@@ -49,12 +49,12 @@ namespace Aikido.Application.Services
                     Id = user.Id.Value,
                     LastName = user.LastName,
                     FirstName = user.FirstName,
-                    SecondName = user.LastName,
+                    MiddleName = user.LastName,
                 })
                 .ToList();
         }
 
-        public async Task<object> GetUserShortListCutDataAsync(int startIndex, int finishIndex, UserFilter filter)
+        public async Task<UsersDataDto> GetUserShortListCutDataAsync(int startIndex, int finishIndex, UserFilter filter)
         {
             var pagedResult = await _userDbService.GetUserListAlphabetAscending(startIndex, finishIndex, filter);
             var users = pagedResult.Users;
@@ -65,7 +65,7 @@ namespace Aikido.Application.Services
                 user.UserMembershipDtos = userMemberships.Select(um => new UserMembershipDto(um)).ToList();
             }
 
-            return new
+            return new UsersDataDto
             {
                 TotalCount = pagedResult.TotalCount,
                 Users = users
@@ -183,12 +183,10 @@ namespace Aikido.Application.Services
             await _userDbService.RemoveUserMembershipAsync(userId, groupId);
         }
 
-        public async Task<List<GroupDto>> GetUserMembershipsAsync(long userId)
+        public async Task<List<UserMembershipDto>> GetUserMembershipsAsync(long userId)
         {
             var userGroups = await _userDbService.GetUserMembershipsAsync(userId);
-            return userGroups.Where(um => um.Group != null)
-                            .Select(ug => new GroupDto(ug.Group!))
-                            .ToList();
+            return userGroups.Select(um => new UserMembershipDto(um)).ToList();
         }
     }
 }
