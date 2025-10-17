@@ -34,7 +34,7 @@ namespace Aikido.Controllers
             }
         }
 
-        //[HttpGet("get/info/{id}")]
+        [HttpGet("get/info/{id}")]
         public async Task<IActionResult> GetGroupInfo(long id)
         {
             try
