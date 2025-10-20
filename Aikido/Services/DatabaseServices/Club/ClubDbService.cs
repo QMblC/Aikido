@@ -84,7 +84,7 @@ namespace Aikido.Services.DatabaseServices.Club
                 .Where(um => um.ClubId == clubId && um.User != null)
                 .OrderBy(um => um.User.LastName)
                 .ThenBy(um => um.User.FirstName)
-                .ThenBy(um => um.User.SecondName)
+                .ThenBy(um => um.User.MiddleName)
                 .ToListAsync();
         }
 

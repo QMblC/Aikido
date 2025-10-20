@@ -1,5 +1,6 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Dto;
+using Aikido.Entities.Seminar;
 using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -15,16 +16,15 @@ namespace Aikido.Entities
         public string? Password { get; set; }
         public string LastName { get; set; }
         public string FirstName { get; set; }
-        public string? SecondName { get; set; }
+        public string? MiddleName { get; set; }
 
         public Sex Sex { get; set; }
         public byte[] Photo { get; set; } = [];
         public string? PhoneNumber { get; set; }
         public DateTime? Birthday { get; set; }
         public Grade Grade { get; set; } = Grade.None;
-        public ProgramType ProgramType { get; set; } = ProgramType.None;
         public Education Education { get; set; } = Education.None;
-        public List<DateTime> CertificationDates { get; private set; } = [];
+        
         public bool HasBudoPassport { get; set; } = false;
         public List<DateTime> PaymentDates { get; set; } = [];
 
@@ -32,12 +32,19 @@ namespace Aikido.Entities
 
         public string? ParentFullName { get; set; }
         public string? ParentPhoneNumber { get; set; }
+
         public DateTime? RegistrationDate { get; set; }
 
+        public long? CreatorId { get; set; }
+        public virtual UserEntity Creator { get; set; }
+        public virtual DateTime? CreationDate { get; set; }
+
+
+        public virtual ICollection<SeminarMemberEntity> Certifications { get; set; } = new List<SeminarMemberEntity>();
         public virtual ICollection<UserMembershipEntity> UserMemberships { get; set; } = new List<UserMembershipEntity>();
 
         [NotMapped]
-        public string FullName => $"{LastName} {FirstName} {SecondName}";
+        public string FullName => $"{LastName} {FirstName} {MiddleName}";
 
         public UserEntity() { }
 
@@ -46,12 +53,17 @@ namespace Aikido.Entities
             Role = EnumParser.ConvertStringToEnum<Role>(role);
             LastName = lastName;
             FirstName = firstName;
-            SecondName = secondName;
+            MiddleName = secondName;
         }
 
         public UserEntity(UserDto userNewData)
         {
             UpdateFromJson(userNewData);
+            CreationDate = DateTime.UtcNow;
+            if (userNewData.RegistrationDate == null)
+            {
+                RegistrationDate = DateTime.UtcNow;
+            }
         }
 
         public void UpdateFromJson(UserDto userNewData)
@@ -67,53 +79,34 @@ namespace Aikido.Entities
             if (!string.IsNullOrEmpty(userNewData.FirstName))
                 FirstName = userNewData.FirstName;
             if (!string.IsNullOrEmpty(userNewData.MiddleName))
-                SecondName = userNewData.MiddleName;
-            if (!string.IsNullOrEmpty(userNewData.Photo))
+                MiddleName = userNewData.MiddleName;
+            if (userNewData.Photo != null)
             {
-                try
-                {
-                    Photo = Convert.FromBase64String(userNewData.Photo);
-                }
-                catch (FormatException)
-                {
-                    Photo = [];
-                }
+                Photo = userNewData.Photo;
             }
             else
             {
                 Photo = [];
             }
             PhoneNumber = userNewData.PhoneNumber;
-            ProgramType = EnumParser.ConvertStringToEnum<ProgramType>(userNewData.ProgramType);
             if (userNewData.Birthday != null)
                 Birthday = DateTime.SpecifyKind(userNewData.Birthday.Value, DateTimeKind.Utc);
             else
                 Birthday = null;
             City = userNewData.City;
             Grade = EnumParser.ConvertStringToEnum<Grade>(userNewData.Grade);
-            if (userNewData.CertificationDates != null)
-                CertificationDates = userNewData.CertificationDates;
-            else
-                CertificationDates = [];
+
             if (userNewData.Sex != null)
                 Sex = EnumParser.ConvertStringToEnum<Sex>(userNewData.Sex);
             Education = EnumParser.ConvertStringToEnum<Education>(userNewData.Education);
             ParentFullName = userNewData.ParentFullName;
             ParentPhoneNumber = userNewData.ParentPhoneNumber;
+
             if (userNewData.RegistrationDate != null)
                 RegistrationDate = DateTime.SpecifyKind(userNewData.RegistrationDate.Value, DateTimeKind.Utc);
             else
                 RegistrationDate = null;
-        }
 
-        public void AddCertificationDate(DateTime date)
-        {
-            CertificationDates.Add(date);
-        }
-
-        public void RemoveCertificationDate(DateTime date)
-        {
-            CertificationDates.Remove(date);
         }
     }
 }

@@ -29,6 +29,8 @@ namespace Aikido.Data
         public DbSet<SeminarCoachStatementEntity> SeminarCoachStatements { get; set; }
         public DbSet<SeminarScheduleEntity> SeminarSchedule { get; set; }
 
+        public DbSet<UserChangeRequestEntity> UserChangeRequests { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -38,7 +40,7 @@ namespace Aikido.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.LastName).HasMaxLength(100);
                 entity.Property(e => e.FirstName).HasMaxLength(100);
-                entity.Property(e => e.SecondName).HasMaxLength(100);
+                entity.Property(e => e.MiddleName).HasMaxLength(100);
                 entity.Property(e => e.Login).HasMaxLength(50);
                 entity.Property(e => e.Password).HasMaxLength(100);
                 entity.Property(e => e.PhoneNumber).HasMaxLength(20);
@@ -46,20 +48,33 @@ namespace Aikido.Data
                 entity.Property(e => e.ParentFullName).HasMaxLength(200);
                 entity.Property(e => e.ParentPhoneNumber).HasMaxLength(20);
 
-                entity.Property(e => e.CertificationDates)
-                    .HasConversion(
-                        v => string.Join(';', v.Select(d => d.ToString("O"))),
-                        v => v.Split(';', StringSplitOptions.RemoveEmptyEntries)
-                              .Select(DateTime.Parse).ToList());
+                entity.HasOne(e => e.Creator)
+                    .WithMany()
+                    .HasForeignKey(e => e.CreatorId);
 
-                entity.Property(e => e.PaymentDates)
-                    .HasConversion(
-                        v => string.Join(';', v.Select(d => d.ToString("O"))),
-                        v => v.Split(';', StringSplitOptions.RemoveEmptyEntries)
-                              .Select(DateTime.Parse).ToList());
+                entity.HasMany(e => e.Certifications)
+                    .WithOne(sm => sm.User);
 
                 entity.HasIndex(e => e.Login).IsUnique();
                 entity.HasIndex(e => e.PhoneNumber);
+            });
+
+            modelBuilder.Entity<UserChangeRequestEntity>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.HasOne(r => r.RequestedBy)
+                    .WithMany()
+                    .HasForeignKey(r => r.RequestedById)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(r => r.TargetUser)
+                    .WithMany()
+                    .HasForeignKey(r => r.TargetUserId)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasIndex(e => e.Status);
+                entity.HasIndex(e => e.CreatedAt);
             });
 
             modelBuilder.Entity<UserMembershipEntity>(entity =>

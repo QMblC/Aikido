@@ -17,7 +17,6 @@ namespace Aikido.Entities.Filters
         public bool? HasBudoPassport { get; set; }
         public string? PhoneNumber { get; set; }
         public string? Education { get; set; }
-        public string? ProgramType { get; set; }
 
         public IQueryable<UserEntity> ApplyTo(IQueryable<UserEntity> query)
         {
@@ -74,12 +73,6 @@ namespace Aikido.Entities.Filters
             {
                 var enumEducation = EnumParser.ConvertStringToEnum<Education>(Education);
                 query = query.Where(u => u.Education == enumEducation);
-            }
-
-            if (!string.IsNullOrWhiteSpace(ProgramType))
-            {
-                var enumProgramType = EnumParser.ConvertStringToEnum<ProgramType>(ProgramType);
-                query = query.Where(u => u.ProgramType == enumProgramType);
             }
 
             return query;

@@ -65,6 +65,8 @@ builder.Services.AddScoped<EventApplicationService>();
 builder.Services.AddScoped<AttendanceApplicationService>();
 builder.Services.AddScoped<PaymentApplicationService>();
 builder.Services.AddScoped<ScheduleApplicationService>();
+builder.Services.AddScoped<UserChangeRequestDbService>();
+
 
 
 builder.Services.AddControllers()
