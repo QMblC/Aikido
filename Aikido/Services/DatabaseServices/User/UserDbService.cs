@@ -42,31 +42,16 @@ namespace Aikido.Services.DatabaseServices.User
         public async Task<List<UserShortDto>> GetUserIdAndNamesAsync()
         {
             var users = await _context.Users
-                .Include(u => u.UserMemberships)
-                    .ThenInclude(um => um.Club)
-                .Include(u => u.UserMemberships)
-                    .ThenInclude(um => um.Group)
-                .Select(u => new UserShortDto
-                {
-                    Id = u.Id,
-                    LastName = u.LastName,
-                    FirstName = u.FirstName,
-                    MiddleName = u.SecondName,
-                    Role = u.Role.ToString(),
-                    Grade = u.Grade.ToString(),
-                    PhoneNumber = u.PhoneNumber,
-                    City = u.City,
-                    ClubNames = u.UserMemberships.Where(um => um.Club != null)
-                                          .Select(um => um.Club!.Name).ToList(),
-                    GroupNames = u.UserMemberships.Where(um => um.Group != null)
-                                            .Select(um => um.Group!.Name).ToList()
-                })
-                .OrderBy(u => u.LastName)
-                .ThenBy(u => u.FirstName)
-                .ThenBy(u => u.MiddleName)
-                .ToListAsync();
+            .Include(u => u.UserMemberships)
+                .ThenInclude(um => um.Club)
+            .Include(u => u.UserMemberships)
+                .ThenInclude(um => um.Group)
+            .Select(u => new UserShortDto(u))
+            .ToListAsync();
+
             return users;
         }
+
 
         public async Task<(List<UserDto> Users, int TotalCount)> GetUserListAlphabetAscending(int startIndex, int finishIndex, UserFilter filter)
         {
@@ -83,7 +68,7 @@ namespace Aikido.Services.DatabaseServices.User
                 query = query.Where(u =>
                     (u.LastName != null && u.LastName.ToLower().Contains(nameLower)) ||
                     (u.FirstName != null && u.FirstName.ToLower().Contains(nameLower)) ||
-                    (u.SecondName != null && u.SecondName.ToLower().Contains(nameLower))
+                    (u.MiddleName != null && u.MiddleName.ToLower().Contains(nameLower))
                 );
             }
 
@@ -120,7 +105,7 @@ namespace Aikido.Services.DatabaseServices.User
             var users = await query
                 .OrderBy(u => u.LastName)
                 .ThenBy(u => u.FirstName)
-                .ThenBy(u => u.SecondName)
+                .ThenBy(u => u.MiddleName)
                 .Skip(startIndex)
                 .Take(finishIndex - startIndex)
                 .ToListAsync();

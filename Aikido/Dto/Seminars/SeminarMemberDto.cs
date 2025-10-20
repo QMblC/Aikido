@@ -9,6 +9,7 @@ namespace Aikido.Dto.Seminars
 
         public long? SeminarId { get; set; }
         public string? SeminarName { get; set; } = string.Empty;
+        public DateTime? SeminarDate { get; set; }
 
         public long? SeminarGroupId { get; set; }
         public string? SeminarGroupName { get; set; }
@@ -17,6 +18,8 @@ namespace Aikido.Dto.Seminars
         public string? CertificationGrade { get; set; } = string.Empty;
 
         public string Status { get; set; } = string.Empty;
+
+        
 
         public SeminarMemberDto() { }
 
@@ -28,6 +31,7 @@ namespace Aikido.Dto.Seminars
 
             SeminarId = seminarMember.SeminarId;
             SeminarName = seminarMember.Seminar?.Name ?? string.Empty;
+            SeminarDate = seminarMember.Seminar?.Date;
 
             SeminarGroupId = seminarMember.GroupId;
             SeminarGroupName = seminarMember.Group?.Name;

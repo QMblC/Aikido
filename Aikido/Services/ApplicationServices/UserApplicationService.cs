@@ -45,12 +45,7 @@ namespace Aikido.Application.Services
         {
             var result = await _userDbService.GetUserListAlphabetAscending(0, 100, filter);
             return result.Users
-                .Select(user => new UserShortDto { 
-                    Id = user.Id.Value,
-                    LastName = user.LastName,
-                    FirstName = user.FirstName,
-                    MiddleName = user.LastName,
-                })
+                .Select(user => new UserShortDto(user))
                 .ToList();
         }
 
@@ -76,7 +71,7 @@ namespace Aikido.Application.Services
         {
             var userId = await _userDbService.CreateUser(userData);
 
-            if (userData.UserMembershipIds != null && userData.UserMembershipIds.Any())
+            if (userData.UserMembershipDtos != null && userData.UserMembershipDtos.Any())
             {
                 foreach (var userMembership in userData.UserMembershipDtos)
                 {

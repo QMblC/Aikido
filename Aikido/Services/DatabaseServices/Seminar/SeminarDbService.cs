@@ -58,7 +58,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
                 .Where(sm => sm.SeminarId == seminarId)
                 .OrderBy(sm => sm.User!.LastName)
                 .ThenBy(sm => sm.User!.FirstName)
-                .ThenBy(sm => sm.User!.SecondName)
+                .ThenBy(sm => sm.User!.MiddleName)
                 .ToListAsync();
         }
 

@@ -117,7 +117,7 @@ namespace Aikido.Services.DatabaseServices.Group
                     && um.RoleInGroup == role)
                 .OrderBy(um => um.User!.LastName)
                 .ThenBy(um => um.User!.FirstName)
-                .ThenBy(um => um.User!.SecondName)
+                .ThenBy(um => um.User!.MiddleName)
                 .ToListAsync();
         }
 
