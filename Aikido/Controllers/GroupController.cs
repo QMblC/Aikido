@@ -1,4 +1,5 @@
-﻿using Aikido.Application.Services;
+﻿using Aikido.AdditionalData;
+using Aikido.Application.Services;
 using Aikido.Dto;
 using Aikido.Requests;
 using Microsoft.AspNetCore.Mvc;
@@ -95,11 +96,18 @@ namespace Aikido.Controllers
         }
 
         [HttpPost("{groupId}/members/{userId}")]
-        public async Task<IActionResult> AddUserToGroup(long groupId, long userId)
+        public async Task<IActionResult> AddUserToGroup(long groupId, long userId, [FromQuery] string roleInGroup)
         {
             try
             {
-                await _groupApplicationService.AddUserToGroupAsync(groupId, userId);
+                var role = EnumParser.ConvertStringToEnum<Role>(roleInGroup);
+
+                if (role != Role.User && role != Role.Coach)
+                {
+                    return StatusCode(400, new { Message = $"Некорректная роль для группы. Должно быть - User/Coach. Получено - {role.ToString()}" });
+                }
+
+                await _groupApplicationService.AddUserToGroupAsync(groupId, userId, role);
                 return Ok(new { Message = "Пользователь успешно добавлен в группу" });
             }
             catch (ArgumentException ex)

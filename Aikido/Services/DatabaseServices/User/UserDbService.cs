@@ -52,7 +52,6 @@ namespace Aikido.Services.DatabaseServices.User
             return users;
         }
 
-
         public async Task<(List<UserDto> Users, int TotalCount)> GetUserListAlphabetAscending(int startIndex, int finishIndex, UserFilter filter)
         {
             var query = _context.Users
