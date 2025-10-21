@@ -13,8 +13,8 @@ namespace Aikido.Dto
         public string? Email { get; set; }
         public string? Website { get; set; }
         public string? Description { get; set; }
-        public long? HeadCoachId { get; set; }
-        public string? HeadCoachName { get; set; }
+        public long? ManagerId { get; set; }
+        public string? ManagerName { get; set; }
         public DateTime? FoundedDate { get; set; }
         public bool? IsActive { get; set; }
         public List<GroupDto>? Groups { get; set; } = new();
@@ -33,8 +33,8 @@ namespace Aikido.Dto
             Email = club.Email;
             Website = club.Website;
             Description = club.Description;
-            HeadCoachId = club.ManagerId;
-            HeadCoachName = club.Manager?.FullName;
+            ManagerId = club.ManagerId;
+            ManagerName = club.Manager?.FullName;
             FoundedDate = club.FoundedDate;
             IsActive = club.IsActive;
         }
