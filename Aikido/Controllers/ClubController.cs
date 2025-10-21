@@ -67,6 +67,7 @@ namespace Aikido.Controllers
             }
         }
 
+
         [HttpGet("get/{clubId}/staff")]
         public async Task<ActionResult<UserShortDto>> GetClubStaff(long clubId)
         {
@@ -92,6 +93,20 @@ namespace Aikido.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Ошибка при получении участников клуба", Details = ex.Message });
+            }
+        }
+
+        [HttpGet("get/{clubId}/groups")]
+        public async Task<ActionResult<List<GroupDto>>> GetClubGroups(long clubId)
+        {
+            try
+            {
+                var groups = await _clubApplicationService.GetClubGroups(clubId);
+                return Ok(groups);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при получении групп клуба", Details = ex.Message });
             }
         }
 
