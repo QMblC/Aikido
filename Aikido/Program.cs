@@ -74,7 +74,7 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.Never;
         options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowReadingFromString;
         options.JsonSerializerOptions.MaxDepth = 32;
     });
