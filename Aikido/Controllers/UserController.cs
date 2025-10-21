@@ -42,7 +42,7 @@ namespace Aikido.Controllers
         }
 
         [HttpGet("get/short-list")]
-        public async Task<ActionResult<List<UserDto>>> GetUserShortList()
+        public async Task<ActionResult<List<UserShortDto>>> GetUserShortList()
         {
             try
             {
