@@ -69,7 +69,7 @@ namespace Aikido.Controllers
 
 
         [HttpGet("get/{clubId}/staff")]
-        public async Task<ActionResult<UserShortDto>> GetClubStaff(long clubId)
+        public async Task<ActionResult<List<UserShortDto>>> GetClubStaff(long clubId)
         {
             try
             {
