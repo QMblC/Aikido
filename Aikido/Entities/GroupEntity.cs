@@ -39,7 +39,13 @@ namespace Aikido.Entities
         public void UpdateFromJson(GroupCreationDto groupNewData)
         {
             if (groupNewData.CoachId != null)
+            {
                 CoachId = (long)groupNewData.CoachId;
+            }
+            else
+            {
+                UpdadeCoach();
+            }
             if (groupNewData.ClubId != null)
                 ClubId = (long)groupNewData.ClubId;
             if (!string.IsNullOrEmpty(groupNewData.Name))
@@ -47,6 +53,14 @@ namespace Aikido.Entities
             if (!string.IsNullOrEmpty(groupNewData.AgeGroup))
                 AgeGroup = EnumParser.ConvertStringToEnum<AgeGroup>(groupNewData.AgeGroup);        
             UpdatedDate = DateTime.UtcNow;
+        }
+
+        public void UpdadeCoach()
+        {
+            var userMembership = UserMemberships.Where(um => um.RoleInGroup == Role.Coach).FirstOrDefault();
+            var coach = userMembership?.User;
+
+            CoachId = userMembership != null ? coach?.Id : null; 
         }
     }
 }

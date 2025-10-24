@@ -21,7 +21,7 @@ namespace Aikido.Services.DatabaseServices.User
 
         // Новые методы для работы с many-to-many связями
         Task<List<UserMembershipEntity>> GetUserMembershipsAsync(long userId);
-        Task AddUserMembershipAsync(long userId, long groupId, long clubId, Role roleInGroup = Role.User);
+        Task AddUserMembershipAsync(long userId, long clubId, long groupId, Role roleInGroup = Role.User);
         Task RemoveUserMembershipAsync(long userId, long groupId);
         Task RemoveUserMemberships(long userId);
     }

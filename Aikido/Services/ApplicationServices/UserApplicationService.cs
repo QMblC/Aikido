@@ -160,7 +160,7 @@ namespace Aikido.Application.Services
                 throw new EntityNotFoundException($"Группы с Id = {groupId} не существует");
             }
 
-            await _userDbService.AddUserMembershipAsync(userId, groupId, clubId, roleInGroup);
+            await _userDbService.AddUserMembershipAsync(userId, clubId, groupId, roleInGroup);
         }
 
         public async Task RemoveUserMembershipAsync(long userId, long groupId)

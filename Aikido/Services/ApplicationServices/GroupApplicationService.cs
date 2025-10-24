@@ -153,7 +153,7 @@ namespace Aikido.Application.Services
             }
 
 
-            await _userDbService.AddUserMembershipAsync(userId, groupId, clubId, roleInGroup);
+            await _userDbService.AddUserMembershipAsync(userId, clubId, groupId, roleInGroup);
         }
 
         public async Task RemoveUserFromGroupAsync(long groupId, long userId)

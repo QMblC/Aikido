@@ -124,7 +124,7 @@ namespace Aikido.Services.DatabaseServices.Group
 
         public async Task<List<UserMembershipEntity>> GetGroupMembersAsync(long groupId, Role role = Role.User)
         {
-            return await _context.UserMemberships
+            var memberships = await _context.UserMemberships
                 .Include(um => um.User)
                 .Where(um => um.GroupId == groupId
                     && um.RoleInGroup == role)
@@ -132,6 +132,8 @@ namespace Aikido.Services.DatabaseServices.Group
                 .ThenBy(um => um.User!.FirstName)
                 .ThenBy(um => um.User!.MiddleName)
                 .ToListAsync();
+
+            return memberships;
         }
 
         public async Task RemoveAllMembersFromGroupAsync(long groupId)

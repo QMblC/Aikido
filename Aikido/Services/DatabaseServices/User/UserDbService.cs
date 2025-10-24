@@ -171,17 +171,31 @@ namespace Aikido.Services.DatabaseServices.User
                 .ToListAsync();
         }
 
-        public async Task AddUserMembershipAsync(long userId, long groupId, long clubId, Role roleInGroup = Role.User)
+        public async Task AddUserMembershipAsync(long userId, long clubId, long groupId, Role roleInGroup = Role.User)
         {
             var existingMembership = await _context.UserMemberships
                 .FirstOrDefaultAsync(um => um.UserId == userId && um.ClubId == clubId && um.GroupId == groupId);
 
             if (existingMembership == null)
             {
-                var userMembership = new UserMembershipEntity(userId, groupId, clubId, roleInGroup);
-                _context.UserMemberships.Add(userMembership);
-                await _context.SaveChangesAsync();
+                var userMembership = new UserMembershipEntity(userId, clubId, groupId, roleInGroup);
+                _context.UserMemberships.Add(userMembership); 
+                
             }
+            else
+            {
+                existingMembership.RoleInGroup = roleInGroup;
+            }
+
+            await _context.SaveChangesAsync();
+
+            existingMembership = await _context.UserMemberships
+                .FirstOrDefaultAsync(um => um.UserId == userId && um.ClubId == clubId && um.GroupId == groupId);
+
+            existingMembership.Group.UpdadeCoach();
+
+            await _context.SaveChangesAsync();
+
         }
 
         public async Task RemoveUserMembershipAsync(long userId, long groupId)
