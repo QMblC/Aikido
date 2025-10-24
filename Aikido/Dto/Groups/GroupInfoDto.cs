@@ -1,6 +1,7 @@
-﻿using Aikido.Dto.Users;
+﻿using Aikido.Dto.Schedule;
+using Aikido.Dto.Users;
 
-namespace Aikido.Dto
+namespace Aikido.Dto.Groups
 {
     public class GroupInfoDto : DtoBase
     {

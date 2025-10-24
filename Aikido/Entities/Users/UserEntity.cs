@@ -1,5 +1,6 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Dto.Users;
+using Aikido.Dto.Users.Creation;
 using Aikido.Entities.Seminar;
 using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;
@@ -56,7 +57,7 @@ namespace Aikido.Entities
             MiddleName = secondName;
         }
 
-        public UserEntity(UserDto userNewData)
+        public UserEntity(IUserDto userNewData)
         {
             UpdateFromJson(userNewData);
             CreationDate = DateTime.UtcNow;
@@ -66,7 +67,7 @@ namespace Aikido.Entities
             }
         }
 
-        public void UpdateFromJson(UserDto userNewData)
+        public void UpdateFromJson(IUserDto userNewData)
         {
             if (userNewData.Role != null)
                 Role = EnumParser.ConvertStringToEnum<Role>(userNewData.Role);

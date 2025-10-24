@@ -1,8 +1,8 @@
 ﻿using Aikido.Entities;
 
-namespace Aikido.Dto
+namespace Aikido.Dto.ExclusionDates
 {
-    public class ExclusionDateDto : DtoBase
+    public class ExclusionDateDto : DtoBase, IExclusionDateDto
     {
         public long Id { get; set; }
         public DateTime Date { get; set; }

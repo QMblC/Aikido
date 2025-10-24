@@ -1,4 +1,4 @@
-﻿using Aikido.Dto;
+﻿using Aikido.Dto.Groups;
 using System.Text.Json;
 
 public class GroupRequest

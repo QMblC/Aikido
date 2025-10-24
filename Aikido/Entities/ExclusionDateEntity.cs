@@ -1,5 +1,5 @@
 ﻿using Aikido.AdditionalData;
-using Aikido.Dto;
+using Aikido.Dto.ExclusionDates;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities
@@ -19,12 +19,12 @@ namespace Aikido.Entities
 
         public ExclusionDateEntity() { }
 
-        public ExclusionDateEntity(long groupId, ExclusionDateDto exclusionData)
+        public ExclusionDateEntity(long groupId, IExclusionDateDto exclusionData)
         {
             UpdateFromJson(groupId, exclusionData);
         }
 
-        public void UpdateFromJson(long groupId, ExclusionDateDto exclusionData)
+        public void UpdateFromJson(long groupId, IExclusionDateDto exclusionData)
         {
             Date = exclusionData.Date;
             Type = EnumParser.ConvertStringToEnum<ExclusiveDateType>(exclusionData.Type);

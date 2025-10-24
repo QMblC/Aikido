@@ -1,11 +1,11 @@
-﻿using Aikido.Dto;
-using Aikido.Services.DatabaseServices.Group;
+﻿using Aikido.Services.DatabaseServices.Group;
 using Aikido.Services.DatabaseServices.User;
 using Aikido.Services.DatabaseServices.Club;
 using Aikido.Exceptions;
 using Aikido.Services.UnitOfWork;
 using Aikido.AdditionalData;
 using Aikido.Dto.Users;
+using Aikido.Dto.Groups;
 
 namespace Aikido.Application.Services
 {
@@ -78,7 +78,7 @@ namespace Aikido.Application.Services
                            .ToList();
         }
 
-        public async Task<long> CreateGroupAsync(GroupDto groupData)
+        public async Task<long> CreateGroupAsync(GroupCreationDto groupData)
         {
             if (groupData.CoachId != null && !await _userDbService.Exists(groupData.CoachId.Value))
             {
@@ -95,7 +95,7 @@ namespace Aikido.Application.Services
         }
 
 
-        public async Task UpdateGroupAsync(long id, GroupDto groupData)
+        public async Task UpdateGroupAsync(long id, GroupCreationDto groupData)
         {
             if (!await _groupDbService.Exists(id))
             {

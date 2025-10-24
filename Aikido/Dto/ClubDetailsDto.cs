@@ -1,4 +1,5 @@
-﻿using Aikido.Dto.Users;
+﻿using Aikido.Dto.Groups;
+using Aikido.Dto.Users;
 using Aikido.Entities;
 using Aikido.Entities.Users;
 

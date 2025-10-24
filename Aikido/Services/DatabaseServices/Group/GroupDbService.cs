@@ -1,6 +1,6 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Data;
-using Aikido.Dto;
+using Aikido.Dto.Groups;
 using Aikido.Entities;
 using Aikido.Entities.Users;
 using Aikido.Exceptions;
@@ -67,7 +67,7 @@ namespace Aikido.Services.DatabaseServices.Group
                 .ToListAsync();
         }
 
-        public async Task<long> CreateAsync(GroupDto groupDto)
+        public async Task<long> CreateAsync(GroupCreationDto groupDto)
         {
             var group = new GroupEntity(groupDto);
 
@@ -75,6 +75,9 @@ namespace Aikido.Services.DatabaseServices.Group
                 throw new ArgumentException("ClubId is required");
 
             _context.Groups.Add(group);
+
+            
+
             var club = _context.Clubs.Find(group.ClubId);
             if (club != null)
                 club.Groups.Add(group);
@@ -84,11 +87,21 @@ namespace Aikido.Services.DatabaseServices.Group
 
             await _context.SaveChangesAsync();
 
+            group.Schedule = groupDto.Schedule
+                .Select(s => new ScheduleEntity(group.Id, s))
+                .ToList();
+
+            group.ExclusionDates = groupDto.ExclusionDates
+                .Select(s => new ExclusionDateEntity(group.Id, s))
+                .ToList();
+
+            await _context.SaveChangesAsync();
+
             return group.Id;
         }
 
 
-        public async Task UpdateAsync(long id, GroupDto groupData)
+        public async Task UpdateAsync(long id, GroupCreationDto groupData)
         {
             var group = await GetByIdOrThrowException(id);
             group.UpdateFromJson(groupData);

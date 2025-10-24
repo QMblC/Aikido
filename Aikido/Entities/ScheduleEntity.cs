@@ -1,4 +1,4 @@
-﻿using Aikido.Dto;
+﻿using Aikido.Dto.Schedule;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities
@@ -18,12 +18,12 @@ namespace Aikido.Entities
 
         public ScheduleEntity() { }
 
-        public ScheduleEntity(long groupId, ScheduleDto scheduleData)
+        public ScheduleEntity(long groupId, IScheduleDto scheduleData)
         {
             UpdateFromJson(groupId, scheduleData);
         }
 
-        public void UpdateFromJson(long groupId, ScheduleDto scheduleData)
+        public void UpdateFromJson(long groupId, IScheduleDto scheduleData)
         {
             GroupId = groupId;
             DayOfWeek = scheduleData.DayOfWeek;

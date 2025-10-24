@@ -1,6 +1,7 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Dto.Seminars;
 using Aikido.Dto.Users;
+using Aikido.Dto.Users.Creation;
 using Aikido.Entities;
 using Aikido.Entities.Filters;
 using Aikido.Exceptions;
@@ -67,7 +68,7 @@ namespace Aikido.Application.Services
             };
         }
 
-        public async Task<long> CreateUserAsync(UserDto userData)//Здесь нужно подключить UnitOfWork
+        public async Task<long> CreateUserAsync(UserCreationDto userData)//Здесь нужно подключить UnitOfWork
         {
             var userId = await _userDbService.CreateUser(userData);
 
@@ -97,7 +98,7 @@ namespace Aikido.Application.Services
             return userId;
         }
 
-        public async Task UpdateUserAsync(long userId, UserDto userData)//Здесь нужно подключить UnitOfWork
+        public async Task UpdateUserAsync(long userId, UserCreationDto userData)//Здесь нужно подключить UnitOfWork
         {
             var user = await _userDbService.GetByIdOrThrowException(userId);
             await _userDbService.UpdateUser(userId, userData);
@@ -134,7 +135,7 @@ namespace Aikido.Application.Services
             await _userDbService.Delete(id);
         }
 
-        public async Task<List<long>> CreateUsersAsync(List<UserDto> users)
+        public async Task<List<long>> CreateUsersAsync(List<UserCreationDto> users)
         {
             var createdIds = new List<long>();
 
@@ -145,17 +146,6 @@ namespace Aikido.Application.Services
             }
 
             return createdIds;
-        }
-
-        public async Task UpdateUsersAsync(List<UserDto> users)
-        {
-            foreach (var userData in users)
-            {
-                if (userData.Id.HasValue)
-                {
-                    await UpdateUserAsync(userData.Id.Value, userData);
-                }
-            }
         }
 
         public async Task AddUserMembershipAsync(long userId, long clubId, long groupId, Role roleInGroup)

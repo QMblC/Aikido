@@ -1,6 +1,6 @@
 ﻿using Aikido.AdditionalData;
 
-namespace Aikido.Dto.Users
+namespace Aikido.Dto.Users.Creation
 {
     public class UserMembershipCreationDto
     {

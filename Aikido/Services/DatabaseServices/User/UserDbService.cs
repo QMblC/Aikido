@@ -1,6 +1,7 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Data;
 using Aikido.Dto.Users;
+using Aikido.Dto.Users.Creation;
 using Aikido.Entities;
 using Aikido.Entities.Filters;
 using Aikido.Entities.Users;
@@ -114,7 +115,7 @@ namespace Aikido.Services.DatabaseServices.User
             return (userDtos, totalCount);
         }
 
-        public async Task<long> CreateUser(UserDto userData)
+        public async Task<long> CreateUser(UserCreationDto userData)
         {
             var user = new UserEntity(userData);
             _context.Users.Add(user);
@@ -122,7 +123,7 @@ namespace Aikido.Services.DatabaseServices.User
             return user.Id;
         }
 
-        public async Task<List<long>> CreateUsers(List<UserDto> users)
+        public async Task<List<long>> CreateUsers(List<UserCreationDto> users)
         {
             var entities = users.Select(u => new UserEntity(u)).ToList();
             _context.Users.AddRange(entities);
@@ -130,7 +131,7 @@ namespace Aikido.Services.DatabaseServices.User
             return entities.Select(e => e.Id).ToList();
         }
 
-        public async Task UpdateUser(long id, UserDto userData)
+        public async Task UpdateUser(long id, UserCreationDto userData)
         {
             var user = await GetByIdOrThrowException(id);
             user.UpdateFromJson(userData);

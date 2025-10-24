@@ -1,6 +1,7 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Application.Services;
 using Aikido.Dto.Users;
+using Aikido.Dto.Users.Creation;
 using Aikido.Entities.Filters;
 using Aikido.Requests;
 using Aikido.Services;
@@ -148,7 +149,7 @@ namespace Aikido.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> Create([FromBody] UserDto userData)
+        public async Task<IActionResult> Create([FromBody] UserCreationDto userData)
         {
             try
             {
@@ -184,7 +185,7 @@ namespace Aikido.Controllers
         }
 
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> Update(long id, [FromBody] UserDto userData)
+        public async Task<IActionResult> Update(long id, [FromBody] UserCreationDto userData)
         {
             try
             {
@@ -202,44 +203,6 @@ namespace Aikido.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
-            }
-        }
-
-        [HttpPost("create/list")]
-        public async Task<IActionResult> CreateUsersList([FromBody] List<UserDto> users)
-        {
-            if (users == null || !users.Any())
-                return BadRequest("Список пользователей пустой.");
-
-            try
-            {
-                var createdIds = await _userApplicationService.CreateUsersAsync(users);
-                return Ok(new { CreatedUserIds = createdIds });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Ошибка при создании пользователей.", Details = ex.Message });
-            }
-        }
-
-        [HttpPut("update/list")]
-        public async Task<IActionResult> UpdateUsersList([FromBody] List<UserDto> users)
-        {
-            if (users == null || !users.Any())
-                return BadRequest("Список пользователей пустой.");
-
-            try
-            {
-                await _userApplicationService.UpdateUsersAsync(users);
-                return Ok(new { Message = "Пользователи успешно обновлены." });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Ошибка при обновлении пользователей.", Details = ex.Message });
             }
         }
 
