@@ -1,8 +1,8 @@
 ﻿using Aikido.Data;
 using Aikido.Entities;
-using Aikido.Dto;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using Aikido.Dto.Users;
 
 namespace Aikido.Services.DatabaseServices
 {

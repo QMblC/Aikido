@@ -1,5 +1,5 @@
 ﻿using Aikido.AdditionalData;
-using Aikido.Dto;
+using Aikido.Dto.Users;
 using Aikido.Entities.Seminar;
 using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;

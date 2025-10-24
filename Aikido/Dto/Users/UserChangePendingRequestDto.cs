@@ -1,7 +1,7 @@
 ﻿using Aikido.Entities;
 using System.Text.Json;
 
-namespace Aikido.Dto
+namespace Aikido.Dto.Users
 {
     public class UserChangePendingRequestDto : DtoBase
     {

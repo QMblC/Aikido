@@ -1,5 +1,6 @@
 ﻿using Aikido.Application.Services;
 using Aikido.Dto;
+using Aikido.Dto.Users;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Aikido.Controllers

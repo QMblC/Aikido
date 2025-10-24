@@ -4,7 +4,7 @@ using Aikido.Entities;
 using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;
 
-namespace Aikido.Dto
+namespace Aikido.Dto.Users
 {
     public class UserDto : UserShortDto
     {

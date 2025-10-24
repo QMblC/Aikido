@@ -6,6 +6,7 @@ using Aikido.Exceptions;
 using Aikido.Entities;
 using Aikido.Entities.Users;
 using Aikido.AdditionalData;
+using Aikido.Dto.Users;
 
 namespace Aikido.Application.Services
 {

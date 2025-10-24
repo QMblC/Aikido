@@ -1,6 +1,6 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Application.Services;
-using Aikido.Dto;
+using Aikido.Dto.Users;
 using Aikido.Entities.Filters;
 using Aikido.Requests;
 using Aikido.Services;

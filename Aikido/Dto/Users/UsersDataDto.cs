@@ -1,4 +1,4 @@
-﻿namespace Aikido.Dto
+﻿namespace Aikido.Dto.Users
 {
     public class UsersDataDto
     {

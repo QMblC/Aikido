@@ -1,7 +1,7 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Entities.Users;
 
-namespace Aikido.Dto
+namespace Aikido.Dto.Users
 {
     public class UserMembershipDto : DtoBase
     {
@@ -20,7 +20,6 @@ namespace Aikido.Dto
         public DateTime? LeaveDate { get; set; }
         public string RoleInGroup { get; set; } = Role.User.ToString();
 
-        // Дополнительные поля для группы
         public int? AttendanceCount { get; set; }
         public DateTime? LastAttendanceDate { get; set; }
 

@@ -1,6 +1,6 @@
 ﻿using Aikido.AdditionalData;
-using Aikido.Dto;
 using Aikido.Dto.Seminars;
+using Aikido.Dto.Users;
 using Aikido.Entities;
 using Aikido.Entities.Filters;
 using Aikido.Exceptions;

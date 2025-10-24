@@ -1,6 +1,7 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Application.Services;
 using Aikido.Dto;
+using Aikido.Dto.Users;
 using Aikido.Requests;
 using Microsoft.AspNetCore.Mvc;
 
