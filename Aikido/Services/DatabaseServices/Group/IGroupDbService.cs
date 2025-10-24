@@ -1,5 +1,5 @@
 ﻿using Aikido.AdditionalData;
-using Aikido.Dto;
+using Aikido.Dto.Groups;
 using Aikido.Entities;
 using Aikido.Entities.Users;
 
@@ -12,8 +12,8 @@ namespace Aikido.Services.DatabaseServices.Group
         Task<bool> Exists(long id);
         Task<List<GroupEntity>> GetAllAsync();
         Task<List<GroupEntity>> GetGroupsByClub(long clubId);
-        Task<long> CreateAsync(GroupDto groupData);
-        Task UpdateAsync(long id, GroupDto groupData);
+        Task<long> CreateAsync(GroupCreationDto groupData);
+        Task UpdateAsync(long id, GroupCreationDto groupData);
         Task DeleteAsync(long id);
 
         // Новые методы для работы с участниками группы

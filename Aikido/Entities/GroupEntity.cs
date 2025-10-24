@@ -1,5 +1,5 @@
 ﻿using Aikido.AdditionalData;
-using Aikido.Dto;
+using Aikido.Dto.Groups;
 using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;
 
@@ -31,50 +31,36 @@ namespace Aikido.Entities
 
         public GroupEntity() { }
 
-        public GroupEntity(GroupDto group)
+        public GroupEntity(GroupCreationDto group)
         {
             UpdateFromJson(group);
         }
 
-        public void UpdateFromJson(GroupDto groupNewData)
+        public void UpdateFromJson(GroupCreationDto groupNewData)
         {
             if (groupNewData.CoachId != null)
+            {
                 CoachId = (long)groupNewData.CoachId;
+            }
+            else
+            {
+                UpdadeCoach();
+            }
             if (groupNewData.ClubId != null)
                 ClubId = (long)groupNewData.ClubId;
             if (!string.IsNullOrEmpty(groupNewData.Name))
                 Name = groupNewData.Name;
             if (!string.IsNullOrEmpty(groupNewData.AgeGroup))
-                AgeGroup = EnumParser.ConvertStringToEnum<AgeGroup>(groupNewData.AgeGroup);
-            if (groupNewData.IsActive.HasValue)
-            {
-                IsActive = groupNewData.IsActive.Value;
-            }          
+                AgeGroup = EnumParser.ConvertStringToEnum<AgeGroup>(groupNewData.AgeGroup);        
             UpdatedDate = DateTime.UtcNow;
-
-            Schedule = groupNewData.Schedule
-                .Select(s => new ScheduleEntity(Id, s))
-                .ToList();
-            ExclusionDates = groupNewData.ExclusionDates
-                .Select(s => new ExclusionDateEntity(Id, s))
-                .ToList();
         }
 
-        public void UpdateFromJson(GroupInfoDto groupNewData)
+        public void UpdadeCoach()
         {
-            if (groupNewData.CoachId != null)
-                CoachId = (long)groupNewData.CoachId;
-            if (groupNewData.ClubId != null)
-                ClubId = (long)groupNewData.ClubId;
-            if (!string.IsNullOrEmpty(groupNewData.Name))
-                Name = groupNewData.Name;
-            if (!string.IsNullOrEmpty(groupNewData.AgeGroup))
-                AgeGroup = EnumParser.ConvertStringToEnum<AgeGroup>(groupNewData.AgeGroup);
-            if (groupNewData.IsActive.HasValue)
-            {
-                IsActive = groupNewData.IsActive.Value;
-            }
-            UpdatedDate = DateTime.UtcNow;
+            var userMembership = UserMemberships.Where(um => um.RoleInGroup == Role.Coach).FirstOrDefault();
+            var coach = userMembership?.User;
+
+            CoachId = userMembership != null ? coach?.Id : null; 
         }
     }
 }

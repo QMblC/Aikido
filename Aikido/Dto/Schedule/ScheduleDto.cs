@@ -1,8 +1,8 @@
 ﻿using Aikido.Entities;
 
-namespace Aikido.Dto
+namespace Aikido.Dto.Schedule
 {
-    public class ScheduleDto : DtoBase
+    public class ScheduleDto : DtoBase, IScheduleDto
     {
         public long? Id { get; set; }
         public long? GroupId { get; set; }

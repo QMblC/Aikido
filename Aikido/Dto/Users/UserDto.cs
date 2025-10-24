@@ -4,9 +4,9 @@ using Aikido.Entities;
 using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;
 
-namespace Aikido.Dto
+namespace Aikido.Dto.Users
 {
-    public class UserDto : UserShortDto
+    public class UserDto : UserShortDto, IUserDto
     {
         public string? Role { get; set; }
         public string? Login { get; set; }

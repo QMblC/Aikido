@@ -132,6 +132,10 @@ namespace Aikido.Data
                     .HasForeignKey(g => g.ClubId)
                     .OnDelete(DeleteBehavior.SetNull);
 
+                entity.HasMany(g => g.UserMemberships)
+                    .WithOne(um => um.Group);
+                    
+
                 entity.HasIndex(e => e.Name);
                 entity.HasIndex(e => e.ClubId);
                 entity.HasIndex(e => e.CoachId);

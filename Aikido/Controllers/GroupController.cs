@@ -1,6 +1,7 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Application.Services;
-using Aikido.Dto;
+using Aikido.Dto.Groups;
+using Aikido.Dto.Users;
 using Aikido.Requests;
 using Microsoft.AspNetCore.Mvc;
 
@@ -135,7 +136,7 @@ namespace Aikido.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreateGroup([FromBody] GroupDto groupData)
+        public async Task<IActionResult> CreateGroup([FromBody] GroupCreationDto groupData)
         {
             try
             {
@@ -153,7 +154,7 @@ namespace Aikido.Controllers
         }
 
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateGroup(long id, [FromBody] GroupDto groupData)
+        public async Task<IActionResult> UpdateGroup(long id, [FromBody] GroupCreationDto groupData)
         {
             try
             {

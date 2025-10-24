@@ -1,7 +1,7 @@
 ﻿using Aikido.Entities;
 using DocumentFormat.OpenXml.Wordprocessing;
 
-namespace Aikido.Dto
+namespace Aikido.Dto.Users
 {
     public class UserShortDto : DtoBase
     {

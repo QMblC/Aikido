@@ -1,4 +1,4 @@
-﻿using Aikido.Dto;
+﻿using Aikido.Dto.Users;
 using Microsoft.AspNetCore.Http;
 using System.Text.Json;
 

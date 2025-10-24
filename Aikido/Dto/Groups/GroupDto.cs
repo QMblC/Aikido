@@ -1,10 +1,12 @@
 ﻿using Aikido.AdditionalData;
+using Aikido.Dto.ExclusionDates;
+using Aikido.Dto.Schedule;
 using Aikido.Entities;
 using System.ComponentModel.DataAnnotations;
 
-namespace Aikido.Dto
+namespace Aikido.Dto.Groups
 {
-    public class GroupDto : DtoBase
+    public class GroupDto : DtoBase, IGroupDto
     {
         public long? Id { get; set; }
         public string Name { get; set; } = string.Empty;

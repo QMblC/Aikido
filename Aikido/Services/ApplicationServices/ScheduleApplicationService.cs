@@ -1,7 +1,7 @@
-﻿using Aikido.Dto;
-using Aikido.Services.DatabaseServices;
+﻿using Aikido.Services.DatabaseServices;
 using Aikido.Exceptions;
 using Aikido.Services;
+using Aikido.Dto.Schedule;
 
 namespace Aikido.Application.Services
 {

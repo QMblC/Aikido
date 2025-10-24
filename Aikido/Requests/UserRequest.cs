@@ -1,4 +1,4 @@
-﻿using Aikido.Dto;
+﻿using Aikido.Dto.Users;
 using System.Text.Json;
 
 namespace Aikido.Requests

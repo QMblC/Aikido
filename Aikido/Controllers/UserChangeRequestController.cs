@@ -1,5 +1,5 @@
 ﻿using Aikido.AdditionalData;
-using Aikido.Dto;
+using Aikido.Dto.Users;
 using Aikido.Entities;
 using Aikido.Services.DatabaseServices;
 using Microsoft.AspNetCore.Mvc;
