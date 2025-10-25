@@ -38,14 +38,8 @@ namespace Aikido.Entities
 
         public void UpdateFromJson(GroupCreationDto groupNewData)
         {
-            if (groupNewData.CoachId != null)
-            {
-                CoachId = (long)groupNewData.CoachId;
-            }
-            else
-            {
-                UpdadeCoach();
-            }
+            UpdadeCoach();
+
             if (groupNewData.ClubId != null)
                 ClubId = (long)groupNewData.ClubId;
             if (!string.IsNullOrEmpty(groupNewData.Name))
@@ -58,9 +52,20 @@ namespace Aikido.Entities
         public void UpdadeCoach()
         {
             var userMembership = UserMemberships.Where(um => um.RoleInGroup == Role.Coach).FirstOrDefault();
-            var coach = userMembership?.User;
+            var coachId = userMembership?.UserId;
 
-            CoachId = userMembership != null ? coach?.Id : null; 
+            CoachId = userMembership != null ? coachId : null; 
+        }
+
+        public void UpdateSchedule(GroupCreationDto groupData)
+        {
+            Schedule = groupData.Schedule?
+                .Select(s => new ScheduleEntity(Id, s))
+                .ToList() ?? new();
+
+            ExclusionDates = groupData.ExclusionDates?
+                .Select(s => new ExclusionDateEntity(Id, s))
+                .ToList() ?? new();
         }
     }
 }
