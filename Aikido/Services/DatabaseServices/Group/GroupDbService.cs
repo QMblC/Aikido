@@ -6,6 +6,7 @@ using Aikido.Entities.Users;
 using Aikido.Exceptions;
 using DocumentFormat.OpenXml.Office2016.Drawing.Command;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
 
 namespace Aikido.Services.DatabaseServices.Group
 {
@@ -67,16 +68,14 @@ namespace Aikido.Services.DatabaseServices.Group
                 .ToListAsync();
         }
 
-        public async Task<long> CreateAsync(GroupCreationDto groupDto)
+        public async Task<long> CreateAsync(GroupCreationDto groupData)
         {
-            var group = new GroupEntity(groupDto);
+            var group = new GroupEntity(groupData);
 
             if (group.ClubId == 0 || group.ClubId == null)
                 throw new ArgumentException("ClubId is required");
 
             _context.Groups.Add(group);
-
-            
 
             var club = _context.Clubs.Find(group.ClubId);
             if (club != null)
@@ -87,13 +86,14 @@ namespace Aikido.Services.DatabaseServices.Group
 
             await _context.SaveChangesAsync();
 
-            group.Schedule = groupDto.Schedule
-                .Select(s => new ScheduleEntity(group.Id, s))
-                .ToList();
+            group.UpdateSchedule(groupData);
 
-            group.ExclusionDates = groupDto.ExclusionDates
-                .Select(s => new ExclusionDateEntity(group.Id, s))
-                .ToList();
+            if (groupData.CoachId != null)
+            {
+                await SetCoachAsync(group, groupData);
+            }
+
+            group.UpdadeCoach();
 
             await _context.SaveChangesAsync();
 
@@ -104,8 +104,59 @@ namespace Aikido.Services.DatabaseServices.Group
         public async Task UpdateAsync(long id, GroupCreationDto groupData)
         {
             var group = await GetByIdOrThrowException(id);
+
+            if (group.CoachId != groupData.CoachId)
+            {
+                RemoveCoach(group);
+
+                if (groupData.CoachId != null)
+                {
+                    await SetCoachAsync(group, groupData);
+                }
+
+                await _context.SaveChangesAsync();
+            }
+
             group.UpdateFromJson(groupData);
+
+            if (groupData.Schedule != null)
+            {
+                foreach (var schedule in group.Schedule)
+                {
+                    _context.Remove(schedule);
+                }
+            }
+            
             await _context.SaveChangesAsync();
+        }
+
+        private void RemoveCoach(GroupEntity group)
+        {
+            var oldCoachMembership = _context.UserMemberships
+                    .AsQueryable()
+                    .Where(um => um.UserId == group.CoachId)
+                    .Where(um => um.GroupId == group.Id)
+                    .FirstOrDefault();
+
+            if (oldCoachMembership != null)
+            {
+                _context.Remove(oldCoachMembership);
+            }
+        }
+
+        private async Task SetCoachAsync(GroupEntity oldGroup, GroupCreationDto newGroupData)
+        {
+            var coachMembership = new UserMembershipEntity(
+                newGroupData.CoachId.Value,
+                newGroupData.ClubId.Value,
+                oldGroup.Id,
+                Role.Coach);
+
+            _context.UserMemberships.Add(coachMembership);
+
+            await _context.SaveChangesAsync();
+
+            oldGroup.UpdadeCoach();
         }
 
         public async Task DeleteAsync(long id)

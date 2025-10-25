@@ -158,7 +158,6 @@ namespace Aikido.Services.DatabaseServices.User
             await _context.SaveChangesAsync();
         }
 
-        // Методы для работы с группами
         public async Task<List<UserMembershipEntity>> GetUserMembershipsAsync(long userId)
         {
             return await _context.UserMemberships
@@ -179,8 +178,7 @@ namespace Aikido.Services.DatabaseServices.User
             if (existingMembership == null)
             {
                 var userMembership = new UserMembershipEntity(userId, clubId, groupId, roleInGroup);
-                _context.UserMemberships.Add(userMembership); 
-                
+                _context.UserMemberships.Add(userMembership);         
             }
             else
             {
@@ -189,10 +187,9 @@ namespace Aikido.Services.DatabaseServices.User
 
             await _context.SaveChangesAsync();
 
-            existingMembership = await _context.UserMemberships
-                .FirstOrDefaultAsync(um => um.UserId == userId && um.ClubId == clubId && um.GroupId == groupId);
+            var group = await _context.Groups.FindAsync(groupId);
 
-            existingMembership.Group.UpdadeCoach();
+            group.UpdadeCoach();
 
             await _context.SaveChangesAsync();
 
@@ -208,6 +205,11 @@ namespace Aikido.Services.DatabaseServices.User
                 _context.Remove(userMembership);
                 await _context.SaveChangesAsync();
             }
+
+            var group = await _context.Groups.FindAsync(groupId);
+            group.UpdadeCoach();
+
+            await _context.SaveChangesAsync();
         }
 
         public async Task RemoveUserMemberships(long userId)
@@ -218,7 +220,12 @@ namespace Aikido.Services.DatabaseServices.User
 
             foreach (var userMembership in userMemberships)
             {
+
                 _context.Remove(userMembership);
+
+                await _context.SaveChangesAsync();
+
+                userMembership.Group.UpdadeCoach();
             }
 
             await _context.SaveChangesAsync();

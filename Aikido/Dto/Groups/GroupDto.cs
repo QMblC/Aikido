@@ -24,7 +24,7 @@ namespace Aikido.Dto.Groups
         public string? MaxGrade { get; set; }
 
         public List<ScheduleDto>? Schedule { get; set; } = new();
-        public List<ExclusionDateDto> ExclusionDates { get; set; } = new();
+        public List<ExclusionDateDto>? ExclusionDates { get; set; } = new();
 
         public GroupDto() { }
 

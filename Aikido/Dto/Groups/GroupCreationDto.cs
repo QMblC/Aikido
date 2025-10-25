@@ -10,6 +10,6 @@ namespace Aikido.Dto.Groups
         public long? ClubId { get; set; }
         public string? AgeGroup { get; set; }
         public List<ScheduleCreationDto>? Schedule { get; set; }
-        public List<ExclusionDateCreationDto> ExclusionDates { get; set; }
+        public List<ExclusionDateCreationDto>? ExclusionDates { get; set; }
     }
 }
