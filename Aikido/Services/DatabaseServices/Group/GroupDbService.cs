@@ -63,6 +63,8 @@ namespace Aikido.Services.DatabaseServices.Group
             return await _context.Groups
                 .Include(g => g.Coach)
                 .Include(g => g.Club)
+                .Include(g => g.Schedule)
+                .Include(g => g.ExclusionDates)
                 .Where(g => g.ClubId == clubId && g.IsActive)
                 .OrderBy(g => g.Name)
                 .ToListAsync();
