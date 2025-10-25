@@ -51,17 +51,7 @@ namespace Aikido.Application.Services
                 ? await _clubDbService.GetByIdOrThrowException(group.ClubId.Value)
                 : null;
 
-            return new GroupInfoDto
-            {
-                Id = group.Id,
-                Name = group.Name,
-                AgeGroup = group.AgeGroup.ToString(),
-                CoachId = group.CoachId,
-                CoachName = coach?.FullName,
-                ClubId = group.ClubId,
-                ClubName = club?.Name,
-                GroupMembers = memberDtos
-            };
+            return new GroupInfoDto(group);
         }
 
         public async Task<List<GroupDto>> GetAllGroupsAsync()
