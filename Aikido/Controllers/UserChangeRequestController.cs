@@ -1,5 +1,6 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Dto.Users;
+using Aikido.Dto.Users.Creation;
 using Aikido.Entities;
 using Aikido.Services.DatabaseServices;
 using Microsoft.AspNetCore.Mvc;
@@ -21,12 +22,12 @@ namespace Aikido.Controllers
         [HttpPost("request/create")]
         public async Task<IActionResult> RequestCreateUser(
             [FromQuery] long coachId,
-            [FromBody] UserDto userData)
+            [FromBody] UserCreationDto userData)
         {
             try
             {
                 var json = JsonSerializer.Serialize(userData);
-                var data = JsonSerializer.Deserialize<UserDto>(json);
+                var data = JsonSerializer.Deserialize<UserCreationDto>(json);
             }
             catch(Exception ex)
             {
@@ -49,12 +50,12 @@ namespace Aikido.Controllers
         public async Task<IActionResult> RequestUpdateUser(
             long userId,
             [FromQuery] long coachId,
-            [FromBody] UserDto userData)
+            [FromBody] UserCreationDto userData)
         {
             try
             {
                 var json = JsonSerializer.Serialize(userData);
-                var data = JsonSerializer.Deserialize<UserDto>(json);
+                var data = JsonSerializer.Deserialize<UserCreationDto>(json);
             }
             catch (Exception ex)
             {

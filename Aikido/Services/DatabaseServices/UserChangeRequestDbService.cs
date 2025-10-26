@@ -3,6 +3,7 @@ using Aikido.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using Aikido.Dto.Users;
+using Aikido.Dto.Users.Creation;
 
 namespace Aikido.Services.DatabaseServices
 {
@@ -15,8 +16,7 @@ namespace Aikido.Services.DatabaseServices
             _context = context;
         }
 
-        // Создать заявку на создание пользователя
-        public async Task<long> CreateUserRequest(long coachId, UserDto userData)
+        public async Task<long> CreateUserRequest(long coachId, UserCreationDto userData)
         {
             var request = new UserChangeRequestEntity
             {
@@ -31,8 +31,7 @@ namespace Aikido.Services.DatabaseServices
             return request.Id;
         }
 
-        // Создать заявку на редактирование
-        public async Task<long> UpdateUserRequest(long coachId, long userId, UserDto userData)
+        public async Task<long> UpdateUserRequest(long coachId, long userId, UserCreationDto userData)
         {
             var targetUser = await _context.Users.FindAsync(userId);
             if (targetUser == null)
@@ -52,7 +51,6 @@ namespace Aikido.Services.DatabaseServices
             return request.Id;
         }
 
-        // Создать заявку на удаление
         public async Task<long> DeleteUserRequest(long coachId, long userId)
         {
             var targetUser = await _context.Users.FindAsync(userId);
@@ -72,7 +70,6 @@ namespace Aikido.Services.DatabaseServices
             return request.Id;
         }
 
-        // Получить все ожидающие заявки
         public async Task<List<UserChangePendingRequestDto>> GetPendingRequests()
         {
             return await _context.UserChangeRequests
@@ -84,7 +81,6 @@ namespace Aikido.Services.DatabaseServices
                 .ToListAsync();
         }
 
-        // Одобрить заявку
         public async Task ApproveRequest(long requestId)
         {
             var request = await _context.UserChangeRequests

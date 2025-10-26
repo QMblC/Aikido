@@ -22,6 +22,7 @@ namespace Aikido.Dto.ExclusionDates
             Type = exclusionDate.Type.ToString();
             Description = exclusionDate.Description;
             GroupId = exclusionDate.GroupId;
+            GroupName = exclusionDate.Group?.Name;
             StartTime = exclusionDate.StartTime;
             EndTime = exclusionDate.EndTime;
         }
