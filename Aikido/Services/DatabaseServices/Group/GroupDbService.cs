@@ -128,7 +128,17 @@ namespace Aikido.Services.DatabaseServices.Group
                     _context.Remove(schedule);
                 }
             }
-            
+
+            if (groupData.ExclusionDates != null)
+            {
+                foreach (var exclusionDate in group.ExclusionDates)
+                {
+                    _context.Remove(exclusionDate);
+                }
+            }
+
+            group.UpdateSchedule(groupData);
+
             await _context.SaveChangesAsync();
         }
 

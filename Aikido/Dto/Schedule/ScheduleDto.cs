@@ -18,6 +18,7 @@ namespace Aikido.Dto.Schedule
         {
             Id = schedule.Id;
             GroupId = schedule.GroupId;
+            GroupName = schedule.Group?.Name;
             DayOfWeek = schedule.DayOfWeek;
             StartTime = schedule.StartTime;
             EndTime = schedule.EndTime;
