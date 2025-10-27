@@ -24,7 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Dto\Seminars\Creation\" />
     <Folder Include="Migrations\" />
   </ItemGroup>
 

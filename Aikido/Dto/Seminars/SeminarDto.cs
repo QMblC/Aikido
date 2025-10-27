@@ -4,7 +4,6 @@ namespace Aikido.Dto.Seminars
 {
     public class SeminarDto : DtoBase
     {
-        public long? Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public DateTime Date { get; set; }
         public string? Description { get; set; }
@@ -39,12 +38,12 @@ namespace Aikido.Dto.Seminars
             Date = seminar.Date;
             Location = seminar.Location;
 
-            PriceSeminarInRubles = seminar.PriceSeminarInRubles;
-            PriceAnnualFeeRubles = seminar.PriceAnnualFeeRubles;
-            PriceBudoPassportRubles = seminar.PriceBudoPassportRubles;
-            Price5to2KyuCertificationInRubles = seminar.Price5to2KyuCertificationInRubles;
-            Price1KyuCertificationInRubles = seminar.Price1KyuCertificationInRubles;
-            PriceDanCertificationInRubles = seminar.PriceDanCertificationInRubles;
+            PriceSeminarInRubles = seminar.SeminarPriceInRubles;
+            PriceAnnualFeeRubles = seminar.AnnualFeePriceInRubles;
+            PriceBudoPassportRubles = seminar.BudoPassportPriceInRubles;
+            Price5to2KyuCertificationInRubles = seminar.Certification5to2KyuPriceInRubles;
+            Price1KyuCertificationInRubles = seminar.Certification1KyuPriceInRubles;
+            PriceDanCertificationInRubles = seminar.CertificationDanPriceInRubles;
 
             CreatorId = seminar.CreatorId;
             CreatorName = seminar.Creator?.FullName;

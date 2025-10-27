@@ -19,7 +19,10 @@ namespace Aikido.Dto.Seminars
 
         public string Status { get; set; } = string.Empty;
 
-        
+        public decimal? SeminarPriceInRubles { get; set; }
+        public decimal? AnnualFeePriceInRubles { get; set; }
+        public decimal? BudoPassportPriceInRubles { get; set; }
+        public decimal? CertificationPriceInRubles { get; set; }
 
         public SeminarMemberDto() { }
 
@@ -39,6 +42,11 @@ namespace Aikido.Dto.Seminars
             OldGrade = seminarMember.OldGrade.ToString();
             CertificationGrade = seminarMember.CertificationGrade.ToString();
             Status = seminarMember.Status.ToString();
+
+            SeminarPriceInRubles = seminarMember.SeminarPriceInRubles;
+            AnnualFeePriceInRubles = seminarMember.AnnualFeePriceInRubles;
+            BudoPassportPriceInRubles = seminarMember.BudoPassportPriceInRubles;
+            CertificationPriceInRubles = seminarMember.CertificationPriceInRubles;
         }
     }
 }

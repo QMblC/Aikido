@@ -14,12 +14,12 @@ namespace Aikido.Entities.Seminar
         public string? Description { get; set; }
         public string? Location { get; set; }
 
-        public decimal? PriceSeminarInRubles { get; set; }
-        public decimal? PriceAnnualFeeRubles { get; set; }
-        public decimal? PriceBudoPassportRubles { get; set; }
-        public decimal? Price5to2KyuCertificationInRubles { get; set; }
-        public decimal? Price1KyuCertificationInRubles { get; set; }
-        public decimal? PriceDanCertificationInRubles { get; set; }
+        public decimal? SeminarPriceInRubles { get; set; }
+        public decimal? AnnualFeePriceInRubles { get; set; }
+        public decimal? BudoPassportPriceInRubles { get; set; }
+        public decimal? Certification5to2KyuPriceInRubles { get; set; }
+        public decimal? Certification1KyuPriceInRubles { get; set; }
+        public decimal? CertificationDanPriceInRubles { get; set; }
 
         public DateTime? RegistrationDeadline { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
@@ -57,12 +57,12 @@ namespace Aikido.Entities.Seminar
             Date = seminarData.Date;
             Location = seminarData.Location;
 
-            PriceSeminarInRubles = seminarData.PriceSeminarInRubles;
-            PriceAnnualFeeRubles = seminarData.PriceAnnualFeeRubles;
-            PriceBudoPassportRubles = seminarData.PriceBudoPassportRubles;
-            Price5to2KyuCertificationInRubles = seminarData.Price5to2KyuCertificationInRubles;
-            Price1KyuCertificationInRubles = seminarData.Price1KyuCertificationInRubles;
-            PriceDanCertificationInRubles = seminarData.PriceDanCertificationInRubles;
+            SeminarPriceInRubles = seminarData.PriceSeminarInRubles;
+            AnnualFeePriceInRubles = seminarData.PriceAnnualFeeRubles;
+            BudoPassportPriceInRubles = seminarData.PriceBudoPassportRubles;
+            Certification5to2KyuPriceInRubles = seminarData.Price5to2KyuCertificationInRubles;
+            Certification1KyuPriceInRubles = seminarData.Price1KyuCertificationInRubles;
+            CertificationDanPriceInRubles = seminarData.PriceDanCertificationInRubles;
 
             RegistrationDeadline = seminarData.RegistrationDeadline;
             CreatorId = seminarData.CreatorId.Value;

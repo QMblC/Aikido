@@ -15,22 +15,7 @@ namespace Aikido.Entities
         public decimal Amount { get; set; }
         public DateTime PaymentDate { get; set; }
         public PaymentType PaymentType { get; set; }
-        public string? Description { get; set; }
         public PaymentStatus? Status { get; set; }
-        public string? PaymentMethod { get; set; }
-        public string? TransactionId { get; set; }
-        public DateTime? CreatedDate { get; set; } = DateTime.UtcNow;
-        public DateTime? ProcessedDate { get; set; }
-        public long? ProcessedBy { get; set; }
-        public virtual UserEntity? ProcessedByUser { get; set; }
-        public string? Notes { get; set; }
-
-        // Дополнительные поля для связи с клубом или группой
-        public long? ClubId { get; set; }
-        public virtual ClubEntity? Club { get; set; }
-
-        public long? GroupId { get; set; }
-        public virtual GroupEntity? Group { get; set; }
 
         public PaymentEntity() { }
 
@@ -45,23 +30,13 @@ namespace Aikido.Entities
             Amount = paymentData.Amount;
             PaymentDate = paymentData.PaymentDate;
             PaymentType = EnumParser.ConvertStringToEnum<PaymentType>(paymentData.PaymentType);
-            Description = paymentData.Description;
-            if (!string.IsNullOrEmpty(paymentData.Status))
-                Status = EnumParser.ConvertStringToEnum<PaymentStatus>(paymentData.Status);
-            PaymentMethod = paymentData.PaymentMethod;
-            TransactionId = paymentData.TransactionId;
-            ProcessedDate = paymentData.ProcessedDate;
-            ProcessedBy = paymentData.ProcessedBy;
-            Notes = paymentData.Notes;
+            Status = EnumParser.ConvertStringToEnum<PaymentStatus>(paymentData.Status);
         }
     }
 
     public enum PaymentStatus
     {
         Pending,
-        Completed,
-        Failed,
-        Cancelled,
-        Refunded
+        Completed
     }
 }
