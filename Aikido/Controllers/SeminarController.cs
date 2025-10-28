@@ -177,11 +177,11 @@ namespace Aikido.Controllers
         }
 
         [HttpPost("{seminarId}/members")]
-        public async Task<IActionResult> CreateSeminarMembers(long seminarId, List<SeminarMemberCreationDto> members)
+        public async Task<IActionResult> CreateSeminarMembers(long seminarId, SeminarMemberGroupDto memberGroup)
         {
             try
             {
-                await _seminarApplicationService.AddSeminarMembersAsync(seminarId, members);
+                await _seminarApplicationService.AddSeminarMembersAsync(seminarId, memberGroup);
                 return Ok();
             }
             catch (Exception ex)

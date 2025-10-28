@@ -61,9 +61,15 @@ namespace Aikido.Application.Services
             return members.Select(sm => new SeminarMemberDto(sm)).ToList();
         }
 
-        public async Task AddSeminarMembersAsync(long seminarId, List<SeminarMemberCreationDto> members)
+        public async Task AddSeminarMembersAsync(long seminarId, SeminarMemberGroupDto memberGroup)
         {
-            await _seminarDbService.AddSeminarMembersAsync(seminarId, members);
+            await _seminarDbService.AddSeminarMembersAsync(seminarId, memberGroup);
+
+            var members = await _seminarDbService.GetSeminarMembersAsync(seminarId);
+            foreach(var member in members)
+            {
+
+            }
         }
 
         public async Task RemoveMemberFromSeminarAsync(long seminarId, long userId)

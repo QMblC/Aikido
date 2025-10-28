@@ -1,6 +1,9 @@
-﻿using Aikido.Data;
+﻿using Aikido.AdditionalData;
+using Aikido.Data;
 using Aikido.Dto;
+using Aikido.Dto.Seminars.Creation;
 using Aikido.Entities;
+using Aikido.Entities.Seminar;
 using Aikido.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,15 +30,15 @@ namespace Aikido.Services
         {
             return await _context.Payment
                 .Where(p => p.UserId == userId)
-                .OrderByDescending(p => p.PaymentDate)
+                .OrderByDescending(p => p.Date)
                 .ToListAsync();
         }
 
         public async Task<List<PaymentEntity>> GetPaymentsByDateRange(DateTime startDate, DateTime endDate)
         {
             return await _context.Payment
-                .Where(p => p.PaymentDate >= startDate && p.PaymentDate <= endDate)
-                .OrderByDescending(p => p.PaymentDate)
+                .Where(p => p.Date >= startDate && p.Date <= endDate)
+                .OrderByDescending(p => p.Date)
                 .ToListAsync();
         }
 
@@ -64,6 +67,21 @@ namespace Aikido.Services
         public async Task<bool> PaymentExists(long id)
         {
             return await _context.Payment.AnyAsync(p => p.Id == id);
+        }
+
+        public async Task CreateSeminarPayments(
+            SeminarMemberEntity member,
+            SeminarMemberCreationDto memberData)
+        {
+
+            var semianarPayment = new PaymentEntity(member,PaymentType.Seminar);
+            _context.Payment.Add(semianarPayment);
+
+            if (!member.User.HasBudoPassport)
+            {
+                var budoPassportPayment = new PaymentEntity(member, PaymentType.BudoPassport);
+                _context.Add(budoPassportPayment);
+            }          
         }
     }
 }

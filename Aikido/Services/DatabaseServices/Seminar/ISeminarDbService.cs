@@ -19,7 +19,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
         Task UpdateAsync(long id, SeminarDto seminarData);
         Task DeleteAsync(long id);
 
-        Task AddSeminarMembersAsync(long seminarId, List<SeminarMemberCreationDto> membersDto);
+        Task AddSeminarMembersAsync(long seminarId, SeminarMemberGroupDto membersDto);
         Task RemoveMemberAsync(long seminarId, long userId);
         Task<bool> IsMemberAsync(long seminarId, long userId);
         Task<int> GetMemberCountAsync(long seminarId);

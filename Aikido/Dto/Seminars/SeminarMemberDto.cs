@@ -19,6 +19,9 @@ namespace Aikido.Dto.Seminars
 
         public string Status { get; set; } = string.Empty;
 
+        public long? CreatorId { get; set; }
+        public string? CreatorFullName { get; set; }
+
         public decimal? SeminarPriceInRubles { get; set; }
         public decimal? AnnualFeePriceInRubles { get; set; }
         public decimal? BudoPassportPriceInRubles { get; set; }
@@ -47,6 +50,9 @@ namespace Aikido.Dto.Seminars
             AnnualFeePriceInRubles = seminarMember.AnnualFeePriceInRubles;
             BudoPassportPriceInRubles = seminarMember.BudoPassportPriceInRubles;
             CertificationPriceInRubles = seminarMember.CertificationPriceInRubles;
+
+            CreatorId = seminarMember.CreatorId;
+            CreatorFullName = seminarMember.Creator?.FullName;
         }
     }
 }

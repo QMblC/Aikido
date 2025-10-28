@@ -23,6 +23,10 @@ namespace Aikido.Entities.Seminar
         public Grade OldGrade { get; set; }
         public Grade? CertificationGrade { get; set; }
 
+        public virtual PaymentEntity? SeminarPayment { get; set; }
+        public virtual PaymentEntity? AnnualFeePayment { get; set; }
+        public virtual PaymentEntity? BudoPassportPayment { get; set; }
+        public virtual PaymentEntity? CertificationPayment { get; set; }
         public decimal? SeminarPriceInRubles { get; set; }
         public decimal? AnnualFeePriceInRubles { get; set; }
         public decimal? BudoPassportPriceInRubles { get; set; }
@@ -32,12 +36,12 @@ namespace Aikido.Entities.Seminar
         public virtual UserEntity? Creator { get; set; }
 
         public SeminarMemberEntity() { }
-        public SeminarMemberEntity(SeminarEntity seminar, UserEntity user, SeminarMemberCreationDto seminarMember)
+        public SeminarMemberEntity(long coachId, SeminarEntity seminar, UserEntity user, SeminarMemberCreationDto seminarMember)
         {
-            UpdateData(seminar, user, seminarMember);
+            UpdateData(coachId, seminar, user, seminarMember);
         }
 
-        public void UpdateData(SeminarEntity seminar, UserEntity user, SeminarMemberCreationDto seminarMember)
+        public void UpdateData(long coachId, SeminarEntity seminar, UserEntity user, SeminarMemberCreationDto seminarMember)
         {
             SeminarId = seminar.Id;
             UserId = seminarMember.UserId;
@@ -45,13 +49,15 @@ namespace Aikido.Entities.Seminar
             Status = SeminarMemberStatus.None;
             OldGrade = user.Grade;
             CertificationGrade = seminarMember.CertificationGrade != null
-                ? EnumParser.ConvertStringToEnum<Grade>(seminarMember.CertificationGrade) : Grade.None;
+                ? EnumParser.ConvertStringToEnum<Grade>(seminarMember.CertificationGrade) : Grade.None; 
 
             SeminarPriceInRubles = seminar.SeminarPriceInRubles;
             AnnualFeePriceInRubles = seminar.AnnualFeePriceInRubles;//ToDo сделать проверку на оплату в течение года
             BudoPassportPriceInRubles = user.HasBudoPassport ? 0 : seminar.BudoPassportPriceInRubles;
 
             SetCertificationPrice(seminar);
+
+            CreatorId = coachId;
         }
 
         private void SetCertificationPrice(SeminarEntity seminar)

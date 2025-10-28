@@ -57,6 +57,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
                 .Include(sm => sm.User)
                 .Include(sm => sm.Seminar)
                 .Include(sm => sm.Group)
+                .Include(sm => sm.Creator)
                 .Where(sm => sm.SeminarId == seminarId)
                 .OrderBy(sm => sm.User!.LastName)
                 .ThenBy(sm => sm.User!.FirstName)
@@ -87,11 +88,13 @@ namespace Aikido.Services.DatabaseServices.Seminar
             await _context.SaveChangesAsync();
         }
 
-        public async Task AddSeminarMembersAsync(long seminarId, List<SeminarMemberCreationDto> membersDto)//UnitOfWork
+        public async Task AddSeminarMembersAsync(long seminarId, SeminarMemberGroupDto memberGroup)//UnitOfWork
         {
-            await RemoveExcess(seminarId, membersDto);
+            await RemoveExcess(seminarId, memberGroup.Members);
 
-            foreach (var memberDto in membersDto)
+            var coachId = memberGroup.CoachId;
+
+            foreach (var memberDto in memberGroup.Members)
             {
 
                 var user = _context.Users.Find(memberDto.UserId);
@@ -111,16 +114,16 @@ namespace Aikido.Services.DatabaseServices.Seminar
 
                 if (!exists)
                 {
-                    
-                    var member = new SeminarMemberEntity(seminar, user, memberDto);
+                    var member = new SeminarMemberEntity(coachId, seminar, user, memberDto);
                     _context.SeminarMembers.Add(member);
-                    await _context.SaveChangesAsync();
                 }
                 else
                 {
                     var member = _context.SeminarMembers.FirstOrDefault(sm => sm.SeminarId == seminarId && sm.UserId == memberDto.UserId);
-                    member.UpdateData(seminar, user, memberDto);
+                    member.UpdateData(coachId, seminar, user, memberDto);     
                 }
+
+                await _context.SaveChangesAsync();
             }
         }
 
