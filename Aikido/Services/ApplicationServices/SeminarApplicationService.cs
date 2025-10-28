@@ -1,9 +1,14 @@
 ﻿using Aikido.Dto.Seminars;
 using Aikido.Dto.Seminars.Creation;
+using Aikido.Entities;
 using Aikido.Entities.Seminar;
 using Aikido.Exceptions;
+using Aikido.Services;
+using Aikido.Services.DatabaseServices.Group;
 using Aikido.Services.DatabaseServices.Seminar;
 using Aikido.Services.DatabaseServices.User;
+using DocumentFormat.OpenXml.Spreadsheet;
+using System.Collections.Generic;
 
 namespace Aikido.Application.Services
 {
@@ -11,13 +16,19 @@ namespace Aikido.Application.Services
     {
         private readonly ISeminarDbService _seminarDbService;
         private readonly IUserDbService _userDbService;
+        private readonly IGroupDbService _groupDbService;
+        private readonly PaymentService _paymentDbService;
 
         public SeminarApplicationService(
             ISeminarDbService seminarDbService,
-            IUserDbService userDbService)
+            IUserDbService userDbService,
+            IGroupDbService groupDbService,
+            PaymentService paymentDbService)
         {
             _seminarDbService = seminarDbService;
             _userDbService = userDbService;
+            _groupDbService = groupDbService;
+            _paymentDbService = paymentDbService;
         }
 
         public async Task<SeminarDto> GetSeminarByIdAsync(long id)
@@ -66,9 +77,13 @@ namespace Aikido.Application.Services
             await _seminarDbService.AddSeminarMembersAsync(seminarId, memberGroup);
 
             var members = await _seminarDbService.GetSeminarMembersAsync(seminarId);
-            foreach(var member in members)
-            {
+            
 
+            foreach (var member in members)
+            {
+                var memberData = memberGroup.Members.First(m => m.UserId == member.UserId);
+
+                await _paymentDbService.CreateSeminarMemberPayments(member, memberData);
             }
         }
 
@@ -105,6 +120,33 @@ namespace Aikido.Application.Services
 
             return groups.Select(g => new SeminarGroupDto(g))
                 .ToList();
+        }
+
+        public async Task<List<SeminarMemberStartDataDto>> GetStartMembersData(long seminarId, long coachId)//ToDo проверять оплату AnnualFee
+        {
+            var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
+
+            var coachMemberships = await _userDbService.GetUserMembershipsAsync(coachId);
+
+            var coachMembers = new List<UserEntity>();
+
+            foreach (var cm in coachMemberships)
+            {
+                var groupMembers = await _groupDbService.GetGroupMembersAsync(cm.GroupId);
+                coachMembers.AddRange(groupMembers.Select(um => um.User));
+            }
+
+            return coachMembers
+                .Select(u => new SeminarMemberStartDataDto(u, seminar))
+                .ToList();
+        }
+
+        public async Task<SeminarMemberStartDataDto> GetStartMemberdata(long seminarId, long userId)//ToDo проверять оплату AnnualFee
+        {
+            var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
+            var user = await _userDbService.GetByIdOrThrowException(userId);
+
+            return new SeminarMemberStartDataDto(user, seminar);
         }
     }
 }

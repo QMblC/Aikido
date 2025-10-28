@@ -1,8 +1,10 @@
 ﻿using Aikido.AdditionalData;
+using Aikido.Entities;
+using Aikido.Entities.Seminar;
 
-namespace Aikido.Entities.Seminar
+namespace Aikido.Dto.Seminars
 {
-    public class SeminarMemberStartData
+    public class SeminarMemberStartDataDto
     {
         public long UserId { get; set; }
         public string UserFullName { get; set; }
@@ -12,14 +14,17 @@ namespace Aikido.Entities.Seminar
         public decimal? BudoPassportToPay { get; set; }
         public decimal? AnnualFeeToPay { get; set; }
 
-        public SeminarMemberStartData(UserEntity user)
+        public SeminarMemberStartDataDto(UserEntity user, SeminarEntity seminar, bool userPayedFee = false)
         {
             UserId = user.Id;
             UserFullName = user.FullName;
             Grade = EnumParser.ConvertEnumToString(user.Grade);
-            ProgramType = (user.Grade <= AdditionalData.Grade.Kyu1Child && user.Grade > AdditionalData.Grade.None)
+            ProgramType = user.Grade <= AdditionalData.Grade.Kyu1Child && user.Grade > AdditionalData.Grade.None
                 ? AdditionalData.ProgramType.Child.ToString() : AdditionalData.ProgramType.Adult.ToString();
 
+            BudoPassportToPay = user.HasBudoPassport ? null : seminar.BudoPassportPriceInRubles;
+            SeminarToPay = seminar.SeminarPriceInRubles;
+            AnnualFeeToPay = userPayedFee ? null : seminar.AnnualFeePriceInRubles;
         }
     }
 }

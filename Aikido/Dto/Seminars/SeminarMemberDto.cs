@@ -1,4 +1,5 @@
-﻿using Aikido.Entities.Seminar;
+﻿using Aikido.AdditionalData;
+using Aikido.Entities.Seminar;
 
 namespace Aikido.Dto.Seminars
 {
@@ -22,9 +23,16 @@ namespace Aikido.Dto.Seminars
         public long? CreatorId { get; set; }
         public string? CreatorFullName { get; set; }
 
+        public bool IsSeminarPayed { get; set; }
         public decimal? SeminarPriceInRubles { get; set; }
-        public decimal? AnnualFeePriceInRubles { get; set; }
+
+        public bool IsBudoPassportPayed { get; set; }
         public decimal? BudoPassportPriceInRubles { get; set; }
+
+        public bool IsAnnualFeePayed { get; set; }
+        public decimal? AnnualFeePriceInRubles { get; set; }
+
+        public bool IsCertificationPayed { get; set; }
         public decimal? CertificationPriceInRubles { get; set; }
 
         public SeminarMemberDto() { }
@@ -46,10 +54,23 @@ namespace Aikido.Dto.Seminars
             CertificationGrade = seminarMember.CertificationGrade.ToString();
             Status = seminarMember.Status.ToString();
 
-            SeminarPriceInRubles = seminarMember.SeminarPriceInRubles;
-            AnnualFeePriceInRubles = seminarMember.AnnualFeePriceInRubles;
-            BudoPassportPriceInRubles = seminarMember.BudoPassportPriceInRubles;
-            CertificationPriceInRubles = seminarMember.CertificationPriceInRubles;
+            IsSeminarPayed = seminarMember.SeminarPayment != null 
+                ? seminarMember.SeminarPayment.Status == PaymentStatus.Completed 
+                : false;
+            IsBudoPassportPayed = seminarMember.BudoPassportPayment != null 
+                ? seminarMember.BudoPassportPayment.Status == PaymentStatus.Completed 
+                : false;
+            IsAnnualFeePayed = seminarMember.AnnualFeePayment != null 
+                ? seminarMember.AnnualFeePayment.Status == PaymentStatus.Completed 
+                : false;
+            IsCertificationPayed = seminarMember.CertificationPayment != null 
+                ? seminarMember.CertificationPayment.Status == PaymentStatus.Completed 
+                : false;
+
+            SeminarPriceInRubles = seminarMember.SeminarPayment?.Amount;
+            AnnualFeePriceInRubles = seminarMember.AnnualFeePayment?.Amount;
+            BudoPassportPriceInRubles = seminarMember.BudoPassportPayment?.Amount;
+            CertificationPriceInRubles = seminarMember.CertificationPayment?.Amount;
 
             CreatorId = seminarMember.CreatorId;
             CreatorFullName = seminarMember.Creator?.FullName;

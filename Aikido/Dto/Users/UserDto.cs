@@ -20,7 +20,7 @@ namespace Aikido.Dto.Users
         public DateTime? Birthday { get; set; }
         public string? Education { get; set; }
         public List<SeminarMemberDto>? Certifications { get; set; }
-        public bool HasBudoPassport { get; set; }
+        public bool? HasBudoPassport { get; set; }
 
         public string? City { get; set; }
         public string? ParentFullName { get; set; }

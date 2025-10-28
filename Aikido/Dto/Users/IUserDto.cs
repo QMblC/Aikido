@@ -18,5 +18,6 @@
         public string? ParentFullName { get; set; }
         public string? ParentPhoneNumber { get; set; }
         public DateTime? RegistrationDate { get; set; }
+        public bool? HasBudoPassport { get; set; }
     }
 }

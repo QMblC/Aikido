@@ -15,7 +15,7 @@
         public bool IsAnnualFeePayed { get; set; }
         public decimal? AnnualFeePrice { get; set; }
 
-        public bool IsCertificationPrice { get; set; }
+        public bool IsCertificationPayed { get; set; }
         public decimal? CertificationPrice { get; set; }
     }
 }

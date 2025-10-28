@@ -92,7 +92,7 @@ namespace Aikido.Entities
                 Birthday = null;
             City = userNewData.City;
             Grade = EnumParser.ConvertStringToEnum<Grade>(userNewData.Grade);
-
+            HasBudoPassport = userNewData.HasBudoPassport != null ? userNewData.HasBudoPassport.Value : false;
             if (userNewData.Sex != null)
                 Sex = EnumParser.ConvertStringToEnum<Sex>(userNewData.Sex);
             Education = EnumParser.ConvertStringToEnum<Education>(userNewData.Education);

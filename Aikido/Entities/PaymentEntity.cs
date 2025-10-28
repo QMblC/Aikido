@@ -13,6 +13,9 @@ namespace Aikido.Entities
         public long UserId { get; set; }
         public virtual UserEntity? User { get; set; }
 
+        public long? SeminarMemberId { get; set; }
+        public virtual SeminarMemberEntity? SeminarMember { get; set; }
+
         public decimal Amount { get; set; }
         public DateTime Date { get; set; }
         public PaymentType Type { get; set; }
@@ -27,14 +30,16 @@ namespace Aikido.Entities
 
         public PaymentEntity(
             SeminarMemberEntity member,
+            decimal amount,
             PaymentType type,
             PaymentStatus status = PaymentStatus.Pending)
         {
             UserId = member.UserId;
+            SeminarMemberId = member.Id;
             Type = type;
             Status = status;
             Date = member.Seminar.Date;
-            Amount = Amount;
+            Amount = amount;
         }
 
         public void UpdateFromJson(PaymentDto paymentData)
