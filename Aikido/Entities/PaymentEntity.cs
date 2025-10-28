@@ -16,7 +16,6 @@ namespace Aikido.Entities
         public long? SeminarMemberId { get; set; }
         public virtual SeminarMemberEntity? SeminarMember { get; set; }
 
-
         public decimal Amount { get; set; }
         public DateTime Date { get; set; }
         public PaymentType Type { get; set; }
@@ -36,6 +35,7 @@ namespace Aikido.Entities
             PaymentStatus status = PaymentStatus.Pending)
         {
             UserId = member.UserId;
+            SeminarMemberId = member.Id;
             Type = type;
             Status = status;
             Date = member.Seminar.Date;

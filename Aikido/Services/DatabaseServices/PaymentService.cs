@@ -70,8 +70,8 @@ namespace Aikido.Services
         }
 
         public async Task CreateSeminarMemberPayments(
-            SeminarMemberEntity member,
-            SeminarMemberCreationDto memberData)
+    SeminarMemberEntity member,
+    SeminarMemberCreationDto memberData)
         {
             var payments = new List<PaymentEntity>();
 
@@ -83,7 +83,6 @@ namespace Aikido.Services
                     PaymentType.Seminar,
                     memberData.IsSeminarPayed ? PaymentStatus.Completed : PaymentStatus.Pending);
                 payments.Add(seminarPayment);
-                member.SeminarPayment = seminarPayment;
             }
 
             if (!member.User.HasBudoPassport && memberData.BudoPassportPrice != null)
@@ -94,7 +93,6 @@ namespace Aikido.Services
                     PaymentType.BudoPassport,
                     memberData.IsBudoPassportPayed ? PaymentStatus.Completed : PaymentStatus.Pending);
                 payments.Add(budoPassportPayment);
-                member.BudoPassportPayment = budoPassportPayment;
             }
 
             if (memberData.AnnualFeePrice != null)
@@ -105,7 +103,6 @@ namespace Aikido.Services
                     PaymentType.AnnualFee,
                     memberData.IsAnnualFeePayed ? PaymentStatus.Completed : PaymentStatus.Pending);
                 payments.Add(annualFeePayment);
-                member.AnnualFeePayment = annualFeePayment;
             }
 
             if (memberData.CertificationPrice != null)
@@ -116,7 +113,6 @@ namespace Aikido.Services
                     PaymentType.Certification,
                     memberData.IsCertificationPayed ? PaymentStatus.Completed : PaymentStatus.Pending);
                 payments.Add(certificationPayment);
-                member.CertificationPayment = certificationPayment;
             }
 
             foreach (var payment in payments)

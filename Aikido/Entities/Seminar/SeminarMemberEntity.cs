@@ -23,6 +23,7 @@ namespace Aikido.Entities.Seminar
         public Grade OldGrade { get; set; }
         public Grade? CertificationGrade { get; set; }
 
+        public virtual ICollection<PaymentEntity> AllPayments { get; set; } = new List<PaymentEntity>();
 
         public long? SeminarPaymentId { get; set; }
         public virtual PaymentEntity? SeminarPayment { get; set; }
