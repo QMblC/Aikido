@@ -2,6 +2,6 @@
 {
     public class FinalSeminarMemberDto : SeminarMemberCreationDto
     {
-        public string Status;
+        public string? Status { get; set; }
     }
 }

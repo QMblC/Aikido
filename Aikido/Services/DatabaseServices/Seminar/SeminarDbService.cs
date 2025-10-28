@@ -292,5 +292,23 @@ namespace Aikido.Services.DatabaseServices.Seminar
 
             return groups != null ? groups.ToList() : new List<SeminarGroupEntity>();
         }
+
+        public async Task ApplySeminarResult(long seminarid)
+        {
+            var seminar = await _context.Seminars.FindAsync(seminarid);
+
+            seminar.IsFinalStatementApplied = true;
+            _context.Update(seminar);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task CancelSeminarResult(long seminarid)
+        {
+            var seminar = await _context.Seminars.FindAsync(seminarid);
+
+            seminar.IsFinalStatementApplied = false;
+            _context.Update(seminar);
+            await _context.SaveChangesAsync();
+        }
     }
 }

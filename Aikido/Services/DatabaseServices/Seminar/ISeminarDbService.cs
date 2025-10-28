@@ -29,5 +29,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
         Task<List<SeminarEntity>> GetSeminarsByDateRangeAsync(DateTime startDate, DateTime endDate);
 
         Task<List<SeminarGroupEntity>> GetSeminarGroups(long seminarId);
+        Task ApplySeminarResult(long seminarId);
+        Task CancelSeminarResult(long seminarId);
     }
 }

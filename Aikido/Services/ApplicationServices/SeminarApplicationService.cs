@@ -78,18 +78,28 @@ namespace Aikido.Application.Services
             await _seminarDbService.AddSeminarMembersAsync(seminarId, memberGroup);
 
             var members = await _seminarDbService.GetSeminarMembersAsync(seminarId);
+            
 
             foreach (var member in members)
             {
                 var memberData = memberGroup.Members.First(m => m.UserId == member.UserId);
-                await _paymentDbService.CreateOrUpdateSeminarMemberPayments(member, memberData);
+
+                await _paymentDbService.CreateSeminarMemberPayments(member, memberData);
             }
         }
 
-
-        public async Task SetFinalSeminarMember(long seminarId, FinalSeminarMemberDto members)
+        public async Task SetFinalSeminarMember(long seminarId, List<FinalSeminarMemberDto> membersDto)
         {
-            
+            await _seminarDbService.SetFinalSeminarMembersAsync(seminarId, membersDto);
+
+            var members = await _seminarDbService.GetSeminarMembersAsync(seminarId);
+
+            foreach (var member in members)
+            {
+                var memberData = membersDto.First(m => m.UserId == member.UserId);
+
+                await _paymentDbService.CreateSeminarMemberPayments(member, memberData);
+            }
         }
 
         public async Task RemoveMemberFromSeminarAsync(long seminarId, long userId)
@@ -152,6 +162,41 @@ namespace Aikido.Application.Services
             var user = await _userDbService.GetByIdOrThrowException(userId);
 
             return new SeminarMemberStartDataDto(user, seminar);
+        }
+
+
+        public async Task ApplySeminarResult(long seminarId)
+        {
+            var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
+
+            await _seminarDbService.ApplySeminarResult(seminarId);
+
+            var members = await _seminarDbService.GetSeminarMembersAsync(seminarId);
+
+            foreach (var member in members)
+            {
+                if (member.Status == AdditionalData.SeminarMemberStatus.Certified)
+                {
+                    await _userDbService.UpdateUserGrade(member.UserId, member.CertificationGrade.Value);
+                }
+            }
+        }
+
+        public async Task CancelSeminarResult(long seminarId)
+        {
+            var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
+
+            await _seminarDbService.CancelSeminarResult(seminarId);
+
+            var members = await _seminarDbService.GetSeminarMembersAsync(seminarId);
+
+            foreach (var member in members)
+            {
+                if (member.Status == AdditionalData.SeminarMemberStatus.Certified)
+                {
+                    await _userDbService.UpdateUserGrade(member.UserId, member.OldGrade);
+                }
+            }
         }
     }
 }

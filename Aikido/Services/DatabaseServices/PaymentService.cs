@@ -69,191 +69,75 @@ namespace Aikido.Services
             return await _context.Payment.AnyAsync(p => p.Id == id);
         }
 
-        public async Task CreateOrUpdateSeminarMemberPayments(
-    SeminarMemberEntity member,
-    SeminarMemberCreationDto memberData)
+        public async Task CreateSeminarMemberPayments(
+            SeminarMemberEntity member,
+            SeminarMemberCreationDto memberData)
         {
-            // Загружаем существующие оплаты
-            await LoadExistingPayments(member);
+            var paymentsToRemove = _context.Payment.Where(p =>
+                p.SeminarMemberId == member.Id &&
+                (p.Type == PaymentType.Seminar ||
+                p.Type == PaymentType.BudoPassport ||
+                p.Type == PaymentType.AnnualFee ||
+                p.Type == PaymentType.Certification));
 
-            // Обрабатываем оплату семинара
-            await ProcessSeminarPayment(member, memberData.SeminarPrice, memberData.IsSeminarPayed);
+            _context.Payment.RemoveRange(paymentsToRemove);
 
-            // Обрабатываем оплату будо-паспорта
-            await ProcessBudoPassportPayment(member, memberData.BudoPassportPrice, memberData.IsBudoPassportPayed);
+            var payments = new List<PaymentEntity>();
 
-            // Обрабатываем годовой взнос
-            await ProcessAnnualFeePayment(member, memberData.AnnualFeePrice, memberData.IsAnnualFeePayed);
+            if (memberData.SeminarPrice != null)
+            {
+                var seminarPayment = new PaymentEntity(
+                    member,
+                    memberData.SeminarPrice.Value,
+                    PaymentType.Seminar,
+                    memberData.IsSeminarPayed ? PaymentStatus.Completed : PaymentStatus.Pending);
+                payments.Add(seminarPayment);
+            }
 
-            // Обрабатываем оплату аттестации
-            await ProcessCertificationPayment(member, memberData.CertificationPrice, memberData.IsCertificationPayed);
+            if (!member.User.HasBudoPassport && memberData.BudoPassportPrice != null)
+            {
+                var budoPassportPayment = new PaymentEntity(
+                    member,
+                    memberData.BudoPassportPrice.Value,
+                    PaymentType.BudoPassport,
+                    memberData.IsBudoPassportPayed ? PaymentStatus.Completed : PaymentStatus.Pending);
+                payments.Add(budoPassportPayment);
+            }
 
-            // Сохраняем изменения
+            if (memberData.AnnualFeePrice != null)
+            {
+                var annualFeePayment = new PaymentEntity(
+                    member,
+                    memberData.AnnualFeePrice.Value,
+                    PaymentType.AnnualFee,
+                    memberData.IsAnnualFeePayed ? PaymentStatus.Completed : PaymentStatus.Pending);
+                payments.Add(annualFeePayment);
+            }
+
+            if (memberData.CertificationPrice != null)
+            {
+                var certificationPayment = new PaymentEntity(
+                    member,
+                    memberData.CertificationPrice.Value,
+                    PaymentType.Certification,
+                    memberData.IsCertificationPayed ? PaymentStatus.Completed : PaymentStatus.Pending);
+                payments.Add(certificationPayment);
+            }
+
+            foreach (var payment in payments)
+            {
+                _context.Payment.Add(payment);
+            }
+
+            await _context.SaveChangesAsync();
+
+            member.SeminarPaymentId = payments.FirstOrDefault(p => p.Type == PaymentType.Seminar)?.Id;
+            member.BudoPassportPaymentId = payments.FirstOrDefault(p => p.Type == PaymentType.BudoPassport)?.Id;
+            member.AnnualFeePaymentId = payments.FirstOrDefault(p => p.Type == PaymentType.AnnualFee)?.Id;
+            member.CertificationPaymentId = payments.FirstOrDefault(p => p.Type == PaymentType.Certification)?.Id;
+
             _context.SeminarMembers.Update(member);
             await _context.SaveChangesAsync();
-        }
-
-        private async Task LoadExistingPayments(SeminarMemberEntity member)
-        {
-            if (member.SeminarPaymentId.HasValue && member.SeminarPayment == null)
-            {
-                member.SeminarPayment = await _context.Payment.FindAsync(member.SeminarPaymentId.Value);
-            }
-            if (member.BudoPassportPaymentId.HasValue && member.BudoPassportPayment == null)
-            {
-                member.BudoPassportPayment = await _context.Payment.FindAsync(member.BudoPassportPaymentId.Value);
-            }
-            if (member.AnnualFeePaymentId.HasValue && member.AnnualFeePayment == null)
-            {
-                member.AnnualFeePayment = await _context.Payment.FindAsync(member.AnnualFeePaymentId.Value);
-            }
-            if (member.CertificationPaymentId.HasValue && member.CertificationPayment == null)
-            {
-                member.CertificationPayment = await _context.Payment.FindAsync(member.CertificationPaymentId.Value);
-            }
-        }
-
-        private async Task ProcessSeminarPayment(SeminarMemberEntity member, decimal? price, bool isPaid)
-        {
-            if (price == null)
-            {
-                if (member.SeminarPayment != null)
-                {
-                    _context.Payment.Remove(member.SeminarPayment);
-                    member.SeminarPayment = null;
-                    member.SeminarPaymentId = null;
-                }
-                return;
-            }
-
-            var status = isPaid ? PaymentStatus.Completed : PaymentStatus.Pending;
-
-            if (member.SeminarPayment != null)
-            {
-                member.SeminarPayment.Amount = price.Value;
-                member.SeminarPayment.Status = status;
-                member.SeminarPayment.Date = member.Seminar.Date;
-                _context.Payment.Update(member.SeminarPayment);
-            }
-            else
-            {
-                var payment = new PaymentEntity(member, price.Value, PaymentType.Seminar, status);
-                _context.Payment.Add(payment);
-                await _context.SaveChangesAsync(); 
-
-                member.SeminarPayment = payment;
-                member.SeminarPaymentId = payment.Id;
-            }
-        }
-
-        private async Task ProcessBudoPassportPayment(SeminarMemberEntity member, decimal? price, bool isPaid)
-        {
-            if (member.User.HasBudoPassport)
-            {
-                if (member.BudoPassportPayment != null)
-                {
-                    _context.Payment.Remove(member.BudoPassportPayment);
-                    member.BudoPassportPayment = null;
-                    member.BudoPassportPaymentId = null;
-                }
-                return;
-            }
-
-            if (price == null)
-            {
-                if (member.BudoPassportPayment != null)
-                {
-                    _context.Payment.Remove(member.BudoPassportPayment);
-                    member.BudoPassportPayment = null;
-                    member.BudoPassportPaymentId = null;
-                }
-                return;
-            }
-
-            var status = isPaid ? PaymentStatus.Completed : PaymentStatus.Pending;
-
-            if (member.BudoPassportPayment != null)
-            {
-                member.BudoPassportPayment.Amount = price.Value;
-                member.BudoPassportPayment.Status = status;
-                member.BudoPassportPayment.Date = member.Seminar.Date;
-                _context.Payment.Update(member.BudoPassportPayment);
-            }
-            else
-            {
-                var payment = new PaymentEntity(member, price.Value, PaymentType.BudoPassport, status);
-                _context.Payment.Add(payment);
-                await _context.SaveChangesAsync(); 
-
-                member.BudoPassportPayment = payment;
-                member.BudoPassportPaymentId = payment.Id;
-            }
-        }
-
-        private async Task ProcessAnnualFeePayment(SeminarMemberEntity member, decimal? price, bool isPaid)
-        {
-            if (price == null)
-            {
-                if (member.AnnualFeePayment != null)
-                {
-                    _context.Payment.Remove(member.AnnualFeePayment);
-                    member.AnnualFeePayment = null;
-                    member.AnnualFeePaymentId = null;
-                }
-                return;
-            }
-
-            var status = isPaid ? PaymentStatus.Completed : PaymentStatus.Pending;
-
-            if (member.AnnualFeePayment != null)
-            {
-                member.AnnualFeePayment.Amount = price.Value;
-                member.AnnualFeePayment.Status = status;
-                member.AnnualFeePayment.Date = member.Seminar.Date;
-                _context.Payment.Update(member.AnnualFeePayment);
-            }
-            else
-            {
-                var payment = new PaymentEntity(member, price.Value, PaymentType.AnnualFee, status);
-                _context.Payment.Add(payment);
-                await _context.SaveChangesAsync();
-
-                member.AnnualFeePayment = payment;
-                member.AnnualFeePaymentId = payment.Id;
-            }
-        }
-
-        private async Task ProcessCertificationPayment(SeminarMemberEntity member, decimal? price, bool isPaid)
-        {
-            if (price == null)
-            {
-                if (member.CertificationPayment != null)
-                {
-                    _context.Payment.Remove(member.CertificationPayment);
-                    member.CertificationPayment = null;
-                    member.CertificationPaymentId = null;
-                }
-                return;
-            }
-
-            var status = isPaid ? PaymentStatus.Completed : PaymentStatus.Pending;
-
-            if (member.CertificationPayment != null)
-            {
-                member.CertificationPayment.Amount = price.Value;
-                member.CertificationPayment.Status = status;
-                member.CertificationPayment.Date = member.Seminar.Date;
-                _context.Payment.Update(member.CertificationPayment);
-            }
-            else
-            {
-                var payment = new PaymentEntity(member, price.Value, PaymentType.Certification, status);
-                _context.Payment.Add(payment);
-                await _context.SaveChangesAsync(); 
-
-                member.CertificationPayment = payment;
-                member.CertificationPaymentId = payment.Id;
-            }
         }
 
     }

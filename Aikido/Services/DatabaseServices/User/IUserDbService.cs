@@ -24,5 +24,6 @@ namespace Aikido.Services.DatabaseServices.User
         Task AddUserMembershipAsync(long userId, long clubId, long groupId, Role roleInGroup = Role.User);
         Task RemoveUserMembershipAsync(long userId, long groupId);
         Task RemoveUserMemberships(long userId);
+        Task UpdateUserGrade(long userId, Grade grade);
     }
 }
