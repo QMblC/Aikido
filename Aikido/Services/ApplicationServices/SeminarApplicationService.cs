@@ -1,5 +1,6 @@
 ﻿using Aikido.Dto.Seminars;
 using Aikido.Dto.Seminars.Creation;
+using Aikido.Dto.Seminars.Members;
 using Aikido.Entities;
 using Aikido.Entities.Seminar;
 using Aikido.Exceptions;
@@ -87,6 +88,20 @@ namespace Aikido.Application.Services
             }
         }
 
+        public async Task SetFinalSeminarMember(long seminarId, List<FinalSeminarMemberDto> membersDto)
+        {
+            await _seminarDbService.SetFinalSeminarMembersAsync(seminarId, membersDto);
+
+            var members = await _seminarDbService.GetSeminarMembersAsync(seminarId);
+
+            foreach (var member in members)
+            {
+                var memberData = membersDto.First(m => m.UserId == member.UserId);
+
+                await _paymentDbService.CreateSeminarMemberPayments(member, memberData);
+            }
+        }
+
         public async Task RemoveMemberFromSeminarAsync(long seminarId, long userId)
         {
             await _seminarDbService.RemoveMemberAsync(seminarId, userId);
@@ -147,6 +162,41 @@ namespace Aikido.Application.Services
             var user = await _userDbService.GetByIdOrThrowException(userId);
 
             return new SeminarMemberStartDataDto(user, seminar);
+        }
+
+
+        public async Task ApplySeminarResult(long seminarId)
+        {
+            var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
+
+            await _seminarDbService.ApplySeminarResult(seminarId);
+
+            var members = await _seminarDbService.GetSeminarMembersAsync(seminarId);
+
+            foreach (var member in members)
+            {
+                if (member.Status == AdditionalData.SeminarMemberStatus.Certified)
+                {
+                    await _userDbService.UpdateUserGrade(member.UserId, member.CertificationGrade.Value);
+                }
+            }
+        }
+
+        public async Task CancelSeminarResult(long seminarId)
+        {
+            var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
+
+            await _seminarDbService.CancelSeminarResult(seminarId);
+
+            var members = await _seminarDbService.GetSeminarMembersAsync(seminarId);
+
+            foreach (var member in members)
+            {
+                if (member.Status == AdditionalData.SeminarMemberStatus.Certified)
+                {
+                    await _userDbService.UpdateUserGrade(member.UserId, member.OldGrade);
+                }
+            }
         }
     }
 }

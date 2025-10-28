@@ -2,7 +2,7 @@
 using Aikido.Entities;
 using Aikido.Entities.Seminar;
 
-namespace Aikido.Dto.Seminars
+namespace Aikido.Dto.Seminars.Members
 {
     public class SeminarMemberStartDataDto
     {

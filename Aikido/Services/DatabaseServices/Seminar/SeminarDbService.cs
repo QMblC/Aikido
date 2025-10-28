@@ -1,6 +1,7 @@
-﻿using Aikido.Data;
+﻿using Aikido.AdditionalData;
+using Aikido.Data;
 using Aikido.Dto.Seminars;
-using Aikido.Dto.Seminars.Creation;
+using Aikido.Dto.Seminars.Members;
 using Aikido.Entities;
 using Aikido.Entities.Seminar;
 using Aikido.Exceptions;
@@ -98,37 +99,93 @@ namespace Aikido.Services.DatabaseServices.Seminar
 
             var coachId = memberGroup.CoachId;
 
+            var seminar = await _context.Seminars.FindAsync(seminarId);
+            if (seminar == null)
+            {
+                throw new EntityNotFoundException(nameof(seminar));
+            }
+
+            var userIds = memberGroup.Members.Select(m => m.UserId).ToList();
+            var usersDict = await _context.Users
+                .Where(u => userIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id);
+
+            var existingMembers = await _context.SeminarMembers
+                .Where(sm => sm.SeminarId == seminarId && userIds.Contains(sm.UserId))
+                .ToDictionaryAsync(sm => sm.UserId);
+
             foreach (var memberDto in memberGroup.Members)
             {
-
-                var user = _context.Users.Find(memberDto.UserId);
-                if (user == null)
+                if (!usersDict.TryGetValue(memberDto.UserId, out var user))
                 {
                     throw new EntityNotFoundException(nameof(UserEntity));
                 }
 
-                var exists = await _context.SeminarMembers
-                    .AnyAsync(sm => sm.SeminarId == seminarId && sm.UserId == memberDto.UserId);
-
-                var seminar = _context.Seminars.Find(seminarId);
-                if (seminar == null)
+                if (!existingMembers.TryGetValue(memberDto.UserId, out var member))
                 {
-                    throw new EntityNotFoundException(nameof(seminar));
-                }
-
-                if (!exists)
-                {
-                    var member = new SeminarMemberEntity(coachId, seminar, user, memberDto);
+                    member = new SeminarMemberEntity(coachId, seminar, user, memberDto);
                     _context.SeminarMembers.Add(member);
                 }
                 else
                 {
-                    var member = _context.SeminarMembers.FirstOrDefault(sm => sm.SeminarId == seminarId && sm.UserId == memberDto.UserId);
-                    member.UpdateData(coachId, seminar, user, memberDto);     
+                    member.UpdateData(coachId, seminar, user, memberDto);
+                    _context.SeminarMembers.Update(member);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task SetFinalSeminarMembersAsync(long seminarId, List<FinalSeminarMemberDto> members)
+        {
+            await RemoveExcess(seminarId, members.Select(sm => sm as SeminarMemberCreationDto).ToList());
+
+            var seminar = await _context.Seminars.FindAsync(seminarId);
+            if (seminar == null)
+            {
+                throw new EntityNotFoundException(nameof(seminar));
+            }
+
+            var creatorId = seminar.CreatorId;
+
+            var userIds = members.Select(m => m.UserId).ToList();
+            var usersDict = await _context.Users
+                .Where(u => userIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id);
+
+            var existingMembers = await _context.SeminarMembers
+                .Where(sm => sm.SeminarId == seminarId && userIds.Contains(sm.UserId))
+                .ToDictionaryAsync(sm => sm.UserId);
+
+            foreach (var memberDto in members)
+            {
+                if (!usersDict.TryGetValue(memberDto.UserId, out var user))
+                {
+                    throw new EntityNotFoundException(nameof(UserEntity));
                 }
 
-                await _context.SaveChangesAsync();
+                if (!existingMembers.TryGetValue(memberDto.UserId, out var member))
+                {
+                    member = new SeminarMemberEntity(
+                        creatorId,
+                        seminar,
+                        user,
+                        memberDto,
+                        EnumParser.ConvertStringToEnum<SeminarMemberStatus>(memberDto.Status));
+                    _context.SeminarMembers.Add(member);
+                }
+                else
+                {
+                    member.UpdateData(
+                        member.CreatorId.Value,
+                        seminar,
+                        user,
+                        memberDto,
+                        EnumParser.ConvertStringToEnum<SeminarMemberStatus>(memberDto.Status));
+                    _context.SeminarMembers.Update(member);
+                }
             }
+            await _context.SaveChangesAsync();
         }
 
         private async Task RemoveExcess(long seminarId, List<SeminarMemberCreationDto> membersDto)
@@ -234,6 +291,24 @@ namespace Aikido.Services.DatabaseServices.Seminar
             var groups = seminar?.Groups;
 
             return groups != null ? groups.ToList() : new List<SeminarGroupEntity>();
+        }
+
+        public async Task ApplySeminarResult(long seminarid)
+        {
+            var seminar = await _context.Seminars.FindAsync(seminarid);
+
+            seminar.IsFinalStatementApplied = true;
+            _context.Update(seminar);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task CancelSeminarResult(long seminarid)
+        {
+            var seminar = await _context.Seminars.FindAsync(seminarid);
+
+            seminar.IsFinalStatementApplied = false;
+            _context.Update(seminar);
+            await _context.SaveChangesAsync();
         }
     }
 }

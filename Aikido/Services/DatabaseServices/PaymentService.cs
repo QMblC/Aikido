@@ -1,7 +1,7 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Data;
 using Aikido.Dto;
-using Aikido.Dto.Seminars.Creation;
+using Aikido.Dto.Seminars.Members;
 using Aikido.Entities;
 using Aikido.Entities.Seminar;
 using Aikido.Exceptions;
@@ -70,9 +70,18 @@ namespace Aikido.Services
         }
 
         public async Task CreateSeminarMemberPayments(
-    SeminarMemberEntity member,
-    SeminarMemberCreationDto memberData)
+            SeminarMemberEntity member,
+            SeminarMemberCreationDto memberData)
         {
+            var paymentsToRemove = _context.Payment.Where(p =>
+                p.SeminarMemberId == member.Id &&
+                (p.Type == PaymentType.Seminar ||
+                p.Type == PaymentType.BudoPassport ||
+                p.Type == PaymentType.AnnualFee ||
+                p.Type == PaymentType.Certification));
+
+            _context.Payment.RemoveRange(paymentsToRemove);
+
             var payments = new List<PaymentEntity>();
 
             if (memberData.SeminarPrice != null)
@@ -122,25 +131,14 @@ namespace Aikido.Services
 
             await _context.SaveChangesAsync();
 
-            if (memberData.SeminarPrice != null)
-            {
-                member.SeminarPaymentId = payments.First(p => p.Type == PaymentType.Seminar).Id;
-            }
-            if (!member.User.HasBudoPassport && memberData.BudoPassportPrice != null)
-            {
-                member.BudoPassportPaymentId = payments.First(p => p.Type == PaymentType.BudoPassport).Id;
-            }
-            if (memberData.AnnualFeePrice != null)
-            {
-                member.AnnualFeePaymentId = payments.First(p => p.Type == PaymentType.AnnualFee).Id;
-            }
-            if (memberData.CertificationPrice != null)
-            {
-                member.CertificationPaymentId = payments.First(p => p.Type == PaymentType.Certification).Id;
-            }
+            member.SeminarPaymentId = payments.FirstOrDefault(p => p.Type == PaymentType.Seminar)?.Id;
+            member.BudoPassportPaymentId = payments.FirstOrDefault(p => p.Type == PaymentType.BudoPassport)?.Id;
+            member.AnnualFeePaymentId = payments.FirstOrDefault(p => p.Type == PaymentType.AnnualFee)?.Id;
+            member.CertificationPaymentId = payments.FirstOrDefault(p => p.Type == PaymentType.Certification)?.Id;
 
             _context.SeminarMembers.Update(member);
             await _context.SaveChangesAsync();
         }
+
     }
 }

@@ -1,7 +1,9 @@
 ﻿using Aikido.Application.Services;
 using Aikido.Dto.Seminars;
 using Aikido.Dto.Seminars.Creation;
+using Aikido.Dto.Seminars.Members;
 using Aikido.Requests;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -204,6 +206,20 @@ namespace Aikido.Controllers
             }
         }
 
+        [HttpPost("{seminarId}/final-members")]
+        public async Task<IActionResult> SetFinalMembers(long seminarId, [FromBody] List<FinalSeminarMemberDto> members)
+        {
+            try
+            {
+                await _seminarApplicationService.SetFinalSeminarMember(seminarId, members);
+                return Ok();
+            }
+            catch(Exception ex) 
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
         [HttpGet("{seminarId}/get-start-data/{userId}")]
         public async Task<ActionResult<SeminarMemberStartDataDto>> GetStartMembersData(long seminarId, long userId)
         {
@@ -211,6 +227,34 @@ namespace Aikido.Controllers
             {
                 var member = await _seminarApplicationService.GetStartMemberdata(seminarId, userId);
                 return Ok(member);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        [HttpPut("{seminarId}/apply")]
+        public async Task<IActionResult> ApplySeminarResult(long seminarId)
+        {
+            try
+            {
+                await _seminarApplicationService.ApplySeminarResult(seminarId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        [HttpPut("{seminarId}/cancel")]
+        public async Task<IActionResult> CancelSeminarResult(long seminarId)
+        {
+            try
+            {
+                await _seminarApplicationService.CancelSeminarResult(seminarId);
+                return Ok();
             }
             catch (Exception ex)
             {

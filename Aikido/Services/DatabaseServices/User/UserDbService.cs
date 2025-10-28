@@ -242,5 +242,15 @@ namespace Aikido.Services.DatabaseServices.User
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task UpdateUserGrade(long userId, Grade grade)
+        {
+            var user = await _context.Users.FindAsync(userId);
+
+            user.Grade = grade;
+            _context.Update(user);
+
+            await _context.SaveChangesAsync();
+        }
     }
 }

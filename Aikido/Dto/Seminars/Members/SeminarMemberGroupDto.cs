@@ -1,6 +1,4 @@
-﻿using Aikido.Dto.Seminars.Creation;
-
-namespace Aikido.Dto.Seminars
+﻿namespace Aikido.Dto.Seminars.Members
 {
     public class SeminarMemberGroupDto
     {
