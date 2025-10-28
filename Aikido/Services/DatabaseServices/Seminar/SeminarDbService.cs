@@ -58,6 +58,10 @@ namespace Aikido.Services.DatabaseServices.Seminar
                 .Include(sm => sm.Seminar)
                 .Include(sm => sm.Group)
                 .Include(sm => sm.Creator)
+                .Include(sm => sm.SeminarPayment)
+                .Include(sm => sm.BudoPassportPayment)
+                .Include(sm => sm.AnnualFeePayment)
+                .Include(sm => sm.CertificationPayment)
                 .Where(sm => sm.SeminarId == seminarId)
                 .OrderBy(sm => sm.User!.LastName)
                 .ThenBy(sm => sm.User!.FirstName)
@@ -88,7 +92,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
             await _context.SaveChangesAsync();
         }
 
-        public async Task AddSeminarMembersAsync(long seminarId, SeminarMemberGroupDto memberGroup)//UnitOfWork
+        public async Task AddSeminarMembersAsync(long seminarId, SeminarMemberGroupDto memberGroup)//ToDo UnitOfWork
         {
             await RemoveExcess(seminarId, memberGroup.Members);
 

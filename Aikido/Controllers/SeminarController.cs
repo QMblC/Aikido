@@ -51,20 +51,6 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpGet("get/{seminarId}/members")]
-        public async Task<ActionResult<List<SeminarMemberDto>>> GetSeminarMembers(long seminarId)
-        {
-            try
-            {
-                var members = await _seminarApplicationService.GetSeminarMembersAsync(seminarId);
-                return Ok(members);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Ошибка при получении участников семинара", Details = ex.Message });
-            }
-        }
-
         [HttpDelete("{seminarId}/members/{userId}")]
         public async Task<IActionResult> RemoveMemberFromSeminar(long seminarId, long userId)
         {
@@ -176,6 +162,20 @@ namespace Aikido.Controllers
             }
         }
 
+        [HttpGet("get/{seminarId}/members")]
+        public async Task<ActionResult<List<SeminarMemberDto>>> GetSeminarMembers(long seminarId)
+        {
+            try
+            {
+                var members = await _seminarApplicationService.GetSeminarMembersAsync(seminarId);
+                return Ok(members);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при получении участников семинара", Details = ex.Message });
+            }
+        }
+
         [HttpPost("{seminarId}/members")]
         public async Task<IActionResult> CreateSeminarMembers(long seminarId, SeminarMemberGroupDto memberGroup)
         {
@@ -190,10 +190,32 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpGet("{seminarId}/groups")]
-        public async Task<ActionResult<List<SeminarGroupDto>>> GetSeminarGroups(long seminarId)
+        [HttpGet("{seminarId}/get-coach-students/{coachId}")]
+        public async Task<ActionResult<List<SeminarMemberStartDataDto>>> GetStartMembersDataList(long seminarId, long coachId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var members = await _seminarApplicationService.GetStartMembersData(seminarId, coachId);
+                return Ok(members);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        [HttpGet("{seminarId}/get-start-data/{userId}")]
+        public async Task<ActionResult<SeminarMemberStartDataDto>> GetStartMembersData(long seminarId, long userId)
+        {
+            try
+            {
+                var member = await _seminarApplicationService.GetStartMemberdata(seminarId, userId);
+                return Ok(member);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
         }
     }
 }

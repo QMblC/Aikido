@@ -69,19 +69,82 @@ namespace Aikido.Services
             return await _context.Payment.AnyAsync(p => p.Id == id);
         }
 
-        public async Task CreateSeminarPayments(
+        public async Task CreateSeminarMemberPayments(
             SeminarMemberEntity member,
             SeminarMemberCreationDto memberData)
         {
+            var payments = new List<PaymentEntity>();
 
-            var semianarPayment = new PaymentEntity(member,PaymentType.Seminar);
-            _context.Payment.Add(semianarPayment);
-
-            if (!member.User.HasBudoPassport)
+            if (memberData.SeminarPrice != null)
             {
-                var budoPassportPayment = new PaymentEntity(member, PaymentType.BudoPassport);
-                _context.Add(budoPassportPayment);
-            }          
+                var seminarPayment = new PaymentEntity(
+                    member,
+                    memberData.SeminarPrice.Value,
+                    PaymentType.Seminar,
+                    memberData.IsSeminarPayed ? PaymentStatus.Completed : PaymentStatus.Pending);
+                payments.Add(seminarPayment);
+                member.SeminarPayment = seminarPayment;
+            }
+
+            if (!member.User.HasBudoPassport && memberData.BudoPassportPrice != null)
+            {
+                var budoPassportPayment = new PaymentEntity(
+                    member,
+                    memberData.BudoPassportPrice.Value,
+                    PaymentType.BudoPassport,
+                    memberData.IsBudoPassportPayed ? PaymentStatus.Completed : PaymentStatus.Pending);
+                payments.Add(budoPassportPayment);
+                member.BudoPassportPayment = budoPassportPayment;
+            }
+
+            if (memberData.AnnualFeePrice != null)
+            {
+                var annualFeePayment = new PaymentEntity(
+                    member,
+                    memberData.AnnualFeePrice.Value,
+                    PaymentType.AnnualFee,
+                    memberData.IsAnnualFeePayed ? PaymentStatus.Completed : PaymentStatus.Pending);
+                payments.Add(annualFeePayment);
+                member.AnnualFeePayment = annualFeePayment;
+            }
+
+            if (memberData.CertificationPrice != null)
+            {
+                var certificationPayment = new PaymentEntity(
+                    member,
+                    memberData.CertificationPrice.Value,
+                    PaymentType.Certification,
+                    memberData.IsCertificationPayed ? PaymentStatus.Completed : PaymentStatus.Pending);
+                payments.Add(certificationPayment);
+                member.CertificationPayment = certificationPayment;
+            }
+
+            foreach (var payment in payments)
+            {
+                _context.Payment.Add(payment);
+            }
+
+            await _context.SaveChangesAsync();
+
+            if (memberData.SeminarPrice != null)
+            {
+                member.SeminarPaymentId = payments.First(p => p.Type == PaymentType.Seminar).Id;
+            }
+            if (!member.User.HasBudoPassport && memberData.BudoPassportPrice != null)
+            {
+                member.BudoPassportPaymentId = payments.First(p => p.Type == PaymentType.BudoPassport).Id;
+            }
+            if (memberData.AnnualFeePrice != null)
+            {
+                member.AnnualFeePaymentId = payments.First(p => p.Type == PaymentType.AnnualFee).Id;
+            }
+            if (memberData.CertificationPrice != null)
+            {
+                member.CertificationPaymentId = payments.First(p => p.Type == PaymentType.Certification).Id;
+            }
+
+            _context.SeminarMembers.Update(member);
+            await _context.SaveChangesAsync();
         }
     }
 }

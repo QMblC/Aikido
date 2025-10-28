@@ -17,6 +17,7 @@
         public string? City { get; set; }
         public string? ParentFullName { get; set; }
         public string? ParentPhoneNumber { get; set; }
+        public bool? HasBudoPassport { get; set; } = false;
         public DateTime? RegistrationDate { get; set; }
 
         public List<UserMembershipCreationDto>? UserMembershipDtos { get; set; } = new();

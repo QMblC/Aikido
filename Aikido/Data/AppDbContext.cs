@@ -223,6 +223,28 @@ namespace Aikido.Data
                     .HasForeignKey(sm => sm.GroupId)
                     .OnDelete(DeleteBehavior.SetNull);
 
+                entity.HasOne(sm => sm.SeminarPayment)
+                    .WithMany()
+                    .HasForeignKey(sm => sm.SeminarPaymentId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(sm => sm.AnnualFeePayment)
+                    .WithMany()
+                    .HasForeignKey(sm => sm.AnnualFeePaymentId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(sm => sm.BudoPassportPayment)
+                    .WithMany()
+                    .HasForeignKey(sm => sm.BudoPassportPaymentId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(sm => sm.CertificationPayment)
+                    .WithMany()
+                    .HasForeignKey(sm => sm.CertificationPaymentId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+
+
                 entity.HasIndex(e => new { e.SeminarId, e.UserId }).IsUnique();
             });
         }
@@ -354,6 +376,13 @@ namespace Aikido.Data
                     .WithMany()
                     .HasForeignKey(p => p.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
+
+                modelBuilder.Entity<PaymentEntity>()
+                    .HasOne(p => p.SeminarMember)
+                    .WithMany()
+                    .HasForeignKey(p => p.SeminarMemberId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
 
                 entity.HasIndex(e => e.Date);
                 entity.HasIndex(e => e.UserId);
