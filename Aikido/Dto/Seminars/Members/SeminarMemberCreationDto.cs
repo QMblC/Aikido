@@ -1,4 +1,4 @@
-﻿namespace Aikido.Dto.Seminars.Creation
+﻿namespace Aikido.Dto.Seminars.Members
 {
     public class SeminarMemberCreationDto
     {

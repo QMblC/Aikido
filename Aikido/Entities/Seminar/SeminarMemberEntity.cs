@@ -1,6 +1,6 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Dto.Seminars;
-using Aikido.Dto.Seminars.Creation;
+using Aikido.Dto.Seminars.Members;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities.Seminar
@@ -42,17 +42,28 @@ namespace Aikido.Entities.Seminar
         public virtual UserEntity? Creator { get; set; }
 
         public SeminarMemberEntity() { }
-        public SeminarMemberEntity(long coachId, SeminarEntity seminar, UserEntity user, SeminarMemberCreationDto seminarMember)
+
+        public SeminarMemberEntity(
+            long coachId,
+            SeminarEntity seminar,
+            UserEntity user, 
+            SeminarMemberCreationDto seminarMember,
+            SeminarMemberStatus status = SeminarMemberStatus.None)
         {
             UpdateData(coachId, seminar, user, seminarMember);
         }
 
-        public void UpdateData(long coachId, SeminarEntity seminar, UserEntity user, SeminarMemberCreationDto seminarMember)
+        public void UpdateData(
+            long coachId,
+            SeminarEntity seminar,
+            UserEntity user,
+            SeminarMemberCreationDto seminarMember,
+            SeminarMemberStatus status = SeminarMemberStatus.None)
         {
             SeminarId = seminar.Id;
             UserId = seminarMember.UserId;
             GroupId = seminarMember.SeminarGroupId;
-            Status = SeminarMemberStatus.None;
+            Status = status;
             OldGrade = user.Grade;
             CertificationGrade = seminarMember.CertificationGrade != null
                 ? EnumParser.ConvertStringToEnum<Grade>(seminarMember.CertificationGrade) : Grade.None; 

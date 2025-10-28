@@ -1,7 +1,7 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Entities.Seminar;
 
-namespace Aikido.Dto.Seminars
+namespace Aikido.Dto.Seminars.Members
 {
     public class SeminarMemberDto : DtoBase
     {

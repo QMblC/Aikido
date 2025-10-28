@@ -1,6 +1,7 @@
 ﻿using Aikido.Application.Services;
 using Aikido.Dto.Seminars;
 using Aikido.Dto.Seminars.Creation;
+using Aikido.Dto.Seminars.Members;
 using Aikido.Requests;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;

@@ -1,5 +1,6 @@
 ﻿using Aikido.Dto.Seminars;
 using Aikido.Dto.Seminars.Creation;
+using Aikido.Dto.Seminars.Members;
 using Aikido.Entities;
 using Aikido.Entities.Seminar;
 using Aikido.Exceptions;
@@ -77,14 +78,18 @@ namespace Aikido.Application.Services
             await _seminarDbService.AddSeminarMembersAsync(seminarId, memberGroup);
 
             var members = await _seminarDbService.GetSeminarMembersAsync(seminarId);
-            
 
             foreach (var member in members)
             {
                 var memberData = memberGroup.Members.First(m => m.UserId == member.UserId);
-
-                await _paymentDbService.CreateSeminarMemberPayments(member, memberData);
+                await _paymentDbService.CreateOrUpdateSeminarMemberPayments(member, memberData);
             }
+        }
+
+
+        public async Task SetFinalSeminarMember(long seminarId, FinalSeminarMemberDto members)
+        {
+            
         }
 
         public async Task RemoveMemberFromSeminarAsync(long seminarId, long userId)
