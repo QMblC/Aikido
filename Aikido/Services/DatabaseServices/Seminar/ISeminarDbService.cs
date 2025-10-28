@@ -1,4 +1,5 @@
 ﻿using Aikido.Dto.Seminars;
+using Aikido.Dto.Seminars.Creation;
 using Aikido.Entities.Seminar;
 
 namespace Aikido.Services.DatabaseServices.Seminar
@@ -18,11 +19,13 @@ namespace Aikido.Services.DatabaseServices.Seminar
         Task UpdateAsync(long id, SeminarDto seminarData);
         Task DeleteAsync(long id);
 
-        Task AddSeminarMembersAsync(long seminarId, List<SeminarMemberDto> membersDto);
+        Task AddSeminarMembersAsync(long seminarId, SeminarMemberGroupDto membersDto);
         Task RemoveMemberAsync(long seminarId, long userId);
         Task<bool> IsMemberAsync(long seminarId, long userId);
         Task<int> GetMemberCountAsync(long seminarId);
 
         Task<List<SeminarEntity>> GetSeminarsByDateRangeAsync(DateTime startDate, DateTime endDate);
+
+        Task<List<SeminarGroupEntity>> GetSeminarGroups(long seminarId);
     }
 }

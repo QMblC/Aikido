@@ -1,8 +1,10 @@
 ﻿using Aikido.Data;
 using Aikido.Dto.Seminars;
+using Aikido.Dto.Seminars.Creation;
 using Aikido.Entities;
 using Aikido.Entities.Seminar;
 using Aikido.Exceptions;
+using DocumentFormat.OpenXml.InkML;
 using Microsoft.EntityFrameworkCore;
 
 namespace Aikido.Services.DatabaseServices.Seminar
@@ -55,6 +57,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
                 .Include(sm => sm.User)
                 .Include(sm => sm.Seminar)
                 .Include(sm => sm.Group)
+                .Include(sm => sm.Creator)
                 .Where(sm => sm.SeminarId == seminarId)
                 .OrderBy(sm => sm.User!.LastName)
                 .ThenBy(sm => sm.User!.FirstName)
@@ -85,10 +88,15 @@ namespace Aikido.Services.DatabaseServices.Seminar
             await _context.SaveChangesAsync();
         }
 
-        public async Task AddSeminarMembersAsync(long seminarId, List<SeminarMemberDto> membersDto)//UnitOfWork
+        public async Task AddSeminarMembersAsync(long seminarId, SeminarMemberGroupDto memberGroup)//UnitOfWork
         {
-            foreach (var memberDto in membersDto)
+            await RemoveExcess(seminarId, memberGroup.Members);
+
+            var coachId = memberGroup.CoachId;
+
+            foreach (var memberDto in memberGroup.Members)
             {
+
                 var user = _context.Users.Find(memberDto.UserId);
                 if (user == null)
                 {
@@ -98,18 +106,39 @@ namespace Aikido.Services.DatabaseServices.Seminar
                 var exists = await _context.SeminarMembers
                     .AnyAsync(sm => sm.SeminarId == seminarId && sm.UserId == memberDto.UserId);
 
+                var seminar = _context.Seminars.Find(seminarId);
+                if (seminar == null)
+                {
+                    throw new EntityNotFoundException(nameof(seminar));
+                }
+
                 if (!exists)
                 {
-                    
-
-                    var member = new SeminarMemberEntity(seminarId, user, memberDto);
+                    var member = new SeminarMemberEntity(coachId, seminar, user, memberDto);
                     _context.SeminarMembers.Add(member);
-                    await _context.SaveChangesAsync();
                 }
                 else
                 {
-                    throw new Exception("Участник семинара уже добавлен");
+                    var member = _context.SeminarMembers.FirstOrDefault(sm => sm.SeminarId == seminarId && sm.UserId == memberDto.UserId);
+                    member.UpdateData(coachId, seminar, user, memberDto);     
                 }
+
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        private async Task RemoveExcess(long seminarId, List<SeminarMemberCreationDto> membersDto)
+        {
+            var userIds = membersDto.Select(m => m.UserId).ToList();
+
+            var membersToDelete = _context.SeminarMembers
+                .Where(sm => sm.SeminarId == seminarId)
+                .Where(sm => !userIds.Contains(sm.UserId));
+
+            if (await membersToDelete.AnyAsync())
+            {
+                _context.SeminarMembers.RemoveRange(membersToDelete);
+                await _context.SaveChangesAsync();
             }
         }
 
@@ -192,6 +221,15 @@ namespace Aikido.Services.DatabaseServices.Seminar
             _context.Remove(regulation);
             seminar.RegulationId = null;
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<SeminarGroupEntity>> GetSeminarGroups(long seminarId)
+        {
+            var seminar = await _context.Seminars.FindAsync(seminarId);
+
+            var groups = seminar?.Groups;
+
+            return groups != null ? groups.ToList() : new List<SeminarGroupEntity>();
         }
     }
 }

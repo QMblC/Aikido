@@ -61,10 +61,6 @@ namespace Aikido.Entities
         {
             UpdateFromJson(userNewData);
             CreationDate = DateTime.UtcNow;
-            if (userNewData.RegistrationDate == null)
-            {
-                RegistrationDate = DateTime.UtcNow;
-            }
         }
 
         public void UpdateFromJson(IUserDto userNewData)
@@ -106,8 +102,7 @@ namespace Aikido.Entities
             if (userNewData.RegistrationDate != null)
                 RegistrationDate = DateTime.SpecifyKind(userNewData.RegistrationDate.Value, DateTimeKind.Utc);
             else
-                RegistrationDate = null;
-
+                RegistrationDate = DateTime.UtcNow;
         }
     }
 }

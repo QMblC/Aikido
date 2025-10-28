@@ -9,8 +9,8 @@ namespace Aikido.Entities
         [Key]
         public long Id { get; set; }
         public DateTime Date { get; set; }
-        public TimeSpan StartTime { get; set; }
-        public TimeSpan EndTime { get; set; }
+        public TimeSpan? StartTime { get; set; }
+        public TimeSpan? EndTime { get; set; }
         public ExclusiveDateType Type { get; set; }
         public string? Description { get; set; }
 
@@ -26,12 +26,15 @@ namespace Aikido.Entities
 
         public void UpdateFromJson(long groupId, IExclusionDateDto exclusionData)
         {
-            Date = exclusionData.Date;
+            Date = exclusionData.Date.Kind == DateTimeKind.Unspecified
+                ? DateTime.SpecifyKind(exclusionData.Date, DateTimeKind.Utc)
+                : exclusionData.Date.ToUniversalTime();
             Type = EnumParser.ConvertStringToEnum<ExclusiveDateType>(exclusionData.Type);
             Description = exclusionData.Description;
             GroupId = groupId;
             StartTime = exclusionData.StartTime;
             EndTime = exclusionData.EndTime;
         }
+
     }
 }

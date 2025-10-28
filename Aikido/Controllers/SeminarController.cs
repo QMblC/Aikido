@@ -1,5 +1,6 @@
 ﻿using Aikido.Application.Services;
 using Aikido.Dto.Seminars;
+using Aikido.Dto.Seminars.Creation;
 using Aikido.Requests;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
@@ -176,17 +177,23 @@ namespace Aikido.Controllers
         }
 
         [HttpPost("{seminarId}/members")]
-        public async Task<IActionResult> CreateSeminarMembers(long seminarId, List<SeminarMemberDto> members)
+        public async Task<IActionResult> CreateSeminarMembers(long seminarId, SeminarMemberGroupDto memberGroup)
         {
             try
             {
-                await _seminarApplicationService.AddSeminarMembersAsync(seminarId, members);
+                await _seminarApplicationService.AddSeminarMembersAsync(seminarId, memberGroup);
                 return Ok();
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
+        }
+
+        [HttpGet("{seminarId}/groups")]
+        public async Task<ActionResult<List<SeminarGroupDto>>> GetSeminarGroups(long seminarId)
+        {
+            throw new NotImplementedException();
         }
     }
 }

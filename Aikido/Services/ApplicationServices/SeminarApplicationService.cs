@@ -1,4 +1,5 @@
 ﻿using Aikido.Dto.Seminars;
+using Aikido.Dto.Seminars.Creation;
 using Aikido.Entities.Seminar;
 using Aikido.Exceptions;
 using Aikido.Services.DatabaseServices.Seminar;
@@ -60,9 +61,15 @@ namespace Aikido.Application.Services
             return members.Select(sm => new SeminarMemberDto(sm)).ToList();
         }
 
-        public async Task AddSeminarMembersAsync(long seminarId, List<SeminarMemberDto> members)
+        public async Task AddSeminarMembersAsync(long seminarId, SeminarMemberGroupDto memberGroup)
         {
-            await _seminarDbService.AddSeminarMembersAsync(seminarId, members);
+            await _seminarDbService.AddSeminarMembersAsync(seminarId, memberGroup);
+
+            var members = await _seminarDbService.GetSeminarMembersAsync(seminarId);
+            foreach(var member in members)
+            {
+
+            }
         }
 
         public async Task RemoveMemberFromSeminarAsync(long seminarId, long userId)
@@ -90,6 +97,14 @@ namespace Aikido.Application.Services
         public async Task DeleteSeminarRegulationAsync(long seminarId)
         {
             await _seminarDbService.DeleteSeminarRegulationAsync(seminarId);
+        }
+
+        public async Task<List<SeminarGroupDto>> GetSeminarGroups(long seminarId)
+        {
+            var groups = await _seminarDbService.GetSeminarGroups(seminarId);
+
+            return groups.Select(g => new SeminarGroupDto(g))
+                .ToList();
         }
     }
 }

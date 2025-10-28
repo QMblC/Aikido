@@ -349,32 +349,14 @@ namespace Aikido.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Amount).HasPrecision(18, 2);
-                entity.Property(e => e.TransactionId).HasMaxLength(100);
-                entity.Property(e => e.PaymentMethod).HasMaxLength(50);
 
                 entity.HasOne(p => p.User)
                     .WithMany()
                     .HasForeignKey(p => p.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasOne(p => p.ProcessedByUser)
-                    .WithMany()
-                    .HasForeignKey(p => p.ProcessedBy)
-                    .OnDelete(DeleteBehavior.SetNull);
-
-                entity.HasOne(p => p.Club)
-                    .WithMany()
-                    .HasForeignKey(p => p.ClubId)
-                    .OnDelete(DeleteBehavior.SetNull);
-
-                entity.HasOne(p => p.Group)
-                    .WithMany()
-                    .HasForeignKey(p => p.GroupId)
-                    .OnDelete(DeleteBehavior.SetNull);
-
-                entity.HasIndex(e => e.PaymentDate);
+                entity.HasIndex(e => e.Date);
                 entity.HasIndex(e => e.UserId);
-                entity.HasIndex(e => e.TransactionId);
             });
         }
 

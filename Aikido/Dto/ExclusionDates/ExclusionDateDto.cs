@@ -6,8 +6,8 @@ namespace Aikido.Dto.ExclusionDates
     {
         public long Id { get; set; }
         public DateTime Date { get; set; }
-        public TimeSpan StartTime { get; set; }
-        public TimeSpan EndTime { get; set; }
+        public TimeSpan? StartTime { get; set; }
+        public TimeSpan? EndTime { get; set; }
         public string Type { get; set; } = string.Empty;
         public string? Description { get; set; }
         public long? GroupId { get; set; }
