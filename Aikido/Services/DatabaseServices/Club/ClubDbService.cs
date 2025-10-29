@@ -111,7 +111,7 @@ namespace Aikido.Services.DatabaseServices.Club
         public async Task<List<GroupEntity>> GetClubGroupsAsync(long clubId)
         {
             return await _context.Groups
-                .Include(g => g.Coach)
+                .Include(g => g.UserMemberships)
                 .Include(g => g.Schedule)
                 .Include(g => g.ExclusionDates)
                 .Where(g => g.ClubId == clubId && g.IsActive)

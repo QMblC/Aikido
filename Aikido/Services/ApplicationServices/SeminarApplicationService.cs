@@ -1,6 +1,7 @@
 ﻿using Aikido.Dto.Seminars;
 using Aikido.Dto.Seminars.Creation;
 using Aikido.Dto.Seminars.Members;
+using Aikido.Dto.Users;
 using Aikido.Entities;
 using Aikido.Entities.Seminar;
 using Aikido.Exceptions;
@@ -82,8 +83,11 @@ namespace Aikido.Application.Services
 
             foreach (var member in members)
             {
-                var memberData = memberGroup.Members.First(m => m.UserId == member.UserId);
-
+                var memberData = memberGroup.Members.FirstOrDefault(m => m.UserId == member.UserId);
+                if (memberData == null) 
+                {  
+                    continue; 
+                }
                 await _paymentDbService.CreateSeminarMemberPayments(member, memberData);
             }
         }
@@ -137,10 +141,12 @@ namespace Aikido.Application.Services
                 .ToList();
         }
 
-        public async Task<List<SeminarMemberStartDataDto>> GetStartMembersData(long seminarId, long coachId)//ToDo проверять оплату AnnualFee
+        public async Task<List<SeminarMemberDto>> RegisterCoachStudents(long seminarId, long coachId)//ToDo проверять оплату AnnualFee
         {
+            //Получить всех учеников тренера
+            //Преобразовать их в участников семинара с добавлением оплат
+            //Сохранить и отдать списком
             var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
-
             var coachMemberships = await _userDbService.GetUserMembershipsAsync(coachId);
 
             var coachMembers = new List<UserEntity>();
@@ -149,11 +155,11 @@ namespace Aikido.Application.Services
             {
                 var groupMembers = await _groupDbService.GetGroupMembersAsync(cm.GroupId);
                 coachMembers.AddRange(groupMembers.Select(um => um.User));
+                
             }
 
-            return coachMembers
-                .Select(u => new SeminarMemberStartDataDto(u, seminar))
-                .ToList();
+            throw new NotImplementedException("Метод перерабатывается");
+            return new();
         }
 
         public async Task<SeminarMemberStartDataDto> GetStartMemberdata(long seminarId, long userId)//ToDo проверять оплату AnnualFee
@@ -163,7 +169,6 @@ namespace Aikido.Application.Services
 
             return new SeminarMemberStartDataDto(user, seminar);
         }
-
 
         public async Task ApplySeminarResult(long seminarId)
         {
@@ -197,6 +202,19 @@ namespace Aikido.Application.Services
                     await _userDbService.UpdateUserGrade(member.UserId, member.OldGrade);
                 }
             }
+        }
+
+        public async Task<List<UserShortDto>> GetRegisteredCoaches(long seminarId)
+        {
+            var seminarMembers = await _seminarDbService.GetSeminarMembersAsync(seminarId);
+            var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
+
+            return seminarMembers
+                .Select(sm => sm.Creator)
+                .Where(sm => sm.CreatorId != seminar.CreatorId)
+                .Distinct()
+                .Select(c => new UserShortDto(c))
+                .ToList();
         }
     }
 }

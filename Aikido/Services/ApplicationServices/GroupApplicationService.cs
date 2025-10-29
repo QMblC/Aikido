@@ -37,19 +37,6 @@ namespace Aikido.Application.Services
         public async Task<GroupInfoDto> GetGroupInfoAsync(long id)
         {
             var group = await _groupDbService.GetByIdOrThrowException(id);
-            var members = await _groupDbService.GetGroupMembersAsync(id);
-
-            var memberDtos = members.Where(m => m.User != null)
-                                  .Select(m => new UserShortDto(m.User!))
-                                  .ToList();
-
-            var coach = group.CoachId != null
-                ? await _userDbService.GetByIdOrThrowException(group.CoachId.Value)
-                : null;
-
-            var club = group.ClubId != null
-                ? await _clubDbService.GetByIdOrThrowException(group.ClubId.Value)
-                : null;
 
             return new GroupInfoDto(group);
         }
@@ -70,20 +57,13 @@ namespace Aikido.Application.Services
 
         public async Task<long> CreateGroupAsync(GroupCreationDto groupData)
         {
-            if (groupData.CoachId != null && !await _userDbService.Exists(groupData.CoachId.Value))
-            {
-                throw new EntityNotFoundException($"Тренера с Id = {groupData.CoachId} не существует");
-            }
-
             if (groupData.ClubId != null && !await _clubDbService.Exists(groupData.ClubId.Value))
             {
                 throw new EntityNotFoundException($"Клуба с Id = {groupData.ClubId} не существует");
             }
 
-            
             return await _groupDbService.CreateAsync(groupData);
         }
-
 
         public async Task UpdateGroupAsync(long id, GroupCreationDto groupData)
         {
@@ -92,10 +72,6 @@ namespace Aikido.Application.Services
                 throw new EntityNotFoundException($"Группа с Id = {id} не найдена");
             }
 
-            if (groupData.CoachId != null && !await _userDbService.Exists(groupData.CoachId.Value))
-            {
-                throw new EntityNotFoundException($"Тренера с Id = {groupData.CoachId} не существует");
-            }
 
             if (groupData.ClubId != null && !await _clubDbService.Exists(groupData.ClubId.Value))
             {

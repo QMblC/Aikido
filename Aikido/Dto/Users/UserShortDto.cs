@@ -7,11 +7,12 @@ namespace Aikido.Dto.Users
     {
         public string LastName { get; set; }
         public string FirstName { get; set; }
+        public string? MiddleName { get; set; }
         public string? Grade { get; set; }
         public byte[]? Photo { get; set; } = [];
 
 
-        public string FullName => $"{LastName} {FirstName}";
+        public string FullName => $"{LastName} {FirstName} {MiddleName}";
 
         public UserShortDto() { }
 
@@ -20,6 +21,7 @@ namespace Aikido.Dto.Users
             Id = user.Id;
             LastName = user.LastName;
             FirstName = user.FirstName;
+            MiddleName = user.MiddleName;
             Grade = user.Grade;
             Photo = user.Photo;
         }
@@ -29,7 +31,8 @@ namespace Aikido.Dto.Users
             Id = user.Id;
             LastName = user.LastName;
             FirstName = user.FirstName;
-            Grade = user.Grade.ToString();
+            MiddleName = user.MiddleName;
+            Grade = EnumParser.ConvertEnumToString(user.Grade);
             Photo = user.Photo;
         }
     }

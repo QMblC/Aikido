@@ -9,8 +9,9 @@ namespace Aikido.Dto.Groups
     {
         public long? Id { get; set; }
         public string? Name { get; set; } = string.Empty;
-        public long? CoachId { get; set; }
-        public string? CoachName { get; set; }
+
+        public List<UserShortDto> Coaches { get; set; }
+
         public long? ClubId { get; set; }
         public string? ClubName { get; set; }
         public string? AgeGroup { get; set; }
@@ -29,8 +30,9 @@ namespace Aikido.Dto.Groups
         {
             Id = group.Id;
             Name = group.Name;
-            CoachId = group.CoachId;
-            CoachName = group.Coach?.FullName;
+            
+            Coaches = group.UserMemberships.Select(um => new UserShortDto(um.User)).ToList();
+
             ClubId = group.ClubId;
             ClubName = group.Club?.Name;
             AgeGroup = EnumParser.ConvertEnumToString(group.AgeGroup);

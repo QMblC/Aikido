@@ -95,7 +95,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
 
         public async Task AddSeminarMembersAsync(long seminarId, SeminarMemberGroupDto memberGroup)//ToDo UnitOfWork
         {
-            await RemoveExcess(seminarId, memberGroup.Members);
+            await RemoveExcess(seminarId, memberGroup.Members, memberGroup.CoachId);
 
             var coachId = memberGroup.CoachId;
 
@@ -188,13 +188,18 @@ namespace Aikido.Services.DatabaseServices.Seminar
             await _context.SaveChangesAsync();
         }
 
-        private async Task RemoveExcess(long seminarId, List<SeminarMemberCreationDto> membersDto)
+        private async Task RemoveExcess(long seminarId, List<SeminarMemberCreationDto> membersDto, long? creatorId = null)
         {
             var userIds = membersDto.Select(m => m.UserId).ToList();
 
             var membersToDelete = _context.SeminarMembers
                 .Where(sm => sm.SeminarId == seminarId)
                 .Where(sm => !userIds.Contains(sm.UserId));
+
+            if (creatorId != null)
+            {
+                membersToDelete = membersToDelete.Where(sm => sm.CreatorId == creatorId);
+            }
 
             if (await membersToDelete.AnyAsync())
             {

@@ -15,7 +15,6 @@ namespace Aikido.Dto.Users
 
         public long? GroupId { get; set; }
         public string? GroupName { get; set; }
-        public bool? GroupContainsCoach { get; set; }
 
         public DateTime? JoinDate { get; set; }
         public string RoleInGroup { get; set; } = Role.User.ToString();
@@ -34,7 +33,6 @@ namespace Aikido.Dto.Users
             ClubName = userMembership.Club?.Name;
             GroupId = userMembership.GroupId;
             GroupName = userMembership.Group?.Name;
-            GroupContainsCoach = userMembership.Group != null ? userMembership.Group.CoachId != null : false;
             JoinDate = userMembership.JoinDate;
             RoleInGroup = userMembership.RoleInGroup.ToString();
             AttendanceCount = userMembership.AttendanceCount;

@@ -9,6 +9,7 @@ using Aikido.Services.DatabaseServices.User;
 using Aikido.Services.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -88,6 +89,9 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1",
         Description = "API для управления клубами айкидо"
     });
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
 });
 
 

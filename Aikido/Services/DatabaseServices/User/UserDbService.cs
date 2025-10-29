@@ -162,7 +162,7 @@ namespace Aikido.Services.DatabaseServices.User
         {
             return await _context.UserMemberships
                 .Include(ug => ug.Group)
-                    .ThenInclude(g => g.Coach)
+                    .ThenInclude(g => g.UserMemberships)
                 .Include(ug => ug.Group)
                     .ThenInclude(g => g.Club)
                 .Where(ug => ug.UserId == userId)
@@ -189,8 +189,6 @@ namespace Aikido.Services.DatabaseServices.User
 
             var group = await _context.Groups.FindAsync(groupId);
 
-            group.UpdadeCoach();
-
             await _context.SaveChangesAsync();
 
         }
@@ -207,7 +205,6 @@ namespace Aikido.Services.DatabaseServices.User
             }
 
             var group = await _context.Groups.FindAsync(groupId);
-            group.UpdadeCoach();
 
             await _context.SaveChangesAsync();
         }
@@ -215,17 +212,13 @@ namespace Aikido.Services.DatabaseServices.User
         public async Task RemoveUserMemberships(long userId)
         {
             var userMemberships = await _context.UserMemberships
+                .AsQueryable()
                 .Where(um => um.UserId == userId)
                 .ToListAsync();
 
             foreach (var userMembership in userMemberships)
             {
-
                 _context.Remove(userMembership);
-
-                await _context.SaveChangesAsync();
-
-                userMembership.Group.UpdadeCoach();
             }
 
             await _context.SaveChangesAsync();

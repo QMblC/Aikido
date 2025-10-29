@@ -42,6 +42,14 @@ namespace Aikido.Services
                 .ToListAsync();
         }
 
+        public async Task<bool> IsUserPayedAnnaulFee(long userId, int year)
+        {
+            return _context.Payment
+                .Where(p => p.Type == PaymentType.AnnualFee
+                && p.Date.Date.Year == year)
+                .FirstOrDefault() != null;
+        }
+
         public async Task<long> CreatePayment(PaymentDto paymentData)
         {
             var payment = new PaymentEntity(paymentData);
