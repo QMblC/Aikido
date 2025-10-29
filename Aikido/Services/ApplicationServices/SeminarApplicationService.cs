@@ -82,8 +82,11 @@ namespace Aikido.Application.Services
 
             foreach (var member in members)
             {
-                var memberData = memberGroup.Members.First(m => m.UserId == member.UserId);
-
+                var memberData = memberGroup.Members.FirstOrDefault(m => m.UserId == member.UserId);
+                if (memberData == null) 
+                {  
+                    continue; 
+                }
                 await _paymentDbService.CreateSeminarMemberPayments(member, memberData);
             }
         }

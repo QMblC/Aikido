@@ -188,8 +188,9 @@ namespace Aikido.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex?.ToString() ?? "Неизвестная ошибка" });
             }
+
         }
 
         [HttpGet("{seminarId}/get-coach-students/{coachId}")]
