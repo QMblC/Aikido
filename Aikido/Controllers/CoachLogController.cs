@@ -29,7 +29,7 @@ namespace Aikido.Controllers
             try
             {
                 var groups = await _groupApplicationService.GetAllGroupsAsync();
-                var coachGroups = groups.Where(g => g.CoachId == coachId).ToList();
+                var coachGroups = groups.Where(g => g.Coaches.Any(u => u.Id == coachId)).ToList();
                 return Ok(coachGroups);
             }
             catch (Exception ex)
@@ -43,20 +43,18 @@ namespace Aikido.Controllers
         {
             try
             {
-                // Получаем все группы тренера
                 var allGroups = await _groupApplicationService.GetAllGroupsAsync();
-                var coachGroups = allGroups.Where(g => g.CoachId == coachId).ToList();
+                var coachGroups = allGroups
+                    .Where(g => g.Coaches.Any(u => u.Id == coachId)).ToList();
 
                 var allStudents = new List<UserShortDto>();
 
-                // Собираем всех студентов из всех групп тренера
                 foreach (var group in coachGroups)
                 {
                     var groupMembers = await _groupApplicationService.GetGroupMembersAsync(group.Id.Value);
                     allStudents.AddRange(groupMembers);
                 }
 
-                // Убираем дубликаты (студент может быть в нескольких группах одного тренера)
                 var uniqueStudents = allStudents
                     .GroupBy(s => s.Id)
                     .Select(g => g.First())
@@ -77,7 +75,7 @@ namespace Aikido.Controllers
             {
                 var coach = await _userApplicationService.GetUserByIdAsync(coachId);
                 var allGroups = await _groupApplicationService.GetAllGroupsAsync();
-                var coachGroups = allGroups.Where(g => g.CoachId == coachId).ToList();
+                var coachGroups = allGroups.Where(g => g.Coaches.Any(u => u.Id == coachId)).ToList();
 
                 var totalStudents = 0;
                 var groupsInfo = new List<object>();

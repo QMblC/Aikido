@@ -122,11 +122,6 @@ namespace Aikido.Data
                 entity.Property(e => e.Name).HasMaxLength(200);
                 entity.Property(e => e.Description).HasMaxLength(1000);
 
-                entity.HasOne(g => g.Coach)
-                    .WithMany()
-                    .HasForeignKey(g => g.CoachId)
-                    .OnDelete(DeleteBehavior.SetNull);
-
                 entity.HasOne(g => g.Club)
                     .WithMany(c => c.Groups)
                     .HasForeignKey(g => g.ClubId)
@@ -138,7 +133,6 @@ namespace Aikido.Data
 
                 entity.HasIndex(e => e.Name);
                 entity.HasIndex(e => e.ClubId);
-                entity.HasIndex(e => e.CoachId);
             });
 
             modelBuilder.Entity<EventEntity>(entity =>

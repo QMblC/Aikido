@@ -9,8 +9,6 @@ namespace Aikido.Entities
     {
         [Key]
         public long Id { get; set; }
-        public long? CoachId { get; set; }
-        public virtual UserEntity? Coach { get; set; }
 
         public long? ClubId { get; set; }
         public virtual ClubEntity? Club { get; set; }
@@ -38,8 +36,6 @@ namespace Aikido.Entities
 
         public void UpdateFromJson(GroupCreationDto groupNewData)
         {
-            UpdadeCoach();
-
             if (groupNewData.ClubId != null)
                 ClubId = (long)groupNewData.ClubId;
             if (!string.IsNullOrEmpty(groupNewData.Name))
@@ -47,14 +43,6 @@ namespace Aikido.Entities
             if (!string.IsNullOrEmpty(groupNewData.AgeGroup))
                 AgeGroup = EnumParser.ConvertStringToEnum<AgeGroup>(groupNewData.AgeGroup);        
             UpdatedDate = DateTime.UtcNow;
-        }
-
-        public void UpdadeCoach()
-        {
-            var userMembership = UserMemberships.Where(um => um.RoleInGroup == Role.Coach).FirstOrDefault();
-            var coachId = userMembership?.UserId;
-
-            CoachId = userMembership != null ? coachId : null; 
         }
 
         public void UpdateSchedule(GroupCreationDto groupData)
@@ -66,6 +54,11 @@ namespace Aikido.Entities
             ExclusionDates = groupData.ExclusionDates?
                 .Select(s => new ExclusionDateEntity(Id, s))
                 .ToList() ?? new();
+        }
+
+        public bool ContainsCoach(long coachId)
+        {
+            return UserMemberships.Any(um => um.UserId == coachId);
         }
     }
 }

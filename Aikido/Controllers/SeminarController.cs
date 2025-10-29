@@ -2,6 +2,7 @@
 using Aikido.Dto.Seminars;
 using Aikido.Dto.Seminars.Creation;
 using Aikido.Dto.Seminars.Members;
+using Aikido.Dto.Users;
 using Aikido.Requests;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Mvc;
@@ -198,7 +199,7 @@ namespace Aikido.Controllers
         {
             try
             {
-                var members = await _seminarApplicationService.GetStartMembersData(seminarId, coachId);
+                var members = await _seminarApplicationService.RegisterCoachStudents(seminarId, coachId);
                 return Ok(members);
             }
             catch (Exception ex)
@@ -258,6 +259,20 @@ namespace Aikido.Controllers
                 return Ok();
             }
             catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        [HttpGet("{seminarId}/registered-coaches")]
+        public async Task<ActionResult<List<UserShortDto>>> GetRegisteredCoaches(long seminarId)
+        {
+            try
+            {
+                var coaches = await _seminarApplicationService.GetRegisteredCoaches(seminarId);
+                return Ok(coaches);
+            }
+            catch(Exception ex)
             {
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }

@@ -7,6 +7,7 @@ using Aikido.Exceptions;
 using DocumentFormat.OpenXml.Office2016.Drawing.Command;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 
 namespace Aikido.Services.DatabaseServices.Group
 {
@@ -22,7 +23,6 @@ namespace Aikido.Services.DatabaseServices.Group
         public async Task<GroupEntity> GetByIdOrThrowException(long id)
         {
             var group = await _context.Groups
-                .Include(g => g.Coach)
                 .Include(g => g.Club)
                 .Include(g => g.UserMemberships)
                     .ThenInclude(ug => ug.User)
@@ -50,7 +50,6 @@ namespace Aikido.Services.DatabaseServices.Group
         public async Task<List<GroupEntity>> GetAllAsync()
         {
             return await _context.Groups
-                .Include(g => g.Coach)
                 .Include(g => g.Club)
                 .Include(g => g.Schedule)
                 .Include(g => g.ExclusionDates)
@@ -61,7 +60,6 @@ namespace Aikido.Services.DatabaseServices.Group
         public async Task<List<GroupEntity>> GetGroupsByClub(long clubId)
         {
             return await _context.Groups
-                .Include(g => g.Coach)
                 .Include(g => g.Club)
                 .Include(g => g.Schedule)
                 .Include(g => g.ExclusionDates)
@@ -90,12 +88,10 @@ namespace Aikido.Services.DatabaseServices.Group
 
             group.UpdateSchedule(groupData);
 
-            if (groupData.CoachId != null)
+            if (groupData.Coaches != null && groupData.Coaches.Count > 0)
             {
-                await SetCoachAsync(group, groupData);
+                await SetCoachesAsync(group, groupData);
             }
-
-            group.UpdadeCoach();
 
             await _context.SaveChangesAsync();
 
@@ -107,16 +103,11 @@ namespace Aikido.Services.DatabaseServices.Group
         {
             var group = await GetByIdOrThrowException(id);
 
-            if (group.CoachId != groupData.CoachId)
+            await RemoveExcessCoaches(group, groupData);
+
+            if (groupData.Coaches != null && groupData.Coaches.Count > 0)
             {
-                RemoveCoach(group);
-
-                if (groupData.CoachId != null)
-                {
-                    await SetCoachAsync(group, groupData);
-                }
-
-                await _context.SaveChangesAsync();
+                await SetCoachesAsync(group, groupData);
             }
 
             group.UpdateFromJson(groupData);
@@ -142,33 +133,45 @@ namespace Aikido.Services.DatabaseServices.Group
             await _context.SaveChangesAsync();
         }
 
-        private void RemoveCoach(GroupEntity group)
+        private async Task RemoveExcessCoaches(GroupEntity group, GroupCreationDto newGroupData)
         {
-            var oldCoachMembership = _context.UserMemberships
-                    .AsQueryable()
-                    .Where(um => um.UserId == group.CoachId)
-                    .Where(um => um.GroupId == group.Id)
-                    .FirstOrDefault();
+            var newCoachIds = newGroupData.Coaches.Select(c => c.Id).ToList();
 
-            if (oldCoachMembership != null)
+            var oldCoaches = _context.UserMemberships
+                .Where(um => um.GroupId == group.Id && newCoachIds.Contains(um.UserId))
+                .ToList();
+
+            if (oldCoaches.Any())
             {
-                _context.Remove(oldCoachMembership);
+                _context.RemoveRange(oldCoaches);
+                await _context.SaveChangesAsync();
             }
         }
 
-        private async Task SetCoachAsync(GroupEntity oldGroup, GroupCreationDto newGroupData)
-        {
-            var coachMembership = new UserMembershipEntity(
-                newGroupData.CoachId.Value,
-                newGroupData.ClubId.Value,
-                oldGroup.Id,
-                Role.Coach);
 
-            _context.UserMemberships.Add(coachMembership);
+        private async Task SetCoachesAsync(GroupEntity group, GroupCreationDto newGroupData)
+        {
+            var coaches = new List<UserMembershipEntity>();
+
+            foreach (var coach in newGroupData.Coaches)
+            {
+                var existingMembership = group.UserMemberships.FirstOrDefault(um => um.UserId == coach.Id);
+                if (existingMembership == null)
+                {
+                    coaches.Add(new UserMembershipEntity(coach.Id.Value, newGroupData.ClubId.Value, group.Id, Role.Coach));
+                }
+                else
+                {
+                    existingMembership.RoleInGroup = Role.Coach;
+                }
+            }
+
+            if (coaches.Any())
+            {
+                await _context.UserMemberships.AddRangeAsync(coaches);
+            }
 
             await _context.SaveChangesAsync();
-
-            oldGroup.UpdadeCoach();
         }
 
         public async Task DeleteAsync(long id)
