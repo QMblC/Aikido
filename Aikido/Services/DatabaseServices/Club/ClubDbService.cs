@@ -112,6 +112,7 @@ namespace Aikido.Services.DatabaseServices.Club
         {
             return await _context.Groups
                 .Include(g => g.UserMemberships)
+                    .ThenInclude(um => um.User)
                 .Include(g => g.Schedule)
                 .Include(g => g.ExclusionDates)
                 .Where(g => g.ClubId == clubId && g.IsActive)
