@@ -4,6 +4,7 @@ using Aikido.Dto.Seminars.Members;
 using Aikido.Dto.Users;
 using Aikido.Entities;
 using Aikido.Entities.Seminar;
+using Aikido.Entities.Users;
 using Aikido.Exceptions;
 using Aikido.Services;
 using Aikido.Services.DatabaseServices.Group;
@@ -11,6 +12,7 @@ using Aikido.Services.DatabaseServices.Seminar;
 using Aikido.Services.DatabaseServices.User;
 using DocumentFormat.OpenXml.Spreadsheet;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace Aikido.Application.Services
 {
@@ -49,8 +51,6 @@ namespace Aikido.Application.Services
         {
             return await _seminarDbService.CreateAsync(seminarData);
         }
-
-
 
         public async Task UpdateSeminarAsync(long id, SeminarDto seminarData)
         {
@@ -141,33 +141,22 @@ namespace Aikido.Application.Services
                 .ToList();
         }
 
-        public async Task<List<SeminarMemberDto>> RegisterCoachStudents(long seminarId, long coachId)//ToDo проверять оплату AnnualFee
+        public async Task<SeminarMemberDto> GetStartMemberdata(long seminarId, long userId, long coachId)//ToDo проверять оплату AnnualFee
         {
-            //Получить всех учеников тренера
-            //Преобразовать их в участников семинара с добавлением оплат
-            //Сохранить и отдать списком
             var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
-            var coachMemberships = await _userDbService.GetUserMembershipsAsync(coachId);
-
-            var coachMembers = new List<UserEntity>();
-
-            foreach (var cm in coachMemberships)
+            var userMemberships = await _userDbService.GetUserMembershipsAsync(userId);
+            var userMembership = userMemberships.Where(um => um.RoleInGroup == AdditionalData.Role.User
+                && um.Group.UserMemberships
+                .Any(um => um.UserId == coachId && um.RoleInGroup == AdditionalData.Role.Coach))
+                .FirstOrDefault();
+           
+            if (userMembership == null)
             {
-                var groupMembers = await _groupDbService.GetGroupMembersAsync(cm.GroupId);
-                coachMembers.AddRange(groupMembers.Select(um => um.User));
-                
+                throw new EntityNotFoundException(nameof(UserMembershipEntity));
             }
 
-            throw new NotImplementedException("Метод перерабатывается");
-            return new();
-        }
 
-        public async Task<SeminarMemberStartDataDto> GetStartMemberdata(long seminarId, long userId)//ToDo проверять оплату AnnualFee
-        {
-            var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
-            var user = await _userDbService.GetByIdOrThrowException(userId);
-
-            return new SeminarMemberStartDataDto(user, seminar);
+            return new SeminarMemberDto(userMembership, seminar);
         }
 
         public async Task ApplySeminarResult(long seminarId)
@@ -216,5 +205,45 @@ namespace Aikido.Application.Services
                 .Select(c => new UserShortDto(c))
                 .ToList();
         }
+
+        public async Task<List<SeminarMemberDto>> GetStartMemberInfoByGroups(long seminarId, List<long> groupIds)
+        {
+            var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
+
+            var allMembersWithGroup = new List<(long GroupId, UserMembershipEntity Member)>();
+
+            foreach (var groupId in groupIds)
+            {
+                var groupMembers = await _groupDbService.GetGroupMembersAsync(groupId);
+                allMembersWithGroup.AddRange(groupMembers.Select(m => (GroupId: groupId, Member: m)));
+            }
+
+            var distinctMembers = allMembersWithGroup
+                .GroupBy(x => x.Member.UserId)
+                .Select(g => g.OrderBy(x => x.GroupId).First())
+                .OrderBy(x => x.GroupId)
+                .ToList();
+
+            var result = new List<SeminarMemberDto>();
+
+            foreach (var entry in distinctMembers)
+            {
+
+                if (await _seminarDbService.IsMemberAsync(seminarId, entry.Member.UserId))
+                {
+                    var existingMember = await _seminarDbService
+                    .GetSeminarMember(seminarId, entry.Member.UserId);
+                    result.Add(new SeminarMemberDto(existingMember));
+                }
+                else
+                {
+                    var isPaid = await _paymentDbService.IsUserPayedAnnaulFee(entry.Member.UserId, seminar.Date.Year);
+                    result.Add(new SeminarMemberDto(entry.Member, seminar, isPaid));
+                }
+            }
+
+            return result;
+        }
+
     }
 }

@@ -5,6 +5,7 @@ using Aikido.Dto.Users.Creation;
 using Aikido.Entities.Filters;
 using Aikido.Requests;
 using Aikido.Services;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Aikido.Controllers
@@ -56,6 +57,7 @@ namespace Aikido.Controllers
             }
         }
 
+
         [HttpGet("find")]
         public async Task<ActionResult<UserShortDto>> FindUsers([FromQuery] UserFilter filter)
         {
@@ -67,6 +69,20 @@ namespace Aikido.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet("get-coach/{coachId}/students")]
+        public async Task<ActionResult<UserShortDto>> FindCoachStudentsByName(long coachId, [FromQuery] string name)
+        {
+            try
+            {
+                var users = await _userApplicationService.GetCoachStudentsByName(coachId, name);
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при получении клубов пользователя", Details = ex.Message });
             }
         }
 

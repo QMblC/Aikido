@@ -7,15 +7,15 @@
         public string? CertificationGrade { get; set; } = string.Empty;
 
         public bool IsSeminarPayed { get; set; }
-        public decimal? SeminarPrice { get; set; }
+        public decimal? SeminarPriceInRubles { get; set; }
 
         public bool IsBudoPassportPayed { get; set; }
-        public decimal? BudoPassportPrice { get; set; }
+        public decimal? BudoPassportPriceInRubles { get; set; }
 
         public bool IsAnnualFeePayed { get; set; }
-        public decimal? AnnualFeePrice { get; set; }
+        public decimal? AnnualFeePriceInRubles { get; set; }
 
         public bool IsCertificationPayed { get; set; }
-        public decimal? CertificationPrice { get; set; }
+        public decimal? CertificationPriceInRubles { get; set; }
     }
 }

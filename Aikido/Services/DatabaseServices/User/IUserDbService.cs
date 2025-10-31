@@ -12,6 +12,7 @@ namespace Aikido.Services.DatabaseServices.User
         Task<UserEntity> GetByIdOrThrowException(long id);
         Task<bool> Exists(long id);
         Task<List<UserShortDto>> GetUserIdAndNamesAsync();
+        Task<List<UserEntity>> GetCoachStudentByName(long coachId, string name);
         Task<(List<UserDto> Users, int TotalCount)> GetUserListAlphabetAscending(int startIndex, int finishIndex, UserFilter filter);
         Task<long> CreateUser(UserCreationDto userData);
         Task<List<long>> CreateUsers(List<UserCreationDto> users);

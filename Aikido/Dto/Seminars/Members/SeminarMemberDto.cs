@@ -1,5 +1,7 @@
 ﻿using Aikido.AdditionalData;
+using Aikido.Entities;
 using Aikido.Entities.Seminar;
+using Aikido.Entities.Users;
 
 namespace Aikido.Dto.Seminars.Members
 {
@@ -12,6 +14,9 @@ namespace Aikido.Dto.Seminars.Members
         public string? SeminarName { get; set; } = string.Empty;
         public DateTime? SeminarDate { get; set; }
 
+        public long? GroupId { get; set; }
+        public string? GroupName { get; set; }
+
         public long? SeminarGroupId { get; set; }
         public string? SeminarGroupName { get; set; }
 
@@ -23,19 +28,41 @@ namespace Aikido.Dto.Seminars.Members
         public long? CreatorId { get; set; }
         public string? CreatorFullName { get; set; }
 
-        public bool IsSeminarPayed { get; set; }
+        public bool IsSeminarPayed { get; set; } = false;
         public decimal? SeminarPriceInRubles { get; set; }
 
-        public bool IsBudoPassportPayed { get; set; }
+        public bool IsBudoPassportPayed { get; set; } = false;
         public decimal? BudoPassportPriceInRubles { get; set; }
 
-        public bool IsAnnualFeePayed { get; set; }
+        public bool IsAnnualFeePayed { get; set; } = false;
         public decimal? AnnualFeePriceInRubles { get; set; }
 
-        public bool IsCertificationPayed { get; set; }
+        public bool IsCertificationPayed { get; set; } = false;
         public decimal? CertificationPriceInRubles { get; set; }
 
         public SeminarMemberDto() { }
+
+        public SeminarMemberDto(
+            UserMembershipEntity membership,
+            SeminarEntity seminar,
+            bool isAnnualFeePayed = false)
+        {
+            UserId = membership.UserId;
+            UserFullName = membership.User?.FullName ?? string.Empty;
+
+            SeminarId = seminar.Id;
+            SeminarName = seminar.Name;
+            SeminarDate = seminar.Date;
+
+            GroupId = membership.GroupId;
+            GroupName = membership.Group?.Name;
+
+            OldGrade = EnumParser.ConvertEnumToString(membership.User.Grade);
+
+            SeminarPriceInRubles = seminar.SeminarPriceInRubles;
+            BudoPassportPriceInRubles = membership.User.HasBudoPassport ? null : seminar.BudoPassportPriceInRubles;
+            AnnualFeePriceInRubles = isAnnualFeePayed ? null : seminar.AnnualFeePriceInRubles;
+        }
 
         public SeminarMemberDto(SeminarMemberEntity seminarMember)
         {
@@ -47,8 +74,11 @@ namespace Aikido.Dto.Seminars.Members
             SeminarName = seminarMember.Seminar?.Name ?? string.Empty;
             SeminarDate = seminarMember.Seminar?.Date;
 
-            SeminarGroupId = seminarMember.GroupId;
-            SeminarGroupName = seminarMember.Group?.Name;
+            GroupId = seminarMember.TrainingGroupId;
+            GroupName = seminarMember.TrainingGroup?.Name;
+
+            SeminarGroupId = seminarMember.SeminarGroupId;
+            SeminarGroupName = seminarMember.SeminarGroup?.Name;
 
             OldGrade = seminarMember.OldGrade.ToString();
             CertificationGrade = seminarMember.CertificationGrade.ToString();

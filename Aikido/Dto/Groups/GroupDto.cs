@@ -36,8 +36,7 @@ namespace Aikido.Dto.Groups
             Name = group.Name;
 
             Coaches = group.UserMemberships
-                .Where(um => um.RoleInGroup == Role.Coach
-                && um.UserId != null)
+                .Where(um => um.RoleInGroup == Role.Coach)
                 .Select(um => new UserShortDto(um.User))
                 .ToList();
 

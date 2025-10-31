@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities.Users
 {
-    public class UserMembershipEntity : IDbEntity
+    public class UserMembershipEntity : IDbEntity, IEquatable<UserMembershipEntity>
     {
         [Key]
         public long Id { get; set; }
@@ -33,6 +33,19 @@ namespace Aikido.Entities.Users
             ClubId = clubId;
             GroupId = groupId;
             RoleInGroup = roleInGroup;
+        }
+
+        public bool Equals(UserMembershipEntity? other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+            return Id == other.Id;
         }
     }
 }

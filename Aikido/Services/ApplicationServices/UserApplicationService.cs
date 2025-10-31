@@ -42,6 +42,13 @@ namespace Aikido.Application.Services
             return await _userDbService.GetUserIdAndNamesAsync();
         }
 
+        public async Task<List<UserShortDto>> GetCoachStudentsByName(long coachId, string name)
+        {
+            var users = await _userDbService.GetCoachStudentByName(coachId, name);
+            return users.Select(u => new UserShortDto(u))
+                .ToList();
+        }
+
         public async Task<List<UserShortDto>> FindUsersAsync(UserFilter filter)
         {
             var result = await _userDbService.GetUserListAlphabetAscending(0, 100, filter);

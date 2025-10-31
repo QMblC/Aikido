@@ -92,41 +92,41 @@ namespace Aikido.Services
 
             var payments = new List<PaymentEntity>();
 
-            if (memberData.SeminarPrice != null)
+            if (memberData.SeminarPriceInRubles != null)
             {
                 var seminarPayment = new PaymentEntity(
                     member,
-                    memberData.SeminarPrice.Value,
+                    memberData.SeminarPriceInRubles.Value,
                     PaymentType.Seminar,
                     memberData.IsSeminarPayed ? PaymentStatus.Completed : PaymentStatus.Pending);
                 payments.Add(seminarPayment);
             }
 
-            if (!member.User.HasBudoPassport && memberData.BudoPassportPrice != null)
+            if (!member.User.HasBudoPassport && memberData.BudoPassportPriceInRubles != null)
             {
                 var budoPassportPayment = new PaymentEntity(
                     member,
-                    memberData.BudoPassportPrice.Value,
+                    memberData.BudoPassportPriceInRubles.Value,
                     PaymentType.BudoPassport,
                     memberData.IsBudoPassportPayed ? PaymentStatus.Completed : PaymentStatus.Pending);
                 payments.Add(budoPassportPayment);
             }
 
-            if (memberData.AnnualFeePrice != null)
+            if (memberData.AnnualFeePriceInRubles != null)
             {
                 var annualFeePayment = new PaymentEntity(
                     member,
-                    memberData.AnnualFeePrice.Value,
+                    memberData.AnnualFeePriceInRubles.Value,
                     PaymentType.AnnualFee,
                     memberData.IsAnnualFeePayed ? PaymentStatus.Completed : PaymentStatus.Pending);
                 payments.Add(annualFeePayment);
             }
 
-            if (memberData.CertificationPrice != null)
+            if (memberData.CertificationPriceInRubles != null)
             {
                 var certificationPayment = new PaymentEntity(
                     member,
-                    memberData.CertificationPrice.Value,
+                    memberData.CertificationPriceInRubles.Value,
                     PaymentType.Certification,
                     memberData.IsCertificationPayed ? PaymentStatus.Completed : PaymentStatus.Pending);
                 payments.Add(certificationPayment);

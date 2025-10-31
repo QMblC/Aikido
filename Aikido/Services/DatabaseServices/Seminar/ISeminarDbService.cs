@@ -31,5 +31,6 @@ namespace Aikido.Services.DatabaseServices.Seminar
         Task<List<SeminarGroupEntity>> GetSeminarGroups(long seminarId);
         Task ApplySeminarResult(long seminarId);
         Task CancelSeminarResult(long seminarId);
+        Task<SeminarMemberEntity> GetSeminarMember(long seminarId, long userId);
     }
 }

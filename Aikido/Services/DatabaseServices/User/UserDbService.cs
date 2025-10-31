@@ -53,6 +53,27 @@ namespace Aikido.Services.DatabaseServices.User
             return users;
         }
 
+        public async Task<List<UserEntity>> GetCoachStudentByName(long coachId, string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return new List<UserEntity>();
+
+            name = name.ToLower();
+
+            var members = await _context.UserMemberships
+                .Where(um => um.Group.UserMemberships.Any(um2 => um2.UserId == coachId))
+                .Select(um => um.User)
+                .Where(u =>
+                    (u.LastName != null && u.LastName.ToLower().Contains(name)) ||
+                    (u.FirstName != null && u.FirstName.ToLower().Contains(name)) ||
+                    (u.MiddleName != null && u.MiddleName.ToLower().Contains(name)))
+                .Distinct()
+                .ToListAsync();
+
+            return members;
+        }
+
+
         public async Task<(List<UserDto> Users, int TotalCount)> GetUserListAlphabetAscending(int startIndex, int finishIndex, UserFilter filter)
         {
             var query = _context.Users
@@ -161,6 +182,7 @@ namespace Aikido.Services.DatabaseServices.User
         public async Task<List<UserMembershipEntity>> GetUserMembershipsAsync(long userId)
         {
             return await _context.UserMemberships
+                .Include(um => um.User)
                 .Include(ug => ug.Group)
                     .ThenInclude(g => g.UserMemberships)
                 .Include(ug => ug.Group)

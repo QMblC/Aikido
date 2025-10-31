@@ -4,6 +4,7 @@ using Aikido.Dto.Seminars;
 using Aikido.Dto.Seminars.Members;
 using Aikido.Entities;
 using Aikido.Entities.Seminar;
+using Aikido.Entities.Users;
 using Aikido.Exceptions;
 using DocumentFormat.OpenXml.InkML;
 using Microsoft.EntityFrameworkCore;
@@ -57,7 +58,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
             return await _context.SeminarMembers
                 .Include(sm => sm.User)
                 .Include(sm => sm.Seminar)
-                .Include(sm => sm.Group)
+                .Include(sm => sm.SeminarGroup)
                 .Include(sm => sm.Creator)
                 .Include(sm => sm.SeminarPayment)
                 .Include(sm => sm.BudoPassportPayment)
@@ -121,14 +122,24 @@ namespace Aikido.Services.DatabaseServices.Seminar
                     throw new EntityNotFoundException(nameof(UserEntity));
                 }
 
+                var userMembership = _context.UserMemberships.AsQueryable()
+                    .Where(um => um.UserId == memberDto.UserId
+                    && um.RoleInGroup == Role.User)
+                    .FirstOrDefault(um => um.Group.UserMemberships.Any(um => um.UserId == coachId));
+
+                if (userMembership == null)
+                {
+                    throw new EntityNotFoundException(nameof(UserMembershipEntity));
+                }
+
                 if (!existingMembers.TryGetValue(memberDto.UserId, out var member))
                 {
-                    member = new SeminarMemberEntity(coachId, seminar, user, memberDto);
+                    member = new SeminarMemberEntity(coachId, seminar, userMembership, memberDto);
                     _context.SeminarMembers.Add(member);
                 }
                 else
                 {
-                    member.UpdateData(coachId, seminar, user, memberDto);
+                    member.UpdateData(coachId, seminar, userMembership, memberDto);
                     _context.SeminarMembers.Update(member);
                 }
             }
@@ -164,12 +175,22 @@ namespace Aikido.Services.DatabaseServices.Seminar
                     throw new EntityNotFoundException(nameof(UserEntity));
                 }
 
+                var userMembership = _context.UserMemberships.AsQueryable()
+                    .Where(um => um.UserId == memberDto.UserId
+                    && um.RoleInGroup == Role.User)
+                    .FirstOrDefault(um => um.Group.UserMemberships.Any(um => um.UserId == creatorId));
+
+                if (userMembership == null)
+                {
+                    throw new EntityNotFoundException(nameof(UserMembershipEntity));
+                }
+
                 if (!existingMembers.TryGetValue(memberDto.UserId, out var member))
                 {
                     member = new SeminarMemberEntity(
                         creatorId,
                         seminar,
-                        user,
+                        userMembership,
                         memberDto,
                         EnumParser.ConvertStringToEnum<SeminarMemberStatus>(memberDto.Status));
                     _context.SeminarMembers.Add(member);
@@ -179,7 +200,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
                     member.UpdateData(
                         member.CreatorId.Value,
                         seminar,
-                        user,
+                        userMembership,
                         memberDto,
                         EnumParser.ConvertStringToEnum<SeminarMemberStatus>(memberDto.Status));
                     _context.SeminarMembers.Update(member);
@@ -229,6 +250,14 @@ namespace Aikido.Services.DatabaseServices.Seminar
         public async Task<int> GetMemberCountAsync(long seminarId)
         {
             return await _context.SeminarMembers.CountAsync(sm => sm.SeminarId == seminarId);
+        }
+
+        public async Task<SeminarMemberEntity> GetSeminarMember(long seminarId, long userId)
+        {
+            return await _context.SeminarMembers.AsQueryable()
+                .Where(sm => sm.UserId == userId
+                && sm.SeminarId == seminarId)
+                .FirstOrDefaultAsync() ?? throw new EntityNotFoundException(nameof(SeminarMemberEntity));
         }
 
         public async Task<List<SeminarEntity>> GetSeminarsByDateRangeAsync(DateTime startDate, DateTime endDate)
