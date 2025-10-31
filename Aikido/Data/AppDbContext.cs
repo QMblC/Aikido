@@ -212,9 +212,9 @@ namespace Aikido.Data
                     .HasForeignKey(sm => sm.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasOne(sm => sm.Group)
+                entity.HasOne(sm => sm.SeminarGroup)
                     .WithMany()
-                    .HasForeignKey(sm => sm.GroupId)
+                    .HasForeignKey(sm => sm.SeminarGroupId)
                     .OnDelete(DeleteBehavior.SetNull);
 
                 entity.HasOne(sm => sm.SeminarPayment)

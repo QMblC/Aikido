@@ -192,5 +192,19 @@ namespace Aikido.Controllers
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
         }
+
+        [HttpGet("get/by-coach/{coachId}")]
+        public async Task<ActionResult<List<GroupShortDto>>> GetCoachGroups(long coachId)
+        {
+            try
+            {
+                var groups = await _groupApplicationService.GetGroupsByCoach(coachId);
+                return Ok(groups);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
     }
 }

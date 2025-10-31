@@ -1,6 +1,7 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Dto.Seminars;
 using Aikido.Dto.Seminars.Members;
+using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities.Seminar
@@ -16,8 +17,11 @@ namespace Aikido.Entities.Seminar
         public long UserId { get; set; }
         public virtual UserEntity? User { get; set; }
 
-        public long? GroupId { get; set; }
-        public virtual SeminarGroupEntity? Group { get; set; }
+        public long? TrainingGroupId { get; set; }
+        public virtual GroupEntity? TrainingGroup { get; set; }
+
+        public long? SeminarGroupId { get; set; }
+        public virtual SeminarGroupEntity? SeminarGroup { get; set; }
 
         public SeminarMemberStatus Status { get; set; } = SeminarMemberStatus.None;
         public Grade OldGrade { get; set; }
@@ -46,25 +50,26 @@ namespace Aikido.Entities.Seminar
         public SeminarMemberEntity(
             long coachId,
             SeminarEntity seminar,
-            UserEntity user, 
+            UserMembershipEntity userMemberShip, 
             SeminarMemberCreationDto seminarMember,
             SeminarMemberStatus status = SeminarMemberStatus.None)
         {
-            UpdateData(coachId, seminar, user, seminarMember);
+            UpdateData(coachId, seminar, userMemberShip, seminarMember);
         }
 
         public void UpdateData(
             long coachId,
             SeminarEntity seminar,
-            UserEntity user,
+            UserMembershipEntity userMembership,
             SeminarMemberCreationDto seminarMember,
             SeminarMemberStatus status = SeminarMemberStatus.None)
         {
             SeminarId = seminar.Id;
             UserId = seminarMember.UserId;
-            GroupId = seminarMember.SeminarGroupId;
+            TrainingGroupId = userMembership.GroupId;
+            SeminarGroupId = seminarMember.SeminarGroupId;
             Status = status;
-            OldGrade = user.Grade;
+            OldGrade = userMembership.User.Grade;
             CertificationGrade = seminarMember.CertificationGrade != null
                 ? EnumParser.ConvertStringToEnum<Grade>(seminarMember.CertificationGrade) : Grade.None; 
 

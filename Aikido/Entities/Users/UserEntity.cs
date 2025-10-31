@@ -8,7 +8,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Aikido.Entities
 {
-    public class UserEntity : IDbEntity
+    public class UserEntity : IDbEntity, IEquatable<UserEntity>
     {
         [Key]
         public long Id { get; set; }
@@ -103,6 +103,20 @@ namespace Aikido.Entities
                 RegistrationDate = DateTime.SpecifyKind(userNewData.RegistrationDate.Value, DateTimeKind.Utc);
             else
                 RegistrationDate = DateTime.UtcNow;
+        }
+
+        public bool Equals(UserEntity? other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return Id == other.Id;
         }
     }
 }
