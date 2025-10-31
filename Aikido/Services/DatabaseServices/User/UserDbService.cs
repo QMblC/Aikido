@@ -63,6 +63,7 @@ namespace Aikido.Services.DatabaseServices.User
             var members = await _context.UserMemberships
                 .Where(um => um.Group.UserMemberships.Any(um2 => um2.UserId == coachId))
                 .Select(um => um.User)
+                .Where(u => u.Id != coachId)
                 .Where(u =>
                     (u.LastName != null && u.LastName.ToLower().Contains(name)) ||
                     (u.FirstName != null && u.FirstName.ToLower().Contains(name)) ||
