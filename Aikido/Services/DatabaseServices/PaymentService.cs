@@ -112,7 +112,7 @@ namespace Aikido.Services
                 payments.Add(budoPassportPayment);
             }
 
-            if (memberData.AnnualFeePriceInRubles != null)
+            if (memberData.AnnualFeePriceInRubles != null && !await IsUserPayedAnnaulFee(member.UserId, member.Seminar.Date.Year))
             {
                 var annualFeePayment = new PaymentEntity(
                     member,

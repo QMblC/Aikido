@@ -12,7 +12,6 @@ namespace Aikido.Services.DatabaseServices.Seminar
         Task<List<SeminarEntity>> GetAllAsync();
 
         Task<List<SeminarMemberEntity>> GetSeminarMembersAsync(long seminarId);
-
         Task<long> CreateAsync(SeminarDto seminarData);
         Task<SeminarRegulationEntity> GetSeminarRegulation(long seminarId);
         Task CreateSeminarRegulationAsync(long seminarId, byte[] fileInBytes);
@@ -31,6 +30,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
         Task<List<SeminarGroupEntity>> GetSeminarGroups(long seminarId);
         Task ApplySeminarResult(long seminarId);
         Task CancelSeminarResult(long seminarId);
-        Task<SeminarMemberEntity> GetSeminarMember(long seminarId, long userId);
+        Task<SeminarMemberEntity> GetSeminarMemberAsync(long seminarId, long userId);
+        Task<List<SeminarMemberEntity>> GetCoachMembersAsync(long seminarId, long coachId);
     }
 }

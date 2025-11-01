@@ -155,8 +155,12 @@ namespace Aikido.Application.Services
                 throw new EntityNotFoundException(nameof(UserMembershipEntity));
             }
 
-
-            return new SeminarMemberDto(userMembership, seminar);
+            if (await _seminarDbService.IsMemberAsync(seminarId, userId))
+            {
+                var member = await _seminarDbService.GetSeminarMemberAsync(seminarId, userId);
+                return new SeminarMemberDto(member);
+            }
+            return new SeminarMemberDto(userMembership, seminar, await _paymentDbService.IsUserPayedAnnaulFee(userId, seminar.Date.Year));
         }
 
         public async Task ApplySeminarResult(long seminarId)
@@ -172,6 +176,10 @@ namespace Aikido.Application.Services
                 if (member.Status == AdditionalData.SeminarMemberStatus.Certified)
                 {
                     await _userDbService.UpdateUserGrade(member.UserId, member.CertificationGrade.Value);
+                }
+                if (member.User.HasBudoPassport == false && member.BudoPassportPayment?.Status == AdditionalData.PaymentStatus.Completed)
+                {
+                    await _userDbService.UpdateUserBudoPassport(member.UserId, true);
                 }
             }
         }
@@ -189,6 +197,10 @@ namespace Aikido.Application.Services
                 if (member.Status == AdditionalData.SeminarMemberStatus.Certified)
                 {
                     await _userDbService.UpdateUserGrade(member.UserId, member.OldGrade);
+                }
+                if (member.User.HasBudoPassport == true && member.BudoPassportPayment?.Status == AdditionalData.PaymentStatus.Completed)
+                {
+                    await _userDbService.UpdateUserBudoPassport(member.UserId, false);
                 }
             }
         }
@@ -232,7 +244,7 @@ namespace Aikido.Application.Services
                 if (await _seminarDbService.IsMemberAsync(seminarId, entry.Member.UserId))
                 {
                     var existingMember = await _seminarDbService
-                    .GetSeminarMember(seminarId, entry.Member.UserId);
+                    .GetSeminarMemberAsync(seminarId, entry.Member.UserId);
                     result.Add(new SeminarMemberDto(existingMember));
                 }
                 else
@@ -245,5 +257,14 @@ namespace Aikido.Application.Services
             return result;
         }
 
+        public async Task<List<SeminarMemberDto>> GetRegisteredCoachMembers(long seminarId, long coachId)
+        {
+            var coachMembersTasks = await _seminarDbService.GetCoachMembersAsync(seminarId, coachId);
+            var coachMembers = coachMembersTasks
+                .Select(sm => new SeminarMemberDto(sm))
+                .ToList();
+
+            return coachMembers;
+        }
     }
 }
