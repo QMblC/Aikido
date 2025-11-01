@@ -58,6 +58,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
             return await _context.SeminarMembers
                 .Include(sm => sm.User)
                 .Include(sm => sm.Seminar)
+                .Include(sm => sm.TrainingGroup)
                 .Include(sm => sm.SeminarGroup)
                 .Include(sm => sm.Creator)
                 .Include(sm => sm.SeminarPayment)
@@ -252,9 +253,18 @@ namespace Aikido.Services.DatabaseServices.Seminar
             return await _context.SeminarMembers.CountAsync(sm => sm.SeminarId == seminarId);
         }
 
-        public async Task<SeminarMemberEntity> GetSeminarMember(long seminarId, long userId)
+        public async Task<SeminarMemberEntity> GetSeminarMemberAsync(long seminarId, long userId)
         {
             return await _context.SeminarMembers.AsQueryable()
+                .Include(sm => sm.User)
+                .Include(sm => sm.TrainingGroup)
+                .Include(sm => sm.Seminar)
+                .Include(sm => sm.SeminarGroup)
+                .Include(sm => sm.Creator)
+                .Include(sm => sm.SeminarPayment)
+                .Include(sm => sm.BudoPassportPayment)
+                .Include(sm => sm.AnnualFeePayment)
+                .Include(sm => sm.CertificationPayment)
                 .Where(sm => sm.UserId == userId
                 && sm.SeminarId == seminarId)
                 .FirstOrDefaultAsync() ?? throw new EntityNotFoundException(nameof(SeminarMemberEntity));
@@ -343,6 +353,15 @@ namespace Aikido.Services.DatabaseServices.Seminar
             seminar.IsFinalStatementApplied = false;
             _context.Update(seminar);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<SeminarMemberEntity>> GetCoachMembersAsync(long seminarId, long coachId)
+        {
+            return await _context.SeminarMembers
+                .AsQueryable()
+                .Where(sm => sm.SeminarId == seminarId
+                && sm.CreatorId == coachId)
+                .ToListAsync();
         }
     }
 }
