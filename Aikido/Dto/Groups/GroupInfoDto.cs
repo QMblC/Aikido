@@ -31,7 +31,10 @@ namespace Aikido.Dto.Groups
             Id = group.Id;
             Name = group.Name;
             
-            Coaches = group.UserMemberships.Select(um => new UserShortDto(um.User)).ToList();
+            Coaches = group.UserMemberships
+                .Where(um => um.RoleInGroup == AdditionalData.Role.Coach)
+                .Select(um => new UserShortDto(um.User))
+                .ToList();
 
             ClubId = group.ClubId;
             ClubName = group.Club?.Name;
