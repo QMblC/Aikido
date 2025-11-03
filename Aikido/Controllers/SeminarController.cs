@@ -124,7 +124,7 @@ namespace Aikido.Controllers
                 var seminarId = await _seminarApplicationService.CreateSeminarAsync(seminarData);
                 return Ok(new { id = seminarId });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
@@ -207,7 +207,7 @@ namespace Aikido.Controllers
                 await _seminarApplicationService.DeleteSeminarRegulationAsync(seminarId);
                 return NoContent();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
@@ -300,6 +300,85 @@ namespace Aikido.Controllers
                 return File(stream,
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     $"Members.xlsx");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        [HttpGet("{seminarId}/final-statement")]
+        public async Task<IActionResult> GetFinalStatementTable(long seminarId)
+        {
+            try
+            {
+                var members = await _seminarApplicationService.GetSeminarMembersAsync(seminarId);
+
+                if (members.Count == 0)
+                {
+                    return StatusCode(404, new { Message = "Не удалось найти участников" });
+                }
+
+                var stream = _tableService.CreateSeminarMembersTable(members);
+                return File(stream,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    $"Members.xlsx");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        [HttpPost("{seminarId}/coach/{coachId}/members")]
+        public async Task<IActionResult> CreateCoachMembersByTable(long seminarId, long coachId, IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                    return BadRequest("Файл Excel не найден или пустой!");
+
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                }
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        [HttpGet("{seminarId}/final-statement")]
+        public async Task<IActionResult> SetFinalStatement(long seminarId, long coachId, IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                    return BadRequest("Файл Excel не найден или пустой!");
+
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                }
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        [HttpDelete("{seminarId}/coach/{coachId}/members")]
+        public async Task<IActionResult> DeleteCoachMembers(long seminarId, long coachId)
+        {
+            try
+            {
+                var memberGroup = new SeminarMemberGroupDto() { CoachId = coachId, Members = new() };
+
+                await _seminarApplicationService.AddSeminarMembersAsync(seminarId, memberGroup);
+                return Ok();
             }
             catch (Exception ex)
             {
