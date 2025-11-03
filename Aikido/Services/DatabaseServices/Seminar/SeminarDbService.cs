@@ -361,6 +361,15 @@ namespace Aikido.Services.DatabaseServices.Seminar
                 .AsQueryable()
                 .Where(sm => sm.SeminarId == seminarId
                 && sm.CreatorId == coachId)
+                .Include(sm => sm.User)
+                .Include(sm => sm.TrainingGroup)
+                .Include(sm => sm.Seminar)
+                .Include(sm => sm.SeminarGroup)
+                .Include(sm => sm.Creator)
+                .Include(sm => sm.SeminarPayment)
+                .Include(sm => sm.BudoPassportPayment)
+                .Include(sm => sm.AnnualFeePayment)
+                .Include(sm => sm.CertificationPayment)
                 .ToListAsync();
         }
     }

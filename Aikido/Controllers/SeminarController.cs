@@ -4,9 +4,11 @@ using Aikido.Dto.Seminars.Creation;
 using Aikido.Dto.Seminars.Members;
 using Aikido.Dto.Users;
 using Aikido.Requests;
+using Aikido.Services;
 using DocumentFormat.OpenXml.Drawing.Charts;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Mvc;
+using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -17,10 +19,12 @@ namespace Aikido.Controllers
     public class SeminarController : ControllerBase
     {
         private readonly SeminarApplicationService _seminarApplicationService;
+        private readonly TableService _tableService;
 
-        public SeminarController(SeminarApplicationService seminarApplicationService)
+        public SeminarController(SeminarApplicationService seminarApplicationService, TableService tableService)
         {
             _seminarApplicationService = seminarApplicationService;
+            _tableService = tableService;
         }
 
         [HttpGet("get/{id}")]
@@ -273,6 +277,29 @@ namespace Aikido.Controllers
             {
                 await _seminarApplicationService.CancelSeminarResult(seminarId);
                 return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        [HttpGet("{seminarId}/coach/{coachId}/members")]
+        public async Task<IActionResult> GetCoachMembersTable(long seminarId, long coachId)
+        {
+            try
+            {
+                var members = await _seminarApplicationService.GetRegisteredCoachMembers(seminarId, coachId);
+
+                if (members.Count == 0)
+                {
+                    return StatusCode(404, new { Message = "Не удалось найти участников" });
+                }
+
+                var stream = _tableService.CreateSeminarMembersTable(members);
+                return File(stream,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    $"Members.xlsx");
             }
             catch (Exception ex)
             {

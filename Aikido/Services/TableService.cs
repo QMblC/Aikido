@@ -1,5 +1,6 @@
 ﻿using Aikido.Data;
 using Aikido.Dto;
+using Aikido.Dto.Seminars.Members;
 using Aikido.Entities;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
@@ -46,7 +47,6 @@ namespace Aikido.Services
 
             var sheetData = worksheetPart.Worksheet.GetFirstChild<SheetData>();
 
-            // Заголовки
             var headerRow = new Row();
             headerRow.Append(
                 new Cell { CellValue = new CellValue("Id"), DataType = CellValues.String },
@@ -60,7 +60,6 @@ namespace Aikido.Services
             );
             sheetData.AppendChild(headerRow);
 
-            // Данные
             foreach (var user in users)
             {
                 var clubNames = string.Join(", ",
@@ -124,7 +123,6 @@ namespace Aikido.Services
 
             var sheetData = worksheetPart.Worksheet.GetFirstChild<SheetData>();
 
-            // Заголовки шаблона
             var headerRow = new Row();
             var headers = new List<string>();
 
@@ -181,7 +179,6 @@ namespace Aikido.Services
 
             var sheetData = worksheetPart.Worksheet.GetFirstChild<SheetData>();
 
-            // Заголовки
             var headerRow = new Row();
             headerRow.Append(
                 new Cell { CellValue = new CellValue("Id"), DataType = CellValues.String },
@@ -192,7 +189,6 @@ namespace Aikido.Services
             );
             sheetData.AppendChild(headerRow);
 
-            // Данные
             foreach (var seminar in seminars)
             {
                 var row = new Row();
@@ -204,6 +200,57 @@ namespace Aikido.Services
                 );
                 sheetData.AppendChild(row);
             }
+
+            workbookPart.Workbook.Save();
+            document.Dispose();
+
+            stream.Position = 0;
+            return stream;
+        }
+
+        public MemoryStream CreateSeminarMembersTable(List<SeminarMemberDto> members)
+        {
+            var stream = new MemoryStream();
+            using var document = SpreadsheetDocument.Create(stream, SpreadsheetDocumentType.Workbook);
+
+            var workbookPart = document.AddWorkbookPart();
+            workbookPart.Workbook = new Workbook();
+
+            var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
+            worksheetPart.Worksheet = new Worksheet(new SheetData());
+
+            var sheets = document.WorkbookPart.Workbook.AppendChild(new Sheets());
+            var sheet = new Sheet
+            {
+                Id = document.WorkbookPart.GetIdOfPart(worksheetPart),
+                SheetId = 1,
+                Name = "Members"
+            };
+            sheets.Append(sheet);
+
+            var sheetData = worksheetPart.Worksheet.GetFirstChild<SheetData>();
+
+            var headerRow = new Row();
+            var headers = new List<string>();
+
+            sheetData.Append(new Row());
+            sheetData.Append(new Row());
+            sheetData.Append(new Row());
+            sheetData.Append(new Row());
+
+
+            headers.AddRange(new string[]
+            {
+                "№", "ФИО", "Степень кю/дан", "Аттестуется", "Тренер", "Клуб", "Город", "Возрастная группа", "Программа",
+                $"Годовой взнос {members.First().SeminarDate.Value.Year}", "Семинар", "Аттестация", "Паспорт"
+            });
+
+            foreach (var header in headers)
+            {
+                headerRow.Append(new Cell { CellValue = new CellValue(header), DataType = CellValues.String });
+            }
+
+            sheetData.AppendChild(headerRow);
 
             workbookPart.Workbook.Save();
             document.Dispose();
