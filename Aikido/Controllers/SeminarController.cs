@@ -331,10 +331,12 @@ namespace Aikido.Controllers
         }
 
         [HttpPost("{seminarId}/coach/{coachId}/members")]
-        public async Task<IActionResult> CreateCoachMembersByTable(long seminarId, long coachId, IFormFile file)
+        public async Task<IActionResult> CreateCoachMembersByTable(long seminarId, long coachId, [FromForm] TableFileRequest tableFile)
         {
             try
             {
+                var file = tableFile.Table;
+
                 if (file == null || file.Length == 0)
                     return BadRequest("Файл Excel не найден или пустой!");
 
@@ -350,11 +352,13 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpGet("{seminarId}/final-statement")]
-        public async Task<IActionResult> SetFinalStatement(long seminarId, long coachId, IFormFile file)
+        [HttpPost("{seminarId}/final-statement")]
+        public async Task<IActionResult> SetFinalStatement(long seminarId, long coachId, [FromForm] TableFileRequest tableFile)
         {
             try
             {
+                var file = tableFile.Table;
+
                 if (file == null || file.Length == 0)
                     return BadRequest("Файл Excel не найден или пустой!");
 
