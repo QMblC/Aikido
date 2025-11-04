@@ -101,7 +101,10 @@ namespace Aikido.Application.Services
             foreach (var member in members)
             {
                 var memberData = membersDto.First(m => m.UserId == member.UserId);
-
+                if (memberData == null)
+                {
+                    continue;
+                }
                 await _paymentDbService.CreateSeminarMemberPayments(member, memberData);
             }
         }
@@ -265,6 +268,12 @@ namespace Aikido.Application.Services
                 .ToList();
 
             return coachMembers;
+        }
+
+        public async Task<SeminarMemberDto> GetSeminarMemberAsync(long seminarId, long userId)
+        {
+            var memberEntity = await _seminarDbService.GetSeminarMemberAsync(seminarId, userId);
+            return new SeminarMemberDto(memberEntity);
         }
     }
 }

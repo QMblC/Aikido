@@ -16,6 +16,11 @@ namespace Aikido.Dto.Seminars.Members
 
         public long? GroupId { get; set; }
         public string? GroupName { get; set; }
+        public string? AgeGroup { get; set; }
+
+        public long? ClubId { get; set; }
+        public string? ClubName { get; set; }
+        public string? ClubCity { get; set; }
 
         public long? SeminarGroupId { get; set; }
         public string? SeminarGroupName { get; set; }
@@ -76,6 +81,13 @@ namespace Aikido.Dto.Seminars.Members
 
             GroupId = seminarMember.TrainingGroupId;
             GroupName = seminarMember.TrainingGroup?.Name;
+            AgeGroup = seminarMember.TrainingGroup != null 
+                ? EnumParser.ConvertEnumToString(seminarMember.TrainingGroup.AgeGroup) 
+                : EnumParser.ConvertEnumToString(AdditionalData.AgeGroup.Adult);
+
+            ClubId = seminarMember.TrainingGroup?.ClubId;
+            ClubName = seminarMember.TrainingGroup?.Club?.Name;
+            ClubCity = seminarMember.TrainingGroup?.Club.City;
 
             SeminarGroupId = seminarMember.SeminarGroupId;
             SeminarGroupName = seminarMember.SeminarGroup?.Name;

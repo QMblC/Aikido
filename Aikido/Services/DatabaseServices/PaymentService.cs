@@ -46,7 +46,8 @@ namespace Aikido.Services
         {
             return _context.Payment
                 .Where(p => p.Type == PaymentType.AnnualFee
-                && p.Date.Date.Year == year)
+                && p.Date.Year == year
+                && p.UserId == userId)
                 .FirstOrDefault() != null;
         }
 
