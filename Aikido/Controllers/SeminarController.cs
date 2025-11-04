@@ -1,4 +1,5 @@
-﻿using Aikido.Application.Services;
+﻿using Aikido.AdditionalData;
+using Aikido.Application.Services;
 using Aikido.Dto.Seminars;
 using Aikido.Dto.Seminars.Creation;
 using Aikido.Dto.Seminars.Members;
@@ -242,6 +243,21 @@ namespace Aikido.Controllers
 
         }
 
+        [HttpPost("{seminarId}/final/members")]
+        public async Task<IActionResult> CreateFinalSeminarMembers(long seminarId, List<FinalSeminarMemberDto> members)
+        {
+            try
+            {
+                await _seminarApplicationService.SetFinalSeminarMember(seminarId, members);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex?.ToString() ?? "Неизвестная ошибка" });
+            }
+
+        }
+
         [HttpDelete("{seminarId}/members/{userId}")]
         public async Task<IActionResult> RemoveMemberFromSeminar(long seminarId, long userId)
         {
@@ -284,7 +300,7 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpGet("{seminarId}/coach/{coachId}/members")]
+        [HttpGet("{seminarId}/coach/{coachId}/members/table")]
         public async Task<IActionResult> GetCoachMembersTable(long seminarId, long coachId)
         {
             try
@@ -307,7 +323,7 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpGet("{seminarId}/final-statement")]
+        [HttpGet("{seminarId}/final-statement/table")]
         public async Task<IActionResult> GetFinalStatementTable(long seminarId)
         {
             try
@@ -330,7 +346,7 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpPost("{seminarId}/coach/{coachId}/members")]
+        [HttpPost("{seminarId}/coach/{coachId}/members/table")]
         public async Task<IActionResult> CreateCoachMembersByTable(long seminarId, long coachId, [FromForm] TableFileRequest tableFile)
         {
             try
@@ -343,6 +359,27 @@ namespace Aikido.Controllers
                 using (var stream = new MemoryStream())
                 {
                     await file.CopyToAsync(stream);
+                    var partialMembers = _tableService.ParseSeminarMembersTable(stream);
+
+                    var fullCreationDataTasks = partialMembers.Select(async m =>
+                    {
+                        var creationMember = new SeminarMemberCreationDto()
+                        {
+                            UserId = m.UserId,
+                            CertificationGrade = m.CertificationGrade,
+                            SeminarPriceInRubles = m.SeminarPriceInRubles,
+                            BudoPassportPriceInRubles = m.BudoPassportPriceInRubles,
+                            AnnualFeePriceInRubles = m.AnnualFeePriceInRubles,   
+                            CertificationPriceInRubles = m.CertificationPriceInRubles
+
+                        };
+                        return creationMember;
+                    });
+
+                    var members = await Task.WhenAll(fullCreationDataTasks);
+                    var memberGroup = new SeminarMemberGroupDto() { CoachId = coachId, Members = members.ToList() };
+
+                    await _seminarApplicationService.AddSeminarMembersAsync(seminarId, memberGroup);
                 }
                 return Ok();
             }
@@ -352,8 +389,8 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpPost("{seminarId}/final-statement")]
-        public async Task<IActionResult> SetFinalStatement(long seminarId, long coachId, [FromForm] TableFileRequest tableFile)
+        [HttpPost("{seminarId}/final-statement/table")]
+        public async Task<IActionResult> SetFinalStatement(long seminarId, [FromForm] TableFileRequest tableFile)
         {
             try
             {
@@ -365,6 +402,28 @@ namespace Aikido.Controllers
                 using (var stream = new MemoryStream())
                 {
                     await file.CopyToAsync(stream);
+                    var partialMembers = _tableService.ParseSeminarMembersTable(stream);
+
+                    var fullCreationDataTasks = partialMembers.Select(async m =>
+                    {
+                        var creationMember = new FinalSeminarMemberDto()
+                        {
+                            UserId = m.UserId,
+                            Status = m.CertificationGrade != null 
+                            ? EnumParser.ConvertEnumToString(SeminarMemberStatus.Certified) 
+                            : EnumParser.ConvertEnumToString(SeminarMemberStatus.Training),
+                            CertificationGrade = m.CertificationGrade,
+                            SeminarPriceInRubles = m.SeminarPriceInRubles,
+                            BudoPassportPriceInRubles = m.BudoPassportPriceInRubles,
+                            AnnualFeePriceInRubles = m.AnnualFeePriceInRubles,
+                            CertificationPriceInRubles = m.CertificationPriceInRubles
+
+                        };
+                        return creationMember;
+                    });
+
+                    var members = await Task.WhenAll(fullCreationDataTasks);
+                    await _seminarApplicationService.SetFinalSeminarMember(seminarId, members.ToList());
                 }
                 return Ok();
             }

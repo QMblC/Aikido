@@ -59,6 +59,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
                 .Include(sm => sm.User)
                 .Include(sm => sm.Seminar)
                 .Include(sm => sm.TrainingGroup)
+                    .ThenInclude(g => g.Club)
                 .Include(sm => sm.SeminarGroup)
                 .Include(sm => sm.Creator)
                 .Include(sm => sm.SeminarPayment)
@@ -179,7 +180,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
                 var userMembership = _context.UserMemberships.AsQueryable()
                     .Where(um => um.UserId == memberDto.UserId
                     && um.RoleInGroup == Role.User)
-                    .FirstOrDefault(um => um.Group.UserMemberships.Any(um => um.UserId == creatorId));
+                    .FirstOrDefault();
 
                 if (userMembership == null)
                 {
@@ -258,6 +259,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
             return await _context.SeminarMembers.AsQueryable()
                 .Include(sm => sm.User)
                 .Include(sm => sm.TrainingGroup)
+                    .ThenInclude(g => g.Club)
                 .Include(sm => sm.Seminar)
                 .Include(sm => sm.SeminarGroup)
                 .Include(sm => sm.Creator)
@@ -363,6 +365,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
                 && sm.CreatorId == coachId)
                 .Include(sm => sm.User)
                 .Include(sm => sm.TrainingGroup)
+                    .ThenInclude(g => g.Club)
                 .Include(sm => sm.Seminar)
                 .Include(sm => sm.SeminarGroup)
                 .Include(sm => sm.Creator)

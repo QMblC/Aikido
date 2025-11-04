@@ -62,4 +62,27 @@ public static class EnumParser
         }
         throw new NotImplementedException($"Не найден такой enum {enumValue}");
     }
+
+    public static T GetEnumByMemberValue<T>(string memberValue) where T : Enum
+    {
+        if (string.IsNullOrEmpty(memberValue))
+        {
+            // Возвращаем первое значение enum по умолчанию
+            return (T)Enum.GetValues(typeof(T)).GetValue(0);
+        }
+
+        var type = typeof(T);
+        foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.Static))
+        {
+            var attr = field.GetCustomAttribute<EnumMemberAttribute>();
+            if (attr != null && attr.Value == memberValue)
+                return (T)field.GetValue(null);
+            if (attr == null && field.Name == memberValue)
+                return (T)field.GetValue(null);
+        }
+
+        throw new ArgumentException($"Enum value with MemberValue '{memberValue}' not found in {type.Name}");
+    }
+
+
 }
