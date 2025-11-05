@@ -16,6 +16,8 @@ namespace Aikido.Dto.Seminars
         public decimal? Price1KyuCertificationInRubles { get; set; }
         public decimal? PriceDanCertificationInRubles { get; set; }
 
+        public bool? IsFinalStatementApplied { get; set; }
+
         public long? CreatorId { get; set; }
         public string? CreatorName { get; set; }
 
@@ -47,6 +49,8 @@ namespace Aikido.Dto.Seminars
 
             CreatorId = seminar.CreatorId;
             CreatorName = seminar.Creator?.FullName;
+
+            IsFinalStatementApplied = seminar.IsFinalStatementApplied;
 
             RegulationExists = seminar.RegulationId != null;
 
