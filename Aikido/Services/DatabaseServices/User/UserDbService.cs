@@ -188,9 +188,25 @@ namespace Aikido.Services.DatabaseServices.User
                     .ThenInclude(g => g.UserMemberships)
                 .Include(ug => ug.Group)
                     .ThenInclude(g => g.Club)
+                .Include(um => um.Attendances)
                 .Where(ug => ug.UserId == userId)
                 .OrderByDescending(ug => ug.JoinDate)
                 .ToListAsync();
+        }
+
+        public UserMembershipEntity GetUserMembership(long userId, long groupId)
+        {
+            return _context.UserMemberships
+                .Where(um => um.UserId == userId
+                && um.GroupId == groupId)
+                .Include(um => um.User)
+                .Include(um => um.Attendances)
+                .Include(ug => ug.Group)
+                    .ThenInclude(g => g.UserMemberships)
+                .Include(ug => ug.Group)
+                    .ThenInclude(g => g.Club)
+                .FirstOrDefault() 
+                ?? throw new EntityNotFoundException(nameof(UserMembershipEntity));
         }
 
         public async Task AddUserMembershipAsync(long userId, long clubId, long groupId, Role roleInGroup = Role.User)

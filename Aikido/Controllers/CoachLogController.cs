@@ -1,5 +1,6 @@
 ﻿using Aikido.Application.Services;
-using Aikido.Dto;
+using Aikido.Dto.Attendance;
+using Aikido.Dto.Groups;
 using Aikido.Dto.Users;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,12 +25,11 @@ namespace Aikido.Controllers
         }
 
         [HttpGet("coach/{coachId}/groups")]
-        public async Task<IActionResult> GetCoachGroups(long coachId)
+        public async Task<ActionResult<List<GroupShortDto>>> GetCoachGroups(long coachId)
         {
             try
             {
-                var groups = await _groupApplicationService.GetAllGroupsAsync();
-                var coachGroups = groups.Where(g => g.Coaches.Any(u => u.Id == coachId)).ToList();
+                var coachGroups = await _groupApplicationService.GetGroupsByCoach(coachId);
                 return Ok(coachGroups);
             }
             catch (Exception ex)
@@ -38,86 +38,28 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpGet("coach/{coachId}/students")]
-        public async Task<IActionResult> GetCoachStudents(long coachId)
+
+        [HttpGet("get/{groupId}/monthly-attendance")]
+        public async Task<ActionResult<GroupDashboardDto>> GetCoachDashboard(long groupId, [FromQuery] DateTime month)
         {
             try
             {
-                var allGroups = await _groupApplicationService.GetAllGroupsAsync();
-                var coachGroups = allGroups
-                    .Where(g => g.Coaches.Any(u => u.Id == coachId)).ToList();
+                var group = await _groupApplicationService.GetGroupByIdAsync(groupId);
+                var groupMembers = await _groupApplicationService.GetGroupMembersAsync(groupId);
+                var attendances = await _attendanceApplicationService.GetAttendanceByGroup(groupId, month);
 
-                var allStudents = new List<UserShortDto>();
-
-                foreach (var group in coachGroups)
-                {
-                    var groupMembers = await _groupApplicationService.GetGroupMembersAsync(group.Id.Value);
-                    allStudents.AddRange(groupMembers);
-                }
-
-                var uniqueStudents = allStudents
-                    .GroupBy(s => s.Id)
-                    .Select(g => g.First())
-                    .ToList();
-
-                return Ok(uniqueStudents);
+                return new GroupDashboardDto(group, groupMembers, attendances);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Ошибка при получении студентов тренера", Details = ex.Message });
-            }
-        }
-
-        [HttpGet("coach/{coachId}/dashboard")]
-        public async Task<IActionResult> GetCoachDashboard(long coachId)
-        {
-            try
-            {
-                var coach = await _userApplicationService.GetUserByIdAsync(coachId);
-                var allGroups = await _groupApplicationService.GetAllGroupsAsync();
-                var coachGroups = allGroups.Where(g => g.Coaches.Any(u => u.Id == coachId)).ToList();
-
-                var totalStudents = 0;
-                var groupsInfo = new List<object>();
-
-                foreach (var group in coachGroups)
-                {
-                    var members = await _groupApplicationService.GetGroupMembersAsync(group.Id.Value);
-                    totalStudents += members.Count;
-
-                    groupsInfo.Add(new
-                    {
-                        GroupId = group.Id,
-                        GroupName = group.Name,
-                        MemberCount = members.Count,
-                        MaxMembers = group.MaxMembers,
-                        AgeGroup = group.AgeGroup
-                    });
-                }
-
-                var dashboard = new
-                {
-                    Coach = new
-                    {
-                        Id = coach.Id,
-                        Name = coach.FullName,
-                        Grade = coach.Grade
-                    },
-                    TotalGroups = coachGroups.Count,
-                    TotalStudents = totalStudents,
-                    Groups = groupsInfo
-                };
-
-                return Ok(dashboard);
-            }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 return StatusCode(500, new { Message = "Ошибка при получении панели тренера", Details = ex.Message });
-            }
+            }  
         }
 
         [HttpPost("attendance")]
-        public async Task<IActionResult> RecordAttendance([FromBody] List<AttendanceDto> attendanceList)
+        public async Task<IActionResult> RecordAttendance(
+            long groupId,
+            [FromBody] List<AttendanceCreationDto> attendanceList)
         {
             try
             {
@@ -125,7 +67,7 @@ namespace Aikido.Controllers
 
                 foreach (var attendance in attendanceList)
                 {
-                    var attendanceId = await _attendanceApplicationService.CreateAttendanceAsync(attendance);
+                    var attendanceId = await _attendanceApplicationService.CreateAttendanceAsync(groupId, attendance);
                     createdIds.Add(attendanceId);
                 }
 
@@ -134,6 +76,36 @@ namespace Aikido.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Ошибка при записи посещаемости", Details = ex.Message });
+            }
+        }
+
+        [HttpPost("create/{groupId}/attendance")]
+        public async Task<IActionResult> CreateSingleAttendance(long groupId, [FromBody] AttendanceCreationDto attendance)
+        {
+            try
+            {
+                var attendanceId = await _attendanceApplicationService.CreateAttendanceAsync(groupId, attendance);
+
+                return Ok(attendanceId);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при записи посещаемости", Details = ex.Message });
+            }
+        }
+
+        [HttpDelete("delete/attendance/{id}")]
+        public async Task<IActionResult> DeleteAttendance(long id)
+        {
+            try
+            {
+                await _attendanceApplicationService.DeleteAttendanceAsync(id);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при удалении посещаемости", Details = ex.Message });
             }
         }
 

@@ -49,7 +49,7 @@ builder.Services.AddScoped<IClubDbService, ClubDbService>();
 builder.Services.AddScoped<IGroupDbService, GroupDbService>();
 builder.Services.AddScoped<ISeminarDbService, SeminarDbService>();
 
-builder.Services.AddScoped<AttendanceService>();
+builder.Services.AddScoped<AttendanceDbService>();
 builder.Services.AddScoped<PaymentService>();
 builder.Services.AddScoped<ScheduleService>();
 

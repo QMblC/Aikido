@@ -20,7 +20,6 @@ namespace Aikido.Services
             var eventEntity = await _context.Events
                 .Include(e => e.Group)
                 .Include(e => e.Club)
-                .Include(e => e.Attendances)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
             if (eventEntity == null)

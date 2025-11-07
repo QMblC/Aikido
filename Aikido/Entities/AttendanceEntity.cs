@@ -1,4 +1,6 @@
 ﻿using Aikido.Dto;
+using Aikido.Dto.Attendance;
+using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities
@@ -8,45 +10,17 @@ namespace Aikido.Entities
         [Key]
         public long Id { get; set; }
 
-        public long UserId { get; set; }
-        public virtual UserEntity? User { get; set; }
-
-        public long EventId { get; set; }
-        public virtual EventEntity? Event { get; set; }
+        public long UserMembershipId { get; set; }
+        public virtual UserMembershipEntity UserMembership { get; set; }
 
         public DateTime Date { get; set; }
-        public bool IsPresent { get; set; }
-        public DateTime? CheckInTime { get; set; }
-        public DateTime? CheckOutTime { get; set; }
-        public string? Notes { get; set; }
-        public AttendanceStatus? Status { get; set; }
 
         public AttendanceEntity() { }
 
-        public AttendanceEntity(AttendanceDto attendanceData)
+        public AttendanceEntity(UserMembershipEntity userMembership, DateTime date)
         {
-            UpdateFromJson(attendanceData);
+            UserMembership = userMembership;
+            Date = date;
         }
-
-        public void UpdateFromJson(AttendanceDto attendanceData)
-        {
-            UserId = attendanceData.UserId;
-            EventId = attendanceData.EventId;
-            Date = attendanceData.Date;
-            IsPresent = attendanceData.IsPresent;
-            CheckInTime = attendanceData.CheckInTime;
-            CheckOutTime = attendanceData.CheckOutTime;
-            Notes = attendanceData.Notes;
-            if (!string.IsNullOrEmpty(attendanceData.Status))
-                Status = EnumParser.ConvertStringToEnum<AttendanceStatus>(attendanceData.Status);
-        }
-    }
-
-    public enum AttendanceStatus
-    {
-        Present,
-        Late,
-        Absent,
-        Excused
     }
 }

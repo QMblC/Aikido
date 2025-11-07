@@ -35,8 +35,15 @@ namespace Aikido.Dto.Users
             GroupName = userMembership.Group?.Name;
             JoinDate = userMembership.JoinDate;
             RoleInGroup = userMembership.RoleInGroup.ToString();
-            AttendanceCount = userMembership.AttendanceCount;
-            LastAttendanceDate = userMembership.LastAttendanceDate;
+            AttendanceCount = userMembership.Attendances.Count();
+            LastAttendanceDate = userMembership.Attendances.Count > 0
+                ?
+                userMembership.Attendances
+                .OrderByDescending(a => a.Date)
+                .Select(a => a.Date)
+                .FirstOrDefault()
+                :
+                null;
         }
     }
 }
