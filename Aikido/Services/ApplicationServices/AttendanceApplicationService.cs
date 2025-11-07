@@ -1,63 +1,60 @@
-﻿using Aikido.Dto;
-using Aikido.Services.DatabaseServices;
+﻿using Aikido.Services.DatabaseServices;
 using Aikido.Exceptions;
 using Aikido.Services;
+using Aikido.Dto.Attendance;
+using Aikido.Services.DatabaseServices.User;
 
 namespace Aikido.Application.Services
 {
     public class AttendanceApplicationService
     {
-        private readonly AttendanceService _attendanceService;
+        private readonly AttendanceDbService _attendanceDbService;
+        private readonly IUserDbService _userDbService;
 
-        public AttendanceApplicationService(AttendanceService attendanceService)
+        public AttendanceApplicationService(AttendanceDbService attendanceService, IUserDbService userDbService)
         {
-            _attendanceService = attendanceService;
+            _attendanceDbService = attendanceService;
+            _userDbService = userDbService;
         }
 
         public async Task<AttendanceDto> GetAttendanceByIdAsync(long id)
         {
-            var attendance = await _attendanceService.GetAttendanceById(id);
+            var attendance = await _attendanceDbService.GetAttendanceById(id);
             return new AttendanceDto(attendance);
+        }
+
+        public async Task<List<AttendanceDto>> GetAttendanceByGroup(long groupId, DateTime date)
+        {
+            var attendances = await _attendanceDbService.GetAttendancesByGroup(groupId, date);
+            return attendances
+                .Select(a => new AttendanceDto(a))
+                .ToList();
         }
 
         public async Task<List<AttendanceDto>> GetAttendanceByUserAsync(long userId)
         {
-            var attendances = await _attendanceService.GetAttendanceByUser(userId);
+            var attendances = await _attendanceDbService.GetAttendanceByUser(userId);
             return attendances.Select(a => new AttendanceDto(a)).ToList();
         }
 
-        public async Task<List<AttendanceDto>> GetAttendanceByEventAsync(long eventId)
+        public async Task<long> CreateAttendanceAsync(long groupId, AttendanceCreationDto attendanceData)
         {
-            var attendances = await _attendanceService.GetAttendanceByEvent(eventId);
-            return attendances.Select(a => new AttendanceDto(a)).ToList();
-        }
-
-        public async Task<long> CreateAttendanceAsync(AttendanceDto attendanceData)
-        {
-            return await _attendanceService.CreateAttendance(attendanceData);
-        }
-
-        public async Task UpdateAttendanceAsync(long id, AttendanceDto attendanceData)
-        {
-            if (!await _attendanceService.AttendanceExists(id))
-            {
-                throw new EntityNotFoundException($"Посещаемость с Id = {id} не найдена");
-            }
-            await _attendanceService.UpdateAttendance(id, attendanceData);
+            var userMembership = _userDbService.GetUserMembership(attendanceData.UserId, groupId);
+            return await _attendanceDbService.CreateAttendance(userMembership, attendanceData.Date);
         }
 
         public async Task DeleteAttendanceAsync(long id)
         {
-            if (!await _attendanceService.AttendanceExists(id))
+            if (!await _attendanceDbService.AttendanceExists(id))
             {
                 throw new EntityNotFoundException($"Посещаемость с Id = {id} не найдена");
             }
-            await _attendanceService.DeleteAttendance(id);
+            await _attendanceDbService.DeleteAttendance(id);
         }
 
         public async Task<bool> AttendanceExistsAsync(long id)
         {
-            return await _attendanceService.AttendanceExists(id);
+            return await _attendanceDbService.AttendanceExists(id);
         }
     }
 }

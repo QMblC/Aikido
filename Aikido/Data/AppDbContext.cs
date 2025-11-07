@@ -95,6 +95,11 @@ namespace Aikido.Data
                     .WithMany(g => g.UserMemberships)
                     .HasForeignKey(m => m.GroupId)
                     .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasMany(m => m.Attendances)
+                    .WithOne(a => a.UserMembership)
+                    .HasForeignKey(a => a.UserMembershipId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<ClubEntity>(entity =>
@@ -342,17 +347,7 @@ namespace Aikido.Data
             {
                 entity.HasKey(e => e.Id);
 
-                entity.HasOne(a => a.User)
-                    .WithMany()
-                    .HasForeignKey(a => a.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(a => a.Event)
-                    .WithMany(e => e.Attendances)
-                    .HasForeignKey(a => a.EventId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasIndex(e => new { e.UserId, e.EventId, e.Date });
+                entity.HasIndex(e => new { e.UserMembershipId, e.Date });
                 entity.HasIndex(e => e.Date);
             });
         }

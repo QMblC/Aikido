@@ -11,6 +11,16 @@ namespace Aikido.Dto.Groups
         public string? AgeGroup { get; set; }
         public int MemberCount { get; set; }
 
+        public GroupShortDto(GroupDto group)
+        {
+            Id = group.Id;
+            Name = group.Name ?? string.Empty;
+            ClubId = group.ClubId;
+            ClubName = group.Name;
+            AgeGroup = group.AgeGroup;
+            MemberCount = group.MemberCount.Value;
+        }
+
         public GroupShortDto(GroupEntity group)
         {
             Id = group.Id;

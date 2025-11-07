@@ -19,10 +19,9 @@ namespace Aikido.Entities.Users
 
         public DateTime JoinDate { get; set; } = DateTime.UtcNow;
         public DateTime? LeaveDate { get; set; }
-        public Role RoleInGroup { get; set; } = Role.User; 
+        public Role RoleInGroup { get; set; } = Role.User;
 
-        public int AttendanceCount { get; set; } = 0;
-        public DateTime? LastAttendanceDate { get; set; }
+        public virtual ICollection<AttendanceEntity> Attendances { get; set; } = new List<AttendanceEntity>();
 
         public UserMembershipEntity(long userId,
             long clubId,

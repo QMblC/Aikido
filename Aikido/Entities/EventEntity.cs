@@ -30,9 +30,6 @@ namespace Aikido.Entities
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedDate { get; set; }
 
-        // Навигационные свойства
-        public virtual ICollection<AttendanceEntity> Attendances { get; set; } = new List<AttendanceEntity>();
-
         public EventEntity() { }
 
         public EventEntity(EventDto eventData)
