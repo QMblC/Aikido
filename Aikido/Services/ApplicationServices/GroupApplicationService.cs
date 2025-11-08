@@ -49,9 +49,9 @@ namespace Aikido.Application.Services
 
         public async Task<List<GroupDto>> GetGroupsByUserAsync(long userId)
         {
-            var userGroups = await _userDbService.GetUserMembershipsAsync(userId);
-            return userGroups.Where(ug => ug.Group != null)
-                           .Select(ug => new GroupDto(ug.Group!))
+            var userMemberships = await _userDbService.GetUserMembershipsAsync(userId);
+            return userMemberships.Where(ug => ug.Group != null)
+                           .Select(um => new GroupDto(um.Group!))
                            .ToList();
         }
         

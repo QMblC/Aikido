@@ -183,13 +183,14 @@ namespace Aikido.Services.DatabaseServices.User
         public async Task<List<UserMembershipEntity>> GetUserMembershipsAsync(long userId)
         {
             return await _context.UserMemberships
+                .Where(ug => ug.UserId == userId)
                 .Include(um => um.User)
                 .Include(ug => ug.Group)
                     .ThenInclude(g => g.UserMemberships)
+                        .ThenInclude(um => um.User)
                 .Include(ug => ug.Group)
                     .ThenInclude(g => g.Club)
                 .Include(um => um.Attendances)
-                .Where(ug => ug.UserId == userId)
                 .OrderByDescending(ug => ug.JoinDate)
                 .ToListAsync();
         }

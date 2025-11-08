@@ -24,6 +24,22 @@ namespace Aikido.Controllers
             _attendanceApplicationService = attendanceApplicationService;
         }
 
+        [HttpGet("user/{userId}/groups")]
+        public async Task<ActionResult<List<GroupShortDto>>> GetUserGroups(long userId)
+        {
+            try
+            {
+                var userGroups = await _groupApplicationService.GetGroupsByUserAsync(userId);
+                return Ok(userGroups
+                    .Where(ug => !ug.Coaches.Any(u => u.Id == userId))
+                    .ToList());
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при получении групп тренера", Details = ex.Message });
+            }
+        }
+
         [HttpGet("coach/{coachId}/groups")]
         public async Task<ActionResult<List<GroupShortDto>>> GetCoachGroups(long coachId)
         {
@@ -37,7 +53,6 @@ namespace Aikido.Controllers
                 return StatusCode(500, new { Message = "Ошибка при получении групп тренера", Details = ex.Message });
             }
         }
-
 
         [HttpGet("get/{groupId}/monthly-attendance")]
         public async Task<ActionResult<GroupDashboardDto>> GetCoachDashboard(long groupId, [FromQuery] DateTime month)
@@ -56,26 +71,21 @@ namespace Aikido.Controllers
             }  
         }
 
-        [HttpPost("attendance")]
-        public async Task<IActionResult> RecordAttendance(
-            long groupId,
-            [FromBody] List<AttendanceCreationDto> attendanceList)
+        [HttpGet("get/{groupId}/user/{userId}/monthly-attendance")]
+        public async Task<ActionResult<List<AttendanceDto>>> GetUserAttendance(long groupId, long userId, [FromQuery] DateTime month)
         {
             try
             {
-                var createdIds = new List<long>();
+                var user = await _userApplicationService.GetUserByIdAsync(userId);
+                var attendances = await _attendanceApplicationService.GetAttendanceByGroup(groupId, month);
 
-                foreach (var attendance in attendanceList)
-                {
-                    var attendanceId = await _attendanceApplicationService.CreateAttendanceAsync(groupId, attendance);
-                    createdIds.Add(attendanceId);
-                }
-
-                return Ok(new { Message = "Посещаемость записана", AttendanceIds = createdIds });
+                return attendances
+                    .Where(a => a.UserId == userId)
+                    .ToList();
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = "Ошибка при записи посещаемости", Details = ex.Message });
+                return StatusCode(500, new { Message = "Ошибка при получении панели тренера", Details = ex.Message });
             }
         }
 
@@ -106,21 +116,6 @@ namespace Aikido.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Ошибка при удалении посещаемости", Details = ex.Message });
-            }
-        }
-
-        [HttpGet("group/{groupId}/attendance-history")]
-        public async Task<IActionResult> GetGroupAttendanceHistory(long groupId, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
-        {
-            try
-            {
-                // Здесь нужно будет реализовать получение истории посещаемости группы
-                // Пока что возвращаем заглушку
-                return Ok(new { Message = "История посещаемости группы будет реализована" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Ошибка при получении истории посещаемости", Details = ex.Message });
             }
         }
     }
