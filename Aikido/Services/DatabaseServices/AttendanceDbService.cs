@@ -28,7 +28,7 @@ namespace Aikido.Services
         {
             return await _context.Attendances
                 .AsQueryable()
-                .Where(a => a.UserMembershipId == groupId
+                .Where(a => a.UserMembership.GroupId == groupId
                 && a.Date.Year == date.Year 
                 && a.Date.Month == date.Month)
                 .Include(a => a.UserMembership)
