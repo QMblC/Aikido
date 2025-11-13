@@ -43,6 +43,8 @@ namespace Aikido.Entities
 
         public virtual ICollection<SeminarMemberEntity> Certifications { get; set; } = new List<SeminarMemberEntity>();
         public virtual ICollection<UserMembershipEntity> UserMemberships { get; set; } = new List<UserMembershipEntity>();
+        public virtual ICollection<RefreshTokenEntity> RefreshTokens { get; set; } = new List<RefreshTokenEntity>();
+
 
         [NotMapped]
         public string FullName => $"{LastName} {FirstName} {MiddleName}";
@@ -70,7 +72,7 @@ namespace Aikido.Entities
             if (!string.IsNullOrEmpty(userNewData.Login))
                 Login = userNewData.Login;
             if (!string.IsNullOrEmpty(userNewData.Password))
-                Password = userNewData.Password;
+                Password = BCrypt.Net.BCrypt.HashPassword(userNewData.Password);
             if (!string.IsNullOrEmpty(userNewData.LastName))
                 LastName = userNewData.LastName;
             if (!string.IsNullOrEmpty(userNewData.FirstName))

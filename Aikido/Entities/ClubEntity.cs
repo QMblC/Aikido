@@ -22,8 +22,6 @@ namespace Aikido.Entities
         public DateTime? CreatedDate { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedDate { get; set; }
 
-        // Навигационные свойства
-
         public virtual ICollection<GroupEntity> Groups { get; set; } = new List<GroupEntity>();
         public virtual ICollection<UserMembershipEntity> UserMemberships { get; set; } = new List<UserMembershipEntity>();
 

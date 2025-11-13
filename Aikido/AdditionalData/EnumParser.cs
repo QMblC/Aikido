@@ -67,7 +67,6 @@ public static class EnumParser
     {
         if (string.IsNullOrEmpty(memberValue))
         {
-            // Возвращаем первое значение enum по умолчанию
             return (T)Enum.GetValues(typeof(T)).GetValue(0);
         }
 

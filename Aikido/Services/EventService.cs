@@ -87,7 +87,7 @@ namespace Aikido.Services
         public async Task DeleteEvent(long id)
         {
             var eventEntity = await GetEventById(id);
-            eventEntity.IsActive = false; // Мягкое удаление
+            eventEntity.IsActive = false;
             await _context.SaveChangesAsync();
         }
 

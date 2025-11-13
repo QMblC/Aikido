@@ -1,5 +1,7 @@
 using Aikido.Application.Services;
+using Aikido.Configuration;
 using Aikido.Data;
+using Aikido.Middleware;
 using Aikido.Services;
 using Aikido.Services.DatabaseServices;
 using Aikido.Services.DatabaseServices.Club;
@@ -12,6 +14,10 @@ using Serilog;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 
 Directory.CreateDirectory("logs");
 
@@ -25,7 +31,45 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog();
 
-var connString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
+var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>()!;
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.SaveToken = true;
+    options.RequireHttpsMetadata = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
+        ValidateIssuer = true,
+        ValidIssuer = jwtSettings.Issuer,
+        ValidateAudience = true,
+        ValidAudience = jwtSettings.Audience,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var token = context.Request.Cookies["AccessToken"];
+            if (!string.IsNullOrEmpty(token))
+            {
+                context.Token = token;
+            }
+            return Task.CompletedTask;
+        }
+    };
+});
+
+builder.Services.AddAuthorization();
 
 builder.Services.AddCors(options =>
 {
@@ -38,9 +82,15 @@ builder.Services.AddCors(options =>
         });
 });
 
+builder.Services.Configure<CookiePolicyOptions>(options =>
+{
+    options.MinimumSameSitePolicy = SameSiteMode.Strict;
+    options.HttpOnly = Microsoft.AspNetCore.CookiePolicy.HttpOnlyPolicy.Always;
+});
+
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 
-
+var connString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connString));
 
@@ -67,6 +117,8 @@ builder.Services.AddScoped<AttendanceApplicationService>();
 builder.Services.AddScoped<PaymentApplicationService>();
 builder.Services.AddScoped<ScheduleApplicationService>();
 builder.Services.AddScoped<UserChangeRequestDbService>();
+builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<AuthApplicationService>();
 
 
 
@@ -123,6 +175,11 @@ app.MapGet("/health", async (AppDbContext context) =>
 });
 
 app.UseCors("AllowAll");
+app.UseCookiePolicy();
+
+app.UseAuthentication();
+app.UseJwtCookie();
+app.UseAuthorization();
 app.MapControllers();
 
 Log.Information("Запуск сервера Aikido на http://0.0.0.0:5000");

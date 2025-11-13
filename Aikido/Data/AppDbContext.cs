@@ -30,6 +30,7 @@ namespace Aikido.Data
         public DbSet<SeminarScheduleEntity> SeminarSchedule { get; set; }
 
         public DbSet<UserChangeRequestEntity> UserChangeRequests { get; set; }
+        public DbSet<RefreshTokenEntity> RefreshTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -161,6 +162,18 @@ namespace Aikido.Data
                 entity.HasIndex(e => e.ClubId);
             });
 
+            modelBuilder.Entity<RefreshTokenEntity>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.Token).IsUnique();
+                entity.HasIndex(e => e.UserId);
+
+                entity.HasOne(e => e.User)
+                    .WithMany(u => u.RefreshTokens)
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
             ConfigureSeminarEntity(modelBuilder);
             ConfigureSeminarMemberEntity(modelBuilder);
             ConfigureSeminarGroupEntity(modelBuilder);
@@ -176,6 +189,7 @@ namespace Aikido.Data
             ConfigureExclusionDateEntity(modelBuilder);
             ConfigureStatementEntity(modelBuilder);
         }
+
 
         private void ConfigureSeminarEntity(ModelBuilder modelBuilder)
         {

@@ -215,25 +215,20 @@ namespace Aikido.Services
             var workbook = new XLWorkbook();
             var worksheet = workbook.Worksheets.Add("Шаблон пользователей");
 
-            // Количество столбцов — 15 (N)
             var colCount = 15;
 
-            // 1. Первая строка: Название по центру, жирным, крупно
             worksheet.Cell(1, 1).Value = $"Ведомость на {members.First().SeminarName}";
             worksheet.Range(1, 1, 1, colCount).Merge().Style
                 .Font.SetBold().Font.SetFontSize(18).Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
-            // 2. Вторая строка: Дата по центру, мелко
             worksheet.Cell(2, 1).Value = $"{members.First().SeminarDate:dd MMMM yyyy}";
             worksheet.Range(2, 1, 2, colCount).Merge().Style
                 .Font.SetBold(false).Font.SetFontSize(12).Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
-            // 3. Пропуск двух строк (3, 4)
             worksheet.Range(3, 1, 4, colCount).Style.Fill.SetBackgroundColor(XLColor.White);
 
-            // 4. Первая строка шапки (объединённые области, заливка)
-            worksheet.Cell(5, 1).Value = ""; // №
-            worksheet.Cell(5, 2).Value = ""; // userId
+            worksheet.Cell(5, 1).Value = ""; 
+            worksheet.Cell(5, 2).Value = ""; 
             worksheet.Range(5, 3, 5, 8).Merge().Value = "Данные участника";
             worksheet.Range(5, 3, 5, 8).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center).Font.SetBold();
             worksheet.Range(5, 3, 5, 8).Style.Fill.SetBackgroundColor(XLColor.LightBlue);
@@ -250,7 +245,6 @@ namespace Aikido.Services
             worksheet.Row(5).Style.Font.SetBold();
             worksheet.Row(5).Style.Fill.SetBackgroundColor(XLColor.LightBlue);
 
-            // 5. Вторая строка шапки — обычные заголовки
             var headers = new List<string>
             {
                 "№", "userId", "ФИО", "Степень кю/дан", "Аттестуется", "Тренер", "Клуб", "Город",
@@ -267,7 +261,6 @@ namespace Aikido.Services
                 worksheet.Cell(6, i + 1).Style.Font.SetBold();
             }
 
-            // 6. Данные участников — с userId во втором столбце
             var rowNum = 7;
             var index = 1;
             decimal sumAnnual = 0, sumSeminar = 0, sumCertification = 0, sumPassport = 0;
@@ -281,7 +274,7 @@ namespace Aikido.Services
                     : EnumParser.GetEnumMemberValue(EnumParser.ConvertStringToEnum<Grade>(m.OldGrade));
                 worksheet.Cell(rowNum, 5).Value = m.CertificationGrade == "None" ? "" 
                     : EnumParser.GetEnumMemberValue(EnumParser.ConvertStringToEnum<Grade>(m.CertificationGrade));
-                worksheet.Cell(rowNum, 6).Value = m.CreatorFullName ?? ""; // Тренер
+                worksheet.Cell(rowNum, 6).Value = m.CreatorFullName ?? ""; 
                 worksheet.Cell(rowNum, 7).Value = m.ClubName;
                 worksheet.Cell(rowNum, 8).Value = m.ClubCity;
                 worksheet.Cell(rowNum, 9).Value = m.AgeGroup == null ? "" 
@@ -314,17 +307,14 @@ namespace Aikido.Services
                 rowNum++;
             }
 
-            // 7. Итоговая строка
-            int startDataRow = 7;
-            int endDataRow = rowNum - 1; // последняя строка с данными перед итогом
+            var startDataRow = 7;
+            var endDataRow = rowNum - 1;
 
-            // Задаём формулы для сумм
             worksheet.Cell(rowNum, 11).FormulaA1 = $"SUM(K{startDataRow}:K{endDataRow})";
             worksheet.Cell(rowNum, 12).FormulaA1 = $"SUM(L{startDataRow}:L{endDataRow})";
             worksheet.Cell(rowNum, 13).FormulaA1 = $"SUM(M{startDataRow}:M{endDataRow})";
             worksheet.Cell(rowNum, 14).FormulaA1 = $"SUM(N{startDataRow}:N{endDataRow})";
 
-            // Общая сумма
             worksheet.Cell(rowNum, 15).FormulaA1 = $"SUM(K{rowNum}:N{rowNum})";
 
 
@@ -332,10 +322,8 @@ namespace Aikido.Services
             worksheet.Range(rowNum, 1, rowNum, colCount).Style.Fill.SetBackgroundColor(XLColor.LightGray);
             worksheet.Range(rowNum, 1, rowNum, colCount).Style.Border.OutsideBorder = XLBorderStyleValues.Thick;
 
-            // 8.  Минимальная ширина userId столбца
             worksheet.Column(2).Width = 4;
 
-            // 9. Автоподбор
             worksheet.Columns().AdjustToContents();
 
             var stream = new MemoryStream();
@@ -352,17 +340,14 @@ namespace Aikido.Services
             {
                 var worksheet = workbook.Worksheets.First();
 
-                // Считываем таблицу начиная с 7 строки (первая строки с данными)
                 var rowNum = 7;
                 while (true)
                 {
                     var row = worksheet.Row(rowNum);
 
-                    // Если строка пустая — выход
                     if (row.Cell(2).IsEmpty())
                         break;
 
-                    // Парсим поля (с учётом порядка, как в выводе)
                     var member = new SeminarMemberDto
                     {
                         UserId = row.Cell(2).GetValue<long>(),
@@ -370,11 +355,9 @@ namespace Aikido.Services
                         OldGrade = EnumParser.ConvertEnumToString(EnumParser.GetEnumByMemberValue<Grade>(row.Cell(4).GetString())),
                         CertificationGrade = EnumParser.ConvertEnumToString(EnumParser.GetEnumByMemberValue<Grade>(row.Cell(5).GetString())),
                         CreatorFullName = row.Cell(6).GetString(),
-                        // Если структура SeminarMemberDto изменилась — замени поля ниже:
                         ClubName = row.Cell(7).GetString(),
                         ClubCity = row.Cell(8).GetString(),
                         AgeGroup = row.Cell(9).GetString(),
-                        // Программа можно вывести, если нужна: row.Cell(10).GetString(),
                         AnnualFeePriceInRubles = GetDecimalOrNull(row.Cell(11)),
                         SeminarPriceInRubles = GetDecimalOrNull(row.Cell(12)),
                         CertificationPriceInRubles = GetDecimalOrNull(row.Cell(13)),
@@ -390,7 +373,6 @@ namespace Aikido.Services
 
         private decimal? GetDecimalOrNull(IXLCell cell)
         {
-            // Возвращает null если ячейка пустая, иначе парсит число
             return cell.IsEmpty() ? (decimal?)null : decimal.Parse(cell.GetString());
         }
     }
