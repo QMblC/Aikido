@@ -81,7 +81,6 @@ namespace Aikido.Application.Services
                 throw new EntityNotFoundException($"Клуб с Id = {id} не найден");
             }
 
-            // Удаляем всех участников из клуба
             await _clubDbService.RemoveAllMembersFromClubAsync(id);
             await _clubDbService.DeleteAsync(id);
         }

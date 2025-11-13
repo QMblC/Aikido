@@ -6,6 +6,7 @@ using Aikido.Entities.Filters;
 using Aikido.Requests;
 using Aikido.Services;
 using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Aikido.Controllers
@@ -155,6 +156,7 @@ namespace Aikido.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin,Manager")]
         [HttpGet("get/table")]
         public async Task<IActionResult> ExportUsers()
         {
