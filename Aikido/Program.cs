@@ -73,14 +73,13 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll",
-        policy =>
-        {
-            policy.AllowAnyOrigin()
-                .AllowCredentials()
-                .AllowAnyHeader()
-                .AllowAnyMethod();
-        });
+    options.AddPolicy("AllowAllOriginsWithCredentials", policy =>
+    {
+        policy.SetIsOriginAllowed(origin => true)
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
 });
 
 builder.Services.Configure<CookiePolicyOptions>(options =>
@@ -175,7 +174,7 @@ app.MapGet("/health", async (AppDbContext context) =>
     }
 });
 
-app.UseCors("AllowAll");
+app.UseCors("AllowAllOriginsWithCredentials");
 app.UseCookiePolicy();
 
 app.UseAuthentication();
