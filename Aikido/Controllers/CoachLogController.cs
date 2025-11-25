@@ -2,7 +2,10 @@
 using Aikido.Dto.Attendance;
 using Aikido.Dto.Groups;
 using Aikido.Dto.Users;
+using Aikido.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IO;
 
 namespace Aikido.Controllers
 {
@@ -13,15 +16,18 @@ namespace Aikido.Controllers
         private readonly UserApplicationService _userApplicationService;
         private readonly GroupApplicationService _groupApplicationService;
         private readonly AttendanceApplicationService _attendanceApplicationService;
+        private readonly TableService _tableService;
 
         public CoachLogController(
             UserApplicationService userApplicationService,
             GroupApplicationService groupApplicationService,
-            AttendanceApplicationService attendanceApplicationService)
+            AttendanceApplicationService attendanceApplicationService,
+            TableService tableService)
         {
             _userApplicationService = userApplicationService;
             _groupApplicationService = groupApplicationService;
             _attendanceApplicationService = attendanceApplicationService;
+            _tableService = tableService;
         }
 
         [HttpGet("user/{userId}/groups")]
@@ -63,7 +69,7 @@ namespace Aikido.Controllers
                 var groupMembers = await _groupApplicationService.GetGroupMembersAsync(groupId);
                 var attendances = await _attendanceApplicationService.GetAttendanceByGroup(groupId, month);
 
-                return new GroupDashboardDto(group, groupMembers, attendances);
+                return Ok(new GroupDashboardDto(group, groupMembers, attendances));
             }
             catch(Exception ex)
             {
@@ -71,6 +77,29 @@ namespace Aikido.Controllers
             }  
         }
 
+        [Authorize]
+        [HttpGet("get/{groupId}/monthly-attendance/table")]
+        public async Task<IActionResult> GetAttendanceTable(long groupId, [FromQuery] DateTime month)
+        {
+            try
+            {
+                var group = await _groupApplicationService.GetGroupByIdAsync(groupId);
+                var groupMembers = await _groupApplicationService.GetGroupMembersAsync(groupId);
+                var attendances = await _attendanceApplicationService.GetAttendanceByGroup(groupId, month);
+
+                var tableStream = _tableService.GetAttendanceTable(new GroupDashboardDto(group, groupMembers, attendances));
+
+                return File(tableStream,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    $"{month.Month}-{month.Year} Посещаемость.xlsx");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при получении таблицы посещаемости", Details = ex.Message });
+            }
+        }
+
+        [Authorize]
         [HttpGet("get/{groupId}/user/{userId}/monthly-attendance")]
         public async Task<ActionResult<List<AttendanceDto>>> GetUserAttendance(long groupId, long userId, [FromQuery] DateTime month)
         {
@@ -79,9 +108,9 @@ namespace Aikido.Controllers
                 var user = await _userApplicationService.GetUserByIdAsync(userId);
                 var attendances = await _attendanceApplicationService.GetAttendanceByGroup(groupId, month);
 
-                return attendances
+                return Ok(attendances
                     .Where(a => a.UserId == userId)
-                    .ToList();
+                    .ToList());
             }
             catch (Exception ex)
             {

@@ -19,6 +19,5 @@ namespace Aikido.Dto.Users
 
             Attendances = attendances;
         }
-
     }
 }
