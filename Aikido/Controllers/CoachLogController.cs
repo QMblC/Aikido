@@ -91,7 +91,7 @@ namespace Aikido.Controllers
 
                 return File(tableStream,
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    $"{month.Month}-{month.Year} Посещаемость.xlsx");
+                    $"{month.Month}-{month.Year} Posecshaemost.xlsx");
             }
             catch (Exception ex)
             {

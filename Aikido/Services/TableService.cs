@@ -378,14 +378,22 @@ namespace Aikido.Services
             var workbook = new XLWorkbook();
             var worksheet = workbook.Worksheets.Add("Таблица посещений");
 
-            var today = DateTime.Now;
-            var firstDay = new DateTime(today.Year, today.Month, 1);
+            var allAttendanceDates = dashboard.Users
+                .SelectMany(u => u.Attendances)
+                .Select(a => a.Date.Date)
+                .ToList();
+
+            DateTime targetMonth = allAttendanceDates.Any()
+                ? new DateTime(allAttendanceDates.Min().Year, allAttendanceDates.Min().Month, 1)
+                : DateTime.Now;
+
+            var firstDay = new DateTime(targetMonth.Year, targetMonth.Month, 1);
             var lastDay = firstDay.AddMonths(1).AddDays(-1);
 
-            var sessionDays = dashboard.Schedule
+            var sessionDays = dashboard.Schedule?
                 .Select(s => s.DayOfWeek)
                 .Distinct()
-                .ToList();
+                .ToList() ?? new List<DayOfWeek>();
 
             var trainingDates = Enumerable.Range(0, (lastDay - firstDay).Days + 1)
                 .Select(offset => firstDay.AddDays(offset))
@@ -395,15 +403,17 @@ namespace Aikido.Services
             var excludedDates = dashboard.ExclusionDates?
                 .Where(e => e.Type == "Minor")
                 .Select(e => e.Date.Date)
+                .Where(d => d.Month == firstDay.Month && d.Year == firstDay.Year)
                 .ToHashSet() ?? new HashSet<DateTime>();
 
             trainingDates = trainingDates
-                .Where(d => !excludedDates.Contains(d.Date))
+                .Where(d => !excludedDates.Contains(d))
                 .ToList();
 
             var addedDates = dashboard.ExclusionDates?
                 .Where(e => e.Type == "Extra")
                 .Select(e => e.Date.Date)
+                .Where(d => d.Month == firstDay.Month && d.Year == firstDay.Year)
                 .ToList() ?? new List<DateTime>();
 
             foreach (var date in addedDates)
@@ -414,8 +424,8 @@ namespace Aikido.Services
             trainingDates = trainingDates.OrderBy(x => x).ToList();
 
             var headers = new[] {
-                "ФИО", "Долг", "Аванс", "Оплатить", "Оплачено", "Посещено"
-            }.Concat(trainingDates.Select(d => d.ToString("dd.MM.yyyy"))).ToList();
+        "ФИО", "Долг", "Аванс", "Оплатить", "Оплачено", "Посещено"
+    }.Concat(trainingDates.Select(d => d.ToString("dd.MM.yyyy"))).ToList();
 
             for (var col = 0; col < headers.Count; col++)
             {
@@ -431,10 +441,10 @@ namespace Aikido.Services
                 var user = dashboard.Users[rowIdx];
                 var fullName = $"{user.LastName} {user.FirstName} {user.MiddleName}".Trim();
                 worksheet.Cell(rowIdx + 2, 1).Value = fullName;
-                worksheet.Cell(rowIdx + 2, 2).Value = 0; 
-                worksheet.Cell(rowIdx + 2, 3).Value = 0; 
-                worksheet.Cell(rowIdx + 2, 4).Value = ""; 
-                worksheet.Cell(rowIdx + 2, 5).Value = ""; 
+                worksheet.Cell(rowIdx + 2, 2).Value = 0;
+                worksheet.Cell(rowIdx + 2, 3).Value = 0;
+                worksheet.Cell(rowIdx + 2, 4).Value = "";
+                worksheet.Cell(rowIdx + 2, 5).Value = "";
 
                 var attendanceDates = user.Attendances
                     .Select(a => a.Date.Date)
@@ -447,14 +457,7 @@ namespace Aikido.Services
                 for (var colIdx = 0; colIdx < trainingDates.Count; colIdx++)
                 {
                     var cell = worksheet.Cell(rowIdx + 2, 7 + colIdx);
-                    if (attendanceDates.Contains(trainingDates[colIdx]))
-                    {
-                        cell.Value = "+";
-                    }
-                    else
-                    {
-                        cell.Value = "";
-                    }
+                    cell.Value = attendanceDates.Contains(trainingDates[colIdx]) ? "+" : "";
                     cell.Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
                 }
             }
@@ -466,7 +469,6 @@ namespace Aikido.Services
             stream.Position = 0;
             return stream;
         }
-
 
 
         private decimal? GetDecimalOrNull(IXLCell cell)
