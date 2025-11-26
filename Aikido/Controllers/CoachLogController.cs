@@ -87,7 +87,7 @@ namespace Aikido.Controllers
                 var groupMembers = await _groupApplicationService.GetGroupMembersAsync(groupId);
                 var attendances = await _attendanceApplicationService.GetAttendanceByGroup(groupId, month);
 
-                var tableStream = _tableService.GetAttendanceTable(new GroupDashboardDto(group, groupMembers, attendances));
+                var tableStream = _tableService.GetAttendanceTable(new GroupDashboardDto(group, groupMembers, attendances), month.Year, month.Month);
 
                 return File(tableStream,
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

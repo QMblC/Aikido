@@ -373,37 +373,28 @@ namespace Aikido.Services
             return members;
         }
 
-        public MemoryStream GetAttendanceTable(GroupDashboardDto dashboard)
+        public MemoryStream GetAttendanceTable(GroupDashboardDto dashboard, int year, int month)
         {
             var workbook = new XLWorkbook();
             var worksheet = workbook.Worksheets.Add("Таблица посещений");
 
-            var allAttendanceDates = dashboard.Users
-                .SelectMany(u => u.Attendances)
-                .Select(a => a.Date.Date)
-                .ToList();
-
-            DateTime targetMonth = allAttendanceDates.Any()
-                ? new DateTime(allAttendanceDates.Min().Year, allAttendanceDates.Min().Month, 1)
-                : DateTime.Now;
-
-            var firstDay = new DateTime(targetMonth.Year, targetMonth.Month, 1);
+            var firstDay = new DateTime(year, month, 1);
             var lastDay = firstDay.AddMonths(1).AddDays(-1);
 
-            var sessionDays = dashboard.Schedule?
+            var scheduleDays = dashboard.Schedule?
                 .Select(s => s.DayOfWeek)
                 .Distinct()
                 .ToList() ?? new List<DayOfWeek>();
 
             var trainingDates = Enumerable.Range(0, (lastDay - firstDay).Days + 1)
                 .Select(offset => firstDay.AddDays(offset))
-                .Where(d => sessionDays.Contains(d.DayOfWeek))
+                .Where(d => scheduleDays.Contains(d.DayOfWeek))
                 .ToList();
 
             var excludedDates = dashboard.ExclusionDates?
                 .Where(e => e.Type == "Minor")
                 .Select(e => e.Date.Date)
-                .Where(d => d.Month == firstDay.Month && d.Year == firstDay.Year)
+                .Where(d => d.Month == month && d.Year == year)
                 .ToHashSet() ?? new HashSet<DateTime>();
 
             trainingDates = trainingDates
@@ -413,21 +404,20 @@ namespace Aikido.Services
             var addedDates = dashboard.ExclusionDates?
                 .Where(e => e.Type == "Extra")
                 .Select(e => e.Date.Date)
-                .Where(d => d.Month == firstDay.Month && d.Year == firstDay.Year)
+                .Where(d => d.Month == month && d.Year == year)
                 .ToList() ?? new List<DateTime>();
 
             foreach (var date in addedDates)
-            {
                 if (!trainingDates.Contains(date))
                     trainingDates.Add(date);
-            }
+
             trainingDates = trainingDates.OrderBy(x => x).ToList();
 
             var headers = new[] {
         "ФИО", "Долг", "Аванс", "Оплатить", "Оплачено", "Посещено"
     }.Concat(trainingDates.Select(d => d.ToString("dd.MM.yyyy"))).ToList();
 
-            for (var col = 0; col < headers.Count; col++)
+            for (int col = 0; col < headers.Count; col++)
             {
                 worksheet.Cell(1, col + 1).Value = headers[col];
                 worksheet.Cell(1, col + 1).Style.Fill.SetBackgroundColor(XLColor.Gray);
@@ -436,7 +426,7 @@ namespace Aikido.Services
                 worksheet.Column(col + 1).Width = col < 6 ? 14 : 12;
             }
 
-            for (var rowIdx = 0; rowIdx < dashboard.Users.Count; rowIdx++)
+            for (int rowIdx = 0; rowIdx < dashboard.Users.Count; rowIdx++)
             {
                 var user = dashboard.Users[rowIdx];
                 var fullName = $"{user.LastName} {user.FirstName} {user.MiddleName}".Trim();
@@ -448,13 +438,12 @@ namespace Aikido.Services
 
                 var attendanceDates = user.Attendances
                     .Select(a => a.Date.Date)
-                    .Where(d => d.Month == firstDay.Month && d.Year == firstDay.Year)
+                    .Where(d => d.Month == month && d.Year == year)
                     .ToHashSet();
 
-                var attendanceCount = trainingDates.Count(d => attendanceDates.Contains(d));
-                worksheet.Cell(rowIdx + 2, 6).Value = attendanceCount;
+                worksheet.Cell(rowIdx + 2, 6).Value = trainingDates.Count(d => attendanceDates.Contains(d));
 
-                for (var colIdx = 0; colIdx < trainingDates.Count; colIdx++)
+                for (int colIdx = 0; colIdx < trainingDates.Count; colIdx++)
                 {
                     var cell = worksheet.Cell(rowIdx + 2, 7 + colIdx);
                     cell.Value = attendanceDates.Contains(trainingDates[colIdx]) ? "+" : "";
@@ -469,6 +458,7 @@ namespace Aikido.Services
             stream.Position = 0;
             return stream;
         }
+
 
 
         private decimal? GetDecimalOrNull(IXLCell cell)
