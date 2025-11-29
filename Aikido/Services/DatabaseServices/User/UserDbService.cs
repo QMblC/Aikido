@@ -74,7 +74,6 @@ namespace Aikido.Services.DatabaseServices.User
             return members;
         }
 
-
         public async Task<(List<UserDto> Users, int TotalCount)> GetUserListAlphabetAscending(int startIndex, int finishIndex, UserFilter filter)
         {
             var query = _context.Users
@@ -88,9 +87,9 @@ namespace Aikido.Services.DatabaseServices.User
             {
                 var nameLower = filter.Name.ToLower();
                 query = query.Where(u =>
-                    (u.LastName != null && u.LastName.ToLower().Contains(nameLower)) ||
-                    (u.FirstName != null && u.FirstName.ToLower().Contains(nameLower)) ||
-                    (u.MiddleName != null && u.MiddleName.ToLower().Contains(nameLower))
+                    ((u.LastName ?? "") + " " + (u.FirstName ?? "") + " " + (u.MiddleName ?? ""))
+                    .ToLower()
+                    .Contains(nameLower)
                 );
             }
 
