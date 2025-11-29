@@ -112,6 +112,42 @@ namespace Aikido.Controllers
             }
         }
 
+        [HttpGet("get/{managerId}/clubs")]
+        public async Task<ActionResult<List<ClubDto>>> GetManagerClubs(long managerId)
+        {
+            try
+            {
+                var clubs = await _clubApplicationService.GetManagerClubsAsync(managerId);
+                return Ok(clubs);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при получении клубов руководителя", Details = ex.Message });
+            }
+        }
+
+        [HttpGet("get/clubs/groups")]
+        public async Task<ActionResult<List<GroupShortDto>>> GetClubsAllGroups([FromQuery] List<long> clubIds)
+        {
+            try
+            {
+                var groups = new List<GroupShortDto>();
+
+                foreach(var clubId in clubIds)
+                {
+                    var clubGroups = await _clubApplicationService.GetClubGroups(clubId);
+
+                    groups.AddRange(clubGroups.Select(g => new GroupShortDto(g)));
+                }
+
+                return Ok(groups);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при получении групп клубов", Details = ex.Message });
+            }
+        }
+
         [HttpPost("create")]
         public async Task<IActionResult> CreateClub([FromBody] ClubDto clubData)
         {
