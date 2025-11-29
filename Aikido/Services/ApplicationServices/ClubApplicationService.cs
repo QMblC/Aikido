@@ -47,6 +47,14 @@ namespace Aikido.Application.Services
                 ToList();
         }
 
+        public async Task<List<ClubDto>> GetManagerClubsAsync(long managerId)
+        {
+            var clubs = await _clubDbService.GetManagerClubs(managerId);
+
+            return clubs.Select(c => new ClubDto(c))
+                .ToList();
+        }
+
         public async Task<ClubDetailsDto> GetClubDetailsAsync(long id)
         {
             var club = await _clubDbService.GetByIdOrThrowException(id);

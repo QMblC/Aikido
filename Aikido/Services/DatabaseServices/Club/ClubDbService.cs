@@ -32,6 +32,16 @@ namespace Aikido.Services.DatabaseServices.Club
             return club;
         }
 
+        public async Task<List<ClubEntity>> GetManagerClubs(long managerId)
+        {
+            var clubs = await _context.Clubs
+                .AsQueryable()
+                .Where(c => c.ManagerId == managerId)
+                .ToListAsync();
+
+            return clubs;
+        }
+
         public async Task<ClubEntity> GetClubById(long id)
         {
             return await GetByIdOrThrowException(id);

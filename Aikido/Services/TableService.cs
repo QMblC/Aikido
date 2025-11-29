@@ -414,8 +414,8 @@ namespace Aikido.Services
             trainingDates = trainingDates.OrderBy(x => x).ToList();
 
             var headers = new[] {
-        "ФИО", "Долг", "Аванс", "Оплатить", "Оплачено", "Посещено"
-    }.Concat(trainingDates.Select(d => d.ToString("dd.MM.yyyy"))).ToList();
+                "ФИО", "Долг", "Аванс", "Оплатить", "Оплачено", "Посещено"
+            }.Concat(trainingDates.Select(d => d.ToString("dd.MM.yyyy"))).ToList();
 
             for (int col = 0; col < headers.Count; col++)
             {
@@ -426,7 +426,7 @@ namespace Aikido.Services
                 worksheet.Column(col + 1).Width = col < 6 ? 14 : 12;
             }
 
-            for (int rowIdx = 0; rowIdx < dashboard.Users.Count; rowIdx++)
+            for (var rowIdx = 0; rowIdx < dashboard.Users.Count; rowIdx++)
             {
                 var user = dashboard.Users[rowIdx];
                 var fullName = $"{user.LastName} {user.FirstName} {user.MiddleName}".Trim();
@@ -443,7 +443,7 @@ namespace Aikido.Services
 
                 worksheet.Cell(rowIdx + 2, 6).Value = trainingDates.Count(d => attendanceDates.Contains(d));
 
-                for (int colIdx = 0; colIdx < trainingDates.Count; colIdx++)
+                for (var colIdx = 0; colIdx < trainingDates.Count; colIdx++)
                 {
                     var cell = worksheet.Cell(rowIdx + 2, 7 + colIdx);
                     cell.Value = attendanceDates.Contains(trainingDates[colIdx]) ? "+" : "";
