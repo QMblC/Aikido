@@ -11,6 +11,7 @@ namespace Aikido.Dto.Groups
     {
         public long? Id { get; set; }
         public string Name { get; set; } = string.Empty;
+        public string? TechnicalName {  get; set; }
 
         public List<UserShortDto> Coaches { get; set; }
 
@@ -34,6 +35,7 @@ namespace Aikido.Dto.Groups
         {
             Id = group.Id;
             Name = group.Name;
+            TechnicalName = group.TechnicalName;
 
             Coaches = group.UserMemberships
                 .Where(um => um.RoleInGroup == Role.Coach)
