@@ -446,7 +446,7 @@ namespace Aikido.Services
                 for (var colIdx = 0; colIdx < trainingDates.Count; colIdx++)
                 {
                     var cell = worksheet.Cell(rowIdx + 2, 7 + colIdx);
-                    cell.Value = attendanceDates.Contains(trainingDates[colIdx]) ? "+" : "";
+                    cell.Value = attendanceDates.Contains(trainingDates[colIdx]) ? "ИСТИНА" : "ЛОЖЬ";
                     cell.Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
                 }
             }
