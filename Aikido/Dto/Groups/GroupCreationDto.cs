@@ -7,6 +7,7 @@ namespace Aikido.Dto.Groups
     public class GroupCreationDto : IGroupDto
     {
         public string Name { get; set; }
+        public string? TechnicalName { get; set; }
 
         public List<UserShortDto> Coaches { get; set; }
 

@@ -13,7 +13,8 @@ namespace Aikido.Entities
         public long? ClubId { get; set; }
         public virtual ClubEntity? Club { get; set; }
 
-        public string? Name { get; set; }
+        public string Name { get; set; }
+        public string? TechnicalName { get; set; }
         public AgeGroup AgeGroup { get; set; } = AgeGroup.Adult;
         public int MaxMembers { get; set; } = 30;
         public bool IsActive { get; set; } = true;
@@ -40,6 +41,9 @@ namespace Aikido.Entities
                 ClubId = (long)groupNewData.ClubId;
             if (!string.IsNullOrEmpty(groupNewData.Name))
                 Name = groupNewData.Name;
+
+            TechnicalName = groupNewData.TechnicalName;
+
             if (!string.IsNullOrEmpty(groupNewData.AgeGroup))
                 AgeGroup = EnumParser.ConvertStringToEnum<AgeGroup>(groupNewData.AgeGroup);        
             UpdatedDate = DateTime.UtcNow;
