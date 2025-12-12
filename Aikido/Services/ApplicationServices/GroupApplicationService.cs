@@ -6,6 +6,7 @@ using Aikido.Services.UnitOfWork;
 using Aikido.AdditionalData;
 using Aikido.Dto.Users;
 using Aikido.Dto.Groups;
+using Aikido.Dto.Users.Creation;
 
 namespace Aikido.Application.Services
 {
@@ -101,8 +102,11 @@ namespace Aikido.Application.Services
             await _groupDbService.DeleteAsync(id);
         }
 
-        public async Task AddUserToGroupAsync(long groupId, long userId, Role roleInGroup)
+        public async Task AddUserToGroupAsync(long userId, UserMembershipCreationDto userMembership)
         {
+            var groupId = userMembership.GroupId.Value;
+            var clubId = userMembership.ClubId.Value;
+
             if (!await _groupDbService.Exists(groupId))
             {
                 throw new EntityNotFoundException($"Группы с Id = {groupId} не существует");
@@ -120,15 +124,13 @@ namespace Aikido.Application.Services
                 throw new Exception($"У группы нет клуба");
             }
 
-            var clubId = group.ClubId.Value;
-
             if (!await _clubDbService.Exists(clubId))
             {
                 throw new EntityNotFoundException($"Клуба с Id = {clubId} не существует");
             }
 
 
-            await _userDbService.AddUserMembershipAsync(userId, clubId, groupId, roleInGroup);
+            await _userDbService.AddUserMembershipAsync(userId, userMembership);
         }
 
         public async Task RemoveUserFromGroupAsync(long groupId, long userId)

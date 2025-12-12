@@ -197,6 +197,7 @@ namespace Aikido.Services.DatabaseServices.User
         public UserMembershipEntity GetUserMembership(long userId, long groupId)
         {
             return _context.UserMemberships
+                .AsQueryable()
                 .Where(um => um.UserId == userId
                 && um.GroupId == groupId)
                 .Include(um => um.User)
@@ -209,19 +210,57 @@ namespace Aikido.Services.DatabaseServices.User
                 ?? throw new EntityNotFoundException(nameof(UserMembershipEntity));
         }
 
-        public async Task AddUserMembershipAsync(long userId, long clubId, long groupId, Role roleInGroup = Role.User)
+        public UserMembershipEntity GetMainUserMembership(long userId)
         {
+            var mainUserMembership = _context.UserMemberships.AsQueryable()
+                .Where(um => um.IsMain == true
+                && um.UserId == userId)
+                .FirstOrDefault();
+
+            return mainUserMembership 
+                ?? throw new EntityNotFoundException(nameof(UserMembershipEntity));
+        }
+
+        public async Task SetNewMainUserMembership(long userId)
+        {
+            var newMainUserMembership = await _context.UserMemberships.AsQueryable()
+                .OrderBy(um => um.JoinDate)
+                .FirstOrDefaultAsync(um => um.UserId == userId);
+        }
+
+        public async Task AddUserMembershipAsync(long userId, UserMembershipCreationDto userMembership)
+        {
+            var clubId = userMembership.ClubId;
+            var groupId = userMembership.GroupId;
+
             var existingMembership = await _context.UserMemberships
                 .FirstOrDefaultAsync(um => um.UserId == userId && um.ClubId == clubId && um.GroupId == groupId);
 
             if (existingMembership == null)
             {
-                var userMembership = new UserMembershipEntity(userId, clubId, groupId, roleInGroup);
-                _context.UserMemberships.Add(userMembership);         
+                if (userMembership.IsMain)
+                {
+                    var oldMainUserMembership = GetMainUserMembership(userId);
+                    oldMainUserMembership.IsMain = false;
+                }
+
+                var userMembershipEntity = new UserMembershipEntity(userId, userMembership);
+                _context.UserMemberships.Add(userMembershipEntity);         
             }
             else
             {
-                existingMembership.RoleInGroup = roleInGroup;
+                if (existingMembership.IsMain && userMembership.IsMain == false)
+                {
+                    existingMembership.IsMain = false;
+                    await SetNewMainUserMembership(userId);
+                }
+                if (!existingMembership.IsMain && userMembership.IsMain == true)
+                {
+                    var oldMainUserMembership = GetMainUserMembership(userId);
+                    oldMainUserMembership.IsMain = false;
+                    existingMembership.IsMain = true;
+                }
+                existingMembership.RoleInGroup = EnumParser.ConvertStringToEnum<Role>(userMembership.RoleInGroup);
             }
 
             await _context.SaveChangesAsync();
@@ -229,7 +268,6 @@ namespace Aikido.Services.DatabaseServices.User
             var group = await _context.Groups.FindAsync(groupId);
 
             await _context.SaveChangesAsync();
-
         }
 
         public async Task RemoveUserMembershipAsync(long userId, long groupId)
@@ -237,14 +275,17 @@ namespace Aikido.Services.DatabaseServices.User
             var userMembership = await _context.UserMemberships
                 .FirstOrDefaultAsync(um => um.UserId == userId && um.GroupId == groupId);
 
-            if (userMembership != null)
+            if (userMembership == null)
             {
-                _context.Remove(userMembership);
-                await _context.SaveChangesAsync();
+                throw new EntityNotFoundException(nameof(UserMembershipEntity));
             }
 
-            var group = await _context.Groups.FindAsync(groupId);
+            if (userMembership.IsMain)
+            {
+                throw new OpertaionForbiddenException("Невозможно удалить главную группу");
+            }
 
+            _context.Remove(userMembership);
             await _context.SaveChangesAsync();
         }
 

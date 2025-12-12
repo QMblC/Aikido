@@ -121,15 +121,12 @@ namespace Aikido.Controllers
         }
 
 
-        [HttpPost("{userId}/clubs/{clubId}/groups/{groupId}")]
-        public async Task<IActionResult> AddUserMembership(long userId, long clubId, long groupId, [FromBody] string roleInGroup = "User")
+        [HttpPost("{userId}/add/membership")]
+        public async Task<IActionResult> AddUserMembership(long userId, [FromBody] UserMembershipCreationDto userMembership)
         {
             try
             {
-                await _userApplicationService.AddUserMembershipAsync(userId,
-                    clubId,
-                    groupId,
-                    EnumParser.ConvertStringToEnum<Role>(roleInGroup));
+                await _userApplicationService.AddUserMembershipAsync(userId, userMembership);
                 return Ok(new { Message = "Пользователь успешно добавлен в группу" });
             }
             catch (ArgumentException ex)

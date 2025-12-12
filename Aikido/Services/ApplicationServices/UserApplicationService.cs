@@ -95,10 +95,7 @@ namespace Aikido.Application.Services
                         throw new EntityNotFoundException($"Группы с Id = {groupId} не существует");
                     }
 
-                    await _userDbService.AddUserMembershipAsync(userId,
-                        clubId,
-                        groupId,
-                        EnumParser.ConvertStringToEnum<Role>(userMembership.RoleInGroup));
+                    await _userDbService.AddUserMembershipAsync(userId, userMembership);
                 }
             }
 
@@ -128,10 +125,7 @@ namespace Aikido.Application.Services
                         throw new EntityNotFoundException($"Группы с Id = {groupId} не существует");
                     }
 
-                    await _userDbService.AddUserMembershipAsync(userId,
-                        clubId,
-                        groupId,
-                        EnumParser.ConvertStringToEnum<Role>(userMembership.RoleInGroup));
+                    await _userDbService.AddUserMembershipAsync(userId, userMembership);
                 }
             } 
         }
@@ -155,19 +149,21 @@ namespace Aikido.Application.Services
             return createdIds;
         }
 
-        public async Task AddUserMembershipAsync(long userId, long clubId, long groupId, Role roleInGroup)
+        public async Task AddUserMembershipAsync(long userId, UserMembershipCreationDto userMembership)
         {
             if (!await _userDbService.Exists(userId))
             {
                 throw new EntityNotFoundException($"Пользователя с Id = {userId} не существует");
             }
 
+            var groupId = userMembership.GroupId.Value;
+
             if (!await _groupDbService.Exists(groupId))
             {
                 throw new EntityNotFoundException($"Группы с Id = {groupId} не существует");
             }
 
-            await _userDbService.AddUserMembershipAsync(userId, clubId, groupId, roleInGroup);
+            await _userDbService.AddUserMembershipAsync(userId, userMembership);
         }
 
         public async Task RemoveUserMembershipAsync(long userId, long groupId)
