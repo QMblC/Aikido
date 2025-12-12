@@ -16,7 +16,11 @@ namespace Aikido.Dto.Users
         public long? GroupId { get; set; }
         public string? GroupName { get; set; }
 
+        public bool IsMain { get; set; } = false;
+        public bool IsActive { get; set; } = true;
+
         public DateTime? JoinDate { get; set; }
+        public DateTime? LeaveDate { get; set; }
         public string RoleInGroup { get; set; } = Role.User.ToString();
 
         public int? AttendanceCount { get; set; }
@@ -33,7 +37,12 @@ namespace Aikido.Dto.Users
             ClubName = userMembership.Club?.Name;
             GroupId = userMembership.GroupId;
             GroupName = userMembership.Group?.Name;
+
+            IsMain = userMembership.IsMain;
+            IsActive = userMembership.IsActive;
+
             JoinDate = userMembership.JoinDate;
+            LeaveDate = userMembership.LeaveDate;
             RoleInGroup = userMembership.RoleInGroup.ToString();
             AttendanceCount = userMembership.Attendances.Count();
             LastAttendanceDate = userMembership.Attendances.Count > 0

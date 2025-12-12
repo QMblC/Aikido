@@ -22,7 +22,7 @@ namespace Aikido.Services.DatabaseServices.User
 
         Task<List<UserMembershipEntity>> GetUserMembershipsAsync(long userId);
         UserMembershipEntity GetUserMembership(long userId, long groupId);
-        Task AddUserMembershipAsync(long userId, long clubId, long groupId, Role roleInGroup = Role.User);
+        Task AddUserMembershipAsync(long userId, UserMembershipCreationDto userMembership);
         Task RemoveUserMembershipAsync(long userId, long groupId);
         Task RemoveUserMemberships(long userId);
         Task UpdateUserGrade(long userId, Grade grade);
