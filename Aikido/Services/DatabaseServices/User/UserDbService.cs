@@ -217,8 +217,7 @@ namespace Aikido.Services.DatabaseServices.User
                 && um.UserId == userId)
                 .FirstOrDefault();
 
-            return mainUserMembership 
-                ?? throw new EntityNotFoundException(nameof(UserMembershipEntity));
+            return mainUserMembership;
         }
 
         public async Task SetNewMainUserMembership(long userId)
@@ -241,7 +240,11 @@ namespace Aikido.Services.DatabaseServices.User
                 if (userMembership.IsMain)
                 {
                     var oldMainUserMembership = GetMainUserMembership(userId);
-                    oldMainUserMembership.IsMain = false;
+
+                    if (oldMainUserMembership != null)
+                    {
+                        oldMainUserMembership.IsMain = false;
+                    }
                 }
 
                 var userMembershipEntity = new UserMembershipEntity(userId, userMembership);
