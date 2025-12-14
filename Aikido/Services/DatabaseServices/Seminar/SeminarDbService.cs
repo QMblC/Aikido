@@ -530,6 +530,9 @@ namespace Aikido.Services.DatabaseServices.Seminar
 
                 request.Add(new(seminar, mainUserMembership));
             }
+
+            await _context.SeminarMembersManagerRequest.AddRangeAsync(request);
+            await _context.SaveChangesAsync();
         }
     }
 }

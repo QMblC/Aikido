@@ -3,6 +3,7 @@ using Aikido.Data;
 using Aikido.Dto;
 using Aikido.Dto.Seminars.Members;
 using Aikido.Entities;
+using Aikido.Entities.Seminar;
 using Aikido.Entities.Seminar.SeminarMember;
 using Aikido.Exceptions;
 using Microsoft.EntityFrameworkCore;
@@ -76,6 +77,11 @@ namespace Aikido.Services
         public async Task<bool> PaymentExists(long id)
         {
             return await _context.Payment.AnyAsync(p => p.Id == id);
+        }
+
+        public async Task CreateSeminarPayments(SeminarEntity seminar)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task CreateSeminarMemberPayments(
