@@ -1,6 +1,7 @@
 ﻿using Aikido.Dto;
 using Aikido.Dto.Seminars;
 using Aikido.Entities.Seminar.SeminarMember;
+using Aikido.Entities.Seminar.SeminarMemberRequest;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities.Seminar
@@ -39,6 +40,7 @@ namespace Aikido.Entities.Seminar
 
         public virtual ICollection<SeminarCoachStatementEntity> CoachStatements { get; set; } = new List<SeminarCoachStatementEntity>();
         public virtual ICollection<SeminarContactInfoEntity>? ContactInfo { get; set; } = new List<SeminarContactInfoEntity>();
+        public virtual ICollection<SeminarMemberManagerRequestEntity> ManagerRequestMembers { get; set; } = new List<SeminarMemberManagerRequestEntity>();
         public virtual ICollection<SeminarMemberEntity> Members { get; set; } = new List<SeminarMemberEntity>();
         public virtual ICollection<SeminarGroupEntity>? Groups { get; set; } = new List<SeminarGroupEntity>();
         public virtual ICollection<SeminarScheduleEntity>? Schedule { get; set; } = new List<SeminarScheduleEntity>();
