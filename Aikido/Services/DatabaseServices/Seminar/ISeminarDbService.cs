@@ -23,6 +23,8 @@ namespace Aikido.Services.DatabaseServices.Seminar
         Task UpdateAsync(long id, SeminarDto seminarData);
         Task DeleteAsync(long id);
 
+        Task UpdateEditorList(long seminarId, List<long> editorIds);
+
         Task AddSeminarMembersAsync(long seminarId, SeminarMemberGroupDto membersDto);
         Task SetFinalSeminarMembersAsync(long seminarId, List<FinalSeminarMemberDto> members);
         Task RemoveMemberAsync(long seminarId, long userId);

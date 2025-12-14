@@ -204,6 +204,9 @@ namespace Aikido.Data
                 entity.Property(e => e.Location).HasMaxLength(300);
                 entity.Property(e => e.Description).HasMaxLength(1000);
 
+                entity.HasMany(s => s.Editors)
+                    .WithMany();
+
                 entity.HasOne(s => s.Creator)
                     .WithMany()
                     .HasForeignKey(s => s.CreatorId)

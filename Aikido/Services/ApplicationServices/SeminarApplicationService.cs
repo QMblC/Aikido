@@ -51,6 +51,7 @@ namespace Aikido.Application.Services
         {
 
             var seminarId = await _seminarDbService.CreateAsync(seminarData);
+            await _seminarDbService.UpdateEditorList(seminarId, seminarData.Editors);
             await _seminarDbService.InitializeSeminar(seminarId);
 
             return seminarId;
@@ -62,6 +63,7 @@ namespace Aikido.Application.Services
                 throw new EntityNotFoundException($"Семинар с Id = {id} не найден");
 
             await _seminarDbService.UpdateAsync(id, seminarData);
+            await _seminarDbService.UpdateEditorList(id, seminarData.Editors);
         }
 
         public async Task DeleteSeminarAsync(long id)
@@ -70,6 +72,11 @@ namespace Aikido.Application.Services
                 throw new EntityNotFoundException($"Семинар с Id = {id} не найден");
 
             await _seminarDbService.DeleteAsync(id);
+        }
+
+        public async Task UpdateSeminarEditors(long seminarId, List<long> editorIds)
+        {
+            await _seminarDbService.UpdateEditorList(seminarId, editorIds);
         }
 
         public async Task<List<SeminarMemberDto>> GetSeminarMembersAsync(long seminarId)

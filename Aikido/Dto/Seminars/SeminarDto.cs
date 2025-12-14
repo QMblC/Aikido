@@ -21,6 +21,8 @@ namespace Aikido.Dto.Seminars
         public long? CreatorId { get; set; }
         public string? CreatorName { get; set; }
 
+        public List<long> Editors { get; set; } = new();
+
         public bool? RegulationExists { get; set; } = false;
 
         public DateTime? RegistrationDeadline { get; set; }
@@ -49,6 +51,8 @@ namespace Aikido.Dto.Seminars
 
             CreatorId = seminar.CreatorId;
             CreatorName = seminar.Creator?.FullName;
+
+            Editors = seminar.Editors.Select(u => u.Id).ToList();
 
             IsFinalStatementApplied = seminar.IsFinalStatementApplied;
 

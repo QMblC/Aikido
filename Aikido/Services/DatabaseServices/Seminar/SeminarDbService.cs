@@ -10,6 +10,7 @@ using Aikido.Entities.Users;
 using Aikido.Exceptions;
 using DocumentFormat.OpenXml.ExtendedProperties;
 using DocumentFormat.OpenXml.InkML;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using Microsoft.EntityFrameworkCore;
 
 namespace Aikido.Services.DatabaseServices.Seminar
@@ -96,6 +97,18 @@ namespace Aikido.Services.DatabaseServices.Seminar
         {
             var seminar = await GetByIdOrThrowException(id);
             _context.Remove(seminar);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateEditorList(long seminarId, List<long> editorIds)
+        {
+            var seminar = await GetByIdOrThrowException(seminarId);
+
+            seminar.Editors = editorIds.Select(id => _context.Users.Find(id)
+                ?? throw new EntityNotFoundException(nameof(UserEntity)))
+                .ToList();
+
+            _context.Update(seminar);
             await _context.SaveChangesAsync();
         }
 

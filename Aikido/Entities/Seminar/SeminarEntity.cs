@@ -28,6 +28,8 @@ namespace Aikido.Entities.Seminar
         public long CreatorId { get; set; }
         public UserEntity Creator { get; set; }
 
+        public virtual ICollection<UserEntity> Editors { get; set; } = new List<UserEntity>();
+
         public long? RegulationId { get; set; }
         public SeminarRegulationEntity? Regulation { get; set; }
 
