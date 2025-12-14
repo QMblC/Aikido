@@ -1,5 +1,6 @@
 ﻿using Aikido.Dto;
 using Aikido.Dto.Seminars;
+using Aikido.Entities.Seminar.SeminarMember;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities.Seminar

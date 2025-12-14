@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Aikido.AdditionalData;
 
-namespace Aikido.Entities
+namespace Aikido.Entities.Users
 {
     public class UserChangeRequestEntity : IDbEntity
     {

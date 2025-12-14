@@ -1,6 +1,7 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Entities;
 using Aikido.Entities.Seminar;
+using Aikido.Entities.Seminar.SeminarMember;
 using Aikido.Entities.Users;
 
 namespace Aikido.Dto.Seminars.Members
@@ -9,6 +10,7 @@ namespace Aikido.Dto.Seminars.Members
     {
         public long UserId { get; set; }
         public string? UserFullName { get; set; } = string.Empty;
+        public DateTime? UserBirthday { get; set; }
 
         public long? SeminarId { get; set; }
         public string? SeminarName { get; set; } = string.Empty;
@@ -17,6 +19,9 @@ namespace Aikido.Dto.Seminars.Members
         public long? GroupId { get; set; }
         public string? GroupName { get; set; }
         public string? AgeGroup { get; set; }
+
+        public long? CoachId { get; set; }
+        public string CoachName { get; set; }
 
         public long? ClubId { get; set; }
         public string? ClubName { get; set; }
@@ -30,8 +35,8 @@ namespace Aikido.Dto.Seminars.Members
 
         public string Status { get; set; } = string.Empty;
 
-        public long? CreatorId { get; set; }
-        public string? CreatorFullName { get; set; }
+        public long? ManagerId { get; set; }
+        public string? ManagerFullName { get; set; }
 
         public bool IsSeminarPayed { get; set; } = false;
         public decimal? SeminarPriceInRubles { get; set; }
@@ -79,15 +84,15 @@ namespace Aikido.Dto.Seminars.Members
             SeminarName = seminarMember.Seminar?.Name ?? string.Empty;
             SeminarDate = seminarMember.Seminar?.Date;
 
-            GroupId = seminarMember.TrainingGroupId;
-            GroupName = seminarMember.TrainingGroup?.Name;
-            AgeGroup = seminarMember.TrainingGroup != null 
-                ? EnumParser.ConvertEnumToString(seminarMember.TrainingGroup.AgeGroup) 
+            GroupId = seminarMember.GroupId;
+            GroupName = seminarMember.Group?.Name;
+            AgeGroup = seminarMember.Group != null 
+                ? EnumParser.ConvertEnumToString(seminarMember.Group.AgeGroup) 
                 : EnumParser.ConvertEnumToString(AdditionalData.AgeGroup.Adult);
 
-            ClubId = seminarMember.TrainingGroup?.ClubId;
-            ClubName = seminarMember.TrainingGroup?.Club?.Name;
-            ClubCity = seminarMember.TrainingGroup?.Club.City;
+            ClubId = seminarMember?.ClubId;
+            ClubName = seminarMember?.Club?.Name;
+            ClubCity = seminarMember?.Club.City;
 
             SeminarGroupId = seminarMember.SeminarGroupId;
             SeminarGroupName = seminarMember.SeminarGroup?.Name;
@@ -114,8 +119,10 @@ namespace Aikido.Dto.Seminars.Members
             BudoPassportPriceInRubles = seminarMember.BudoPassportPayment?.Amount;
             CertificationPriceInRubles = seminarMember.CertificationPayment?.Amount;
 
-            CreatorId = seminarMember.CreatorId;
-            CreatorFullName = seminarMember.Creator?.FullName;
+            CoachId = seminarMember.CoachId;
+            CoachName = seminarMember.Coach?.FullName;
+
+
         }
     }
 }

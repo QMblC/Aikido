@@ -2,6 +2,10 @@
 using Aikido.Dto.Seminars.Creation;
 using Aikido.Dto.Seminars.Members;
 using Aikido.Entities.Seminar;
+using Aikido.Entities.Seminar.SeminarMember;
+using Aikido.Entities.Seminar.SeminarMemberRequest;
+using Aikido.Entities.Users;
+using Aikido.Exceptions;
 
 namespace Aikido.Services.DatabaseServices.Seminar
 {
@@ -32,5 +36,12 @@ namespace Aikido.Services.DatabaseServices.Seminar
         Task CancelSeminarResult(long seminarId);
         Task<SeminarMemberEntity> GetSeminarMemberAsync(long seminarId, long userId);
         Task<List<SeminarMemberEntity>> GetCoachMembersAsync(long seminarId, long coachId);
+
+        Task<List<SeminarMemberManagerRequestEntity>> GetManagerMembersByClubAsync(long seminarId, long managerId, long clubId);
+        Task CreateManagerMembersByClubAsync(long seminarId, SeminarMemberManagerRequestListDto managerRequest);
+        Task DeleteManagerMembersByClubAsync(long seminarId, long managerId, long clubId);
+        Task ConfirmManagerMembersByClubAsync(long seminarId, long managerId, long clubId);
+        Task CancelManagerMemberByClubAsync(long seminarId, long managerId, long clubId);
+        Task InitializeSeminar(long seminarId);
     }
 }

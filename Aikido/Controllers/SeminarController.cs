@@ -1,5 +1,6 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Application.Services;
+using Aikido.Dto;
 using Aikido.Dto.Seminars;
 using Aikido.Dto.Seminars.Creation;
 using Aikido.Dto.Seminars.Members;
@@ -448,5 +449,150 @@ namespace Aikido.Controllers
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
         }
+
+        #region ManagerRequests
+
+        [HttpGet("{seminarId}/requested-members/{managerId}")]
+        public async Task<ActionResult<List<SeminarMemberManagerRequestDto>>> GetSeminarMembersManagerRequest(long seminarId,
+            long managerId)
+        {
+            try
+            {
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Получение списка участников семинара конкретного клуба
+        /// </summary>
+        /// <param name="seminarId"></param>
+        /// <param name="managerId"></param>
+        /// <param name="clubId"></param>
+        /// <returns></returns>
+        [HttpGet("{seminarId}/requested-members/{managerId}/{clubId}")]
+        public async Task<ActionResult<List<SeminarMemberManagerRequestDto>>> GetClubSeminarMembersManagerRequest(long seminarId,
+            long managerId,
+            long clubId)
+        {
+            try
+            {
+                
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Поиск участника с указанным основным клубом по имени
+        /// </summary>
+        /// <param name="clubId"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        [HttpGet("find/{clubId}/member")]
+        public async Task<ActionResult<List<UserShortDto>>> FindClubMemberByName(long clubId, [FromQuery] string name)
+        {
+            try
+            {
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Получение стартовой информации о выбранном участнике
+        /// </summary>
+        /// <param name="seminarId"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        [HttpGet("{seminarId}/get/{userId}/start-data")]
+        public async Task<ActionResult<SeminarMemberManagerRequestDto>> GetSeminarMemberManagerRequestStartData(long seminarId,
+            long userId)
+        {
+            try
+            {
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Сохраняет информацию об участниках семинара от руководителя
+        /// </summary>
+        /// <param name="seminarId"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpPut("{seminarId}/save/manager-request")]
+        public async Task<IActionResult> SaveManagerRequest(long seminarId, [FromBody] SeminarMemberManagerRequestListDto request)
+        {
+            try
+            {
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Подтверждает готовность данных руководителя к отправке в итоговую ведомость
+        /// </summary>
+        /// <param name="seminarId"></param>
+        /// <param name="managerId"></param>
+        /// <param name="clubId"></param>
+        /// <returns></returns>
+        [HttpPut("{seminarId}/confirm-request/{managerId}/{clubId}")]
+        public async Task<IActionResult> ConfirmManagerRequest(long seminarId, long managerId, long clubId)
+        {
+            try
+            {
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Отменяет готовность данных руководителя к отправке в итоговую ведомость
+        /// </summary>
+        /// <param name="seminarId"></param>
+        /// <param name="managerId"></param>
+        /// <param name="clubId"></param>
+        /// <returns></returns>
+        [HttpPut("{seminarId}/cancel-request/{managerId}/{clubId}")]
+        public async Task<IActionResult> CancelManagerRequest(long seminarId, long managerId, long clubId)
+        {
+            try
+            {
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        #endregion
     }
 }

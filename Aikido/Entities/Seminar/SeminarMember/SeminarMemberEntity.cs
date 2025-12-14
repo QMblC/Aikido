@@ -4,7 +4,7 @@ using Aikido.Dto.Seminars.Members;
 using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;
 
-namespace Aikido.Entities.Seminar
+namespace Aikido.Entities.Seminar.SeminarMember
 {
     public class SeminarMemberEntity : IDbEntity
     {
@@ -17,8 +17,14 @@ namespace Aikido.Entities.Seminar
         public long UserId { get; set; }
         public virtual UserEntity? User { get; set; }
 
-        public long? TrainingGroupId { get; set; }
-        public virtual GroupEntity? TrainingGroup { get; set; }
+        public long? GroupId { get; set; }
+        public GroupEntity Group { get; set; }
+
+        public long? ClubId { get; set; }
+        public ClubEntity Club { get; set; }
+
+        public long? CoachId { get; set; }
+        public virtual UserEntity? Coach { get; set; }
 
         public long? SeminarGroupId { get; set; }
         public virtual SeminarGroupEntity? SeminarGroup { get; set; }
@@ -42,8 +48,10 @@ namespace Aikido.Entities.Seminar
         public virtual PaymentEntity? CertificationPayment { get; set; }
 
 
-        public long? CreatorId { get; set; }
-        public virtual UserEntity? Creator { get; set; }
+        public long? ManagerId { get; set; }
+        public virtual UserEntity? Manager { get; set; }
+
+        public string? Note { get; set; }
 
         public SeminarMemberEntity() { }
 
@@ -66,14 +74,16 @@ namespace Aikido.Entities.Seminar
         {
             SeminarId = seminar.Id;
             UserId = seminarMember.UserId;
-            TrainingGroupId = userMembership.GroupId;
+            GroupId = seminarMember.GroupId;
+            ClubId = userMembership.ClubId;
             SeminarGroupId = seminarMember.SeminarGroupId;
             Status = status;
             OldGrade = userMembership.User.Grade;
             CertificationGrade = seminarMember.CertificationGrade != null
-                ? EnumParser.ConvertStringToEnum<Grade>(seminarMember.CertificationGrade) : Grade.None; 
+                ? EnumParser.ConvertStringToEnum<Grade>(seminarMember.CertificationGrade) : Grade.None;
 
-            CreatorId = coachId;
+            CoachId = coachId;
+            Note = seminarMember.Note;
         }
     }
 }

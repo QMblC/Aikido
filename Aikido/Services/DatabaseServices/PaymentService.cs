@@ -3,7 +3,7 @@ using Aikido.Data;
 using Aikido.Dto;
 using Aikido.Dto.Seminars.Members;
 using Aikido.Entities;
-using Aikido.Entities.Seminar;
+using Aikido.Entities.Seminar.SeminarMember;
 using Aikido.Exceptions;
 using Microsoft.EntityFrameworkCore;
 

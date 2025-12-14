@@ -49,7 +49,11 @@ namespace Aikido.Application.Services
 
         public async Task<long> CreateSeminarAsync(SeminarDto seminarData)
         {
-            return await _seminarDbService.CreateAsync(seminarData);
+
+            var seminarId = await _seminarDbService.CreateAsync(seminarData);
+            await _seminarDbService.InitializeSeminar(seminarId);
+
+            return seminarId;
         }
 
         public async Task UpdateSeminarAsync(long id, SeminarDto seminarData)
@@ -214,7 +218,7 @@ namespace Aikido.Application.Services
             var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
 
             return seminarMembers
-                .Select(sm => sm.Creator)
+                .Select(sm => sm.Coach)
                 .Where(sm => sm.CreatorId != seminar.CreatorId)
                 .Distinct()
                 .Select(c => new UserShortDto(c))

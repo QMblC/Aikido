@@ -1,7 +1,7 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Dto.Users;
 using Aikido.Dto.Users.Creation;
-using Aikido.Entities.Seminar;
+using Aikido.Entities.Seminar.SeminarMember;
 using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;

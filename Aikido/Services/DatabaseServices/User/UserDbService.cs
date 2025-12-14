@@ -335,5 +335,31 @@ namespace Aikido.Services.DatabaseServices.User
 
             await _context.SaveChangesAsync();
         }
+
+        public async Task<List<UserEntity>> FindClubMemberByName(long clubId, string name)
+        {
+            var query = _context.Users
+                .Where(u => u.UserMemberships.Any(um => um.IsMain
+                && um.ClubId == clubId
+                && um.RoleInGroup == Role.User))
+                .Include(u => u.UserMemberships)
+                    .ThenInclude(uc => uc.Club)
+                .Include(u => u.UserMemberships)
+                    .ThenInclude(ug => ug.Group)
+                .AsQueryable();
+                
+
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                var nameLower = name.ToLower();
+                query = query.Where(u =>
+                    ((u.LastName ?? "") + " " + (u.FirstName ?? "") + " " + (u.MiddleName ?? ""))
+                    .ToLower()
+                    .Contains(nameLower)
+                );
+            }
+
+            return await query.ToListAsync();
+        }
     }
 }

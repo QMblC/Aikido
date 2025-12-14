@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using Aikido.Dto.Users;
 using Aikido.Dto.Users.Creation;
+using Aikido.Entities.Users;
 
 namespace Aikido.Services.DatabaseServices
 {

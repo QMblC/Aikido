@@ -4,16 +4,16 @@ using Aikido.Entities.Users;
 
 namespace Aikido.Dto.Seminars.Members
 {
-    public class SeminarMemberRequestDto : SeminarMemberDto
+    public class SeminarMemberManagerRequestDto : SeminarMemberDto
     {
         public bool IsMemberReadyForAppliement { get; set; } = false;
 
-        public SeminarMemberRequestDto(SeminarMemberRequestEntity seminarMember) : base(seminarMember) 
+        public SeminarMemberManagerRequestDto(SeminarMemberManagerRequestEntity seminarMember) : base(seminarMember) 
         {
-            IsMemberReadyForAppliement = seminarMember.IsMemberReadyForAppliement;
+            IsMemberReadyForAppliement = seminarMember.IsConfirmed;
         }
 
-        public SeminarMemberRequestDto(
+        public SeminarMemberManagerRequestDto(
             UserMembershipEntity membership,
             SeminarEntity seminar,
             bool isAnnualFeePayed = false)
