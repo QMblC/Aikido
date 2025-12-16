@@ -1,4 +1,4 @@
-﻿using Aikido.AdditionalData;
+﻿using Aikido.AdditionalData.Enums;
 using Aikido.Data;
 using Aikido.Dto.Users;
 using Aikido.Dto.Users.Creation;
@@ -51,6 +51,19 @@ namespace Aikido.Services.DatabaseServices.User
             .ToListAsync();
 
             return users;
+        }
+
+        public async Task<List<UserEntity>> GetManagers()
+        {
+            var managers = await _context.Users.AsQueryable()
+                .Where(u => u.Role == Role.Manager)
+                .Include(u => u.UserMemberships)
+                    .ThenInclude(um => um.Club)
+                .Include(u => u.UserMemberships)
+                    .ThenInclude(um => um.Group)
+                .ToListAsync();
+
+            return managers;
         }
 
         public async Task<List<UserEntity>> GetCoachStudentByName(long coachId, string name)
@@ -215,6 +228,12 @@ namespace Aikido.Services.DatabaseServices.User
             var mainUserMembership = _context.UserMemberships.AsQueryable()
                 .Where(um => um.IsMain == true
                 && um.UserId == userId)
+                .Include(um => um.User)
+                .Include(um => um.Club)
+                    .ThenInclude(um => um.Manager)
+                .Include(um => um.Group)
+                    .ThenInclude(um => um.UserMemberships)
+                        .ThenInclude(um => um.User)
                 .FirstOrDefault();
 
             return mainUserMembership;

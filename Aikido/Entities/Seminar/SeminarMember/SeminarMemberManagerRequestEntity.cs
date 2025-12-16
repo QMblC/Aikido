@@ -1,14 +1,43 @@
-﻿using Aikido.AdditionalData;
-using Aikido.Dto.Seminars.Members;
+﻿using Aikido.AdditionalData.Enums;
+using Aikido.Dto.Seminars.Members.Creation;
 using Aikido.Entities.Seminar.SeminarMember;
 using Aikido.Entities.Users;
+using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities.Seminar.SeminarMemberRequest
 {
-    public class SeminarMemberManagerRequestEntity : SeminarMemberEntity
+    public class SeminarMemberManagerRequestEntity : IDbEntity, ISeminarMemberData
     {
-        public bool IsConfirmed { get; set; } = false;
+        [Key]
+        public long Id { get; set; }
 
+        public long SeminarId { get; set; }
+        public virtual SeminarEntity? Seminar { get; set; }
+
+        public long UserId { get; set; }
+        public virtual UserEntity? User { get; set; }
+
+        public long? GroupId { get; set; }
+        public virtual GroupEntity? Group { get; set; }
+
+        public long? ClubId { get; set; }
+        public virtual ClubEntity? Club { get; set; }
+
+        public long? CoachId { get; set; }
+        public virtual UserEntity? Coach { get; set; }
+
+        public long? SeminarGroupId { get; set; }
+        public virtual SeminarGroupEntity? SeminarGroup { get; set; }
+
+        public Grade OldGrade { get; set; }
+        public Grade? CertificationGrade { get; set; }
+
+        public long? ManagerId { get; set; }
+        public virtual UserEntity? Manager { get; set; }
+
+        public string? Note { get; set; }
+
+        public bool IsConfirmed { get; set; } = false;
 
         public SeminarMemberManagerRequestEntity() { }
 
@@ -39,7 +68,7 @@ namespace Aikido.Entities.Seminar.SeminarMemberRequest
                 : Grade.None;
             CertificationGrade = Grade.None;
 
-            CoachId = userMembership.Group?.UserMemberships.FirstOrDefault(um => um.RoleInGroup == Role.Coach)?.Id;
+            CoachId = userMembership.Group?.UserMemberships.FirstOrDefault(um => um.RoleInGroup == Role.Coach)?.UserId;
             ManagerId = userMembership.Club?.ManagerId;
         }
 
@@ -61,6 +90,7 @@ namespace Aikido.Entities.Seminar.SeminarMemberRequest
                 ? EnumParser.ConvertStringToEnum<Grade>(seminarMember.CertificationGrade) : Grade.None;
 
             CoachId = seminarMember.CoachId;
+            ManagerId = userMembership.Club?.ManagerId;
             Note = seminarMember.Note;
         }
 

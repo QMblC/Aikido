@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace Aikido.AdditionalData
+namespace Aikido.AdditionalData.Enums
 {
     public enum ExclusiveDateType
     {

@@ -1,4 +1,4 @@
-﻿using Aikido.AdditionalData;
+﻿using Aikido.AdditionalData.Enums;
 
 namespace Aikido.Dto.Users.Creation
 {

@@ -1,6 +1,6 @@
-﻿namespace Aikido.Dto.Seminars.Members
+﻿namespace Aikido.Dto.Seminars.Members.Creation
 {
-    public class SeminarMemberCreationDto
+    public class SeminarMemberManagerRequestCreationDto : ISeminarMemberCreation
     {
         public long UserId { get; set; }
         public long? SeminarGroupId { get; set; }

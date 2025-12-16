@@ -1,4 +1,5 @@
-﻿using Aikido.Dto.ExclusionDates;
+﻿using Aikido.AdditionalData.Enums;
+using Aikido.Dto.ExclusionDates;
 using Aikido.Dto.Schedule;
 using Aikido.Dto.Users;
 using Aikido.Entities;
@@ -32,7 +33,7 @@ namespace Aikido.Dto.Groups
             Name = group.Name;
             
             Coaches = group.UserMemberships
-                .Where(um => um.RoleInGroup == AdditionalData.Role.Coach)
+                .Where(um => um.RoleInGroup == Role.Coach)
                 .Select(um => new UserShortDto(um.User))
                 .ToList();
 

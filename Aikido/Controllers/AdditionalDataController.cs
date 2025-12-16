@@ -1,6 +1,5 @@
-﻿using Aikido.AdditionalData;
+﻿using Aikido.AdditionalData.Enums;
 using Aikido.Dto;
-using DocumentFormat.OpenXml.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Extensions;
 using System.Runtime.Serialization;

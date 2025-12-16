@@ -1,4 +1,4 @@
-﻿using Aikido.AdditionalData;
+﻿using Aikido.AdditionalData.Enums;
 using Aikido.Entities;
 
 namespace Aikido.Entities.Filters

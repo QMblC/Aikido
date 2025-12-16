@@ -1,4 +1,4 @@
-﻿using Aikido.AdditionalData;
+﻿using Aikido.AdditionalData.Enums;
 using Aikido.Dto.Users;
 using Aikido.Dto.Users.Creation;
 using Aikido.Entities;
@@ -20,12 +20,16 @@ namespace Aikido.Services.DatabaseServices.User
         Task UpdateUsers(List<UserDto> users);
         Task Delete(long id);
 
+        Task<List<UserEntity>> GetManagers();
+
         Task<List<UserMembershipEntity>> GetUserMembershipsAsync(long userId);
         UserMembershipEntity GetUserMembership(long userId, long groupId);
+        UserMembershipEntity GetMainUserMembership(long userId);
         Task AddUserMembershipAsync(long userId, UserMembershipCreationDto userMembership);
         Task RemoveUserMembershipAsync(long userId, long groupId);
         Task RemoveUserMemberships(long userId);
         Task UpdateUserGrade(long userId, Grade grade);
         Task UpdateUserBudoPassport(long userId, bool value);
+        Task<List<UserEntity>> FindClubMemberByName(long clubId, string name);
     }
 }

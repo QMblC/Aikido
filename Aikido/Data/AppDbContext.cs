@@ -18,7 +18,7 @@ namespace Aikido.Data
         public DbSet<AttendanceEntity> Attendances { get; set; }
         public DbSet<ScheduleEntity> Schedule { get; set; }
         public DbSet<ExclusionDateEntity> ExclusionDates { get; set; }
-        public DbSet<PaymentEntity> Payment { get; set; }
+        public DbSet<PaymentEntity> Payments { get; set; }
         public DbSet<StatementEntity> Statements { get; set; }
         public DbSet<UserMembershipEntity> UserMemberships { get; set; }
 
@@ -180,6 +180,7 @@ namespace Aikido.Data
             ConfigureSeminarEntity(modelBuilder);
             ConfigureSeminarMemberManagerRequestEntity(modelBuilder);
             ConfigureSeminarMemberEntity(modelBuilder);
+
             ConfigureSeminarGroupEntity(modelBuilder);
             ConfigureSeminarRegulationEntity(modelBuilder);
             ConfigureSeminarContactInfoEntity(modelBuilder);
@@ -210,12 +211,27 @@ namespace Aikido.Data
                 entity.HasOne(s => s.Creator)
                     .WithMany()
                     .HasForeignKey(s => s.CreatorId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .OnDelete(DeleteBehavior.SetNull);
 
                 entity.HasOne(s => s.FinalStatement)
                       .WithOne()
                       .HasForeignKey<SeminarEntity>(s => s.FinalStatementId)
-                      .OnDelete(DeleteBehavior.SetNull);
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasMany(s => s.Members)
+                    .WithOne(m => m.Seminar)
+                    .HasForeignKey(m => m.SeminarId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasMany(s => s.ManagerRequestMembers)
+                    .WithOne(m => m.Seminar)
+                    .HasForeignKey(m => m.SeminarId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasMany(s => s.Payments)
+                    .WithOne()
+                    .HasForeignKey(p => p.EventId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasIndex(e => e.Date);
                 entity.HasIndex(e => e.CreatorId);
@@ -226,59 +242,47 @@ namespace Aikido.Data
         {
             modelBuilder.Entity<SeminarMemberManagerRequestEntity>(entity =>
             {
-                entity.HasBaseType<SeminarMemberEntity>();
+                entity.HasKey(e => e.Id);
 
-                entity.HasOne(sm => sm.User)
-                    .WithMany()
-                    .HasForeignKey(sm => sm.UserId)
+                entity.HasOne(r => r.Seminar)
+                    .WithMany(r => r.ManagerRequestMembers)
+                    .HasForeignKey(r => r.SeminarId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasOne(sm => sm.Group)
+                entity.HasOne(r => r.User)
                     .WithMany()
-                    .HasForeignKey(sm => sm.GroupId)
+                    .HasForeignKey(r => r.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(r => r.Group)
+                    .WithMany()
+                    .HasForeignKey(r => r.GroupId)
                     .OnDelete(DeleteBehavior.SetNull);
 
-                entity.HasOne(sm => sm.Club)
+                entity.HasOne(r => r.Club)
                     .WithMany()
-                    .HasForeignKey(sm => sm.ClubId)
+                    .HasForeignKey(r => r.ClubId)
                     .OnDelete(DeleteBehavior.SetNull);
 
-                entity.HasOne(sm => sm.SeminarGroup)
+                entity.HasOne(r => r.Coach)
                     .WithMany()
-                    .HasForeignKey(sm => sm.SeminarGroupId)
+                    .HasForeignKey(r => r.CoachId)
                     .OnDelete(DeleteBehavior.SetNull);
 
-                entity.HasOne(sm => sm.Coach)
+                entity.HasOne(r => r.SeminarGroup)
                     .WithMany()
-                    .HasForeignKey(sm => sm.CoachId)
+                    .HasForeignKey(r => r.SeminarGroupId)
                     .OnDelete(DeleteBehavior.SetNull);
 
-                entity.HasOne(sm => sm.SeminarPayment)
+                entity.HasOne(r => r.Manager)
                     .WithMany()
-                    .HasForeignKey(sm => sm.SeminarPaymentId)
+                    .HasForeignKey(r => r.ManagerId)
                     .OnDelete(DeleteBehavior.SetNull);
-
-                entity.HasOne(sm => sm.AnnualFeePayment)
-                    .WithMany()
-                    .HasForeignKey(sm => sm.AnnualFeePaymentId)
-                    .OnDelete(DeleteBehavior.SetNull);
-
-                entity.HasOne(sm => sm.BudoPassportPayment)
-                    .WithMany()
-                    .HasForeignKey(sm => sm.BudoPassportPaymentId)
-                    .OnDelete(DeleteBehavior.SetNull);
-
-                entity.HasOne(sm => sm.CertificationPayment)
-                    .WithMany()
-                    .HasForeignKey(sm => sm.CertificationPaymentId)
-                    .OnDelete(DeleteBehavior.SetNull);
-
-                entity.Property(e => e.IsConfirmed);
 
                 entity.HasIndex(e => new { e.SeminarId, e.UserId }).IsUnique();
+                entity.HasIndex(e => e.IsConfirmed);
             });
         }
-
 
         private void ConfigureSeminarMemberEntity(ModelBuilder modelBuilder)
         {
@@ -306,37 +310,23 @@ namespace Aikido.Data
                     .HasForeignKey(sm => sm.ClubId)
                     .OnDelete(DeleteBehavior.SetNull);
 
-                entity.HasOne(sm => sm.SeminarGroup)
-                    .WithMany()
-                    .HasForeignKey(sm => sm.SeminarGroupId)
-                    .OnDelete(DeleteBehavior.SetNull);
-
                 entity.HasOne(sm => sm.Coach)
                     .WithMany()
                     .HasForeignKey(sm => sm.CoachId)
                     .OnDelete(DeleteBehavior.SetNull);
 
-                entity.HasOne(sm => sm.SeminarPayment)
+                entity.HasOne(sm => sm.SeminarGroup)
                     .WithMany()
-                    .HasForeignKey(sm => sm.SeminarPaymentId)
+                    .HasForeignKey(sm => sm.SeminarGroupId)
                     .OnDelete(DeleteBehavior.SetNull);
 
-                entity.HasOne(sm => sm.AnnualFeePayment)
+                entity.HasOne(sm => sm.Manager)
                     .WithMany()
-                    .HasForeignKey(sm => sm.AnnualFeePaymentId)
-                    .OnDelete(DeleteBehavior.SetNull);
-
-                entity.HasOne(sm => sm.BudoPassportPayment)
-                    .WithMany()
-                    .HasForeignKey(sm => sm.BudoPassportPaymentId)
-                    .OnDelete(DeleteBehavior.SetNull);
-
-                entity.HasOne(sm => sm.CertificationPayment)
-                    .WithMany()
-                    .HasForeignKey(sm => sm.CertificationPaymentId)
+                    .HasForeignKey(sm => sm.ManagerId)
                     .OnDelete(DeleteBehavior.SetNull);
 
                 entity.HasIndex(e => new { e.SeminarId, e.UserId }).IsUnique();
+                entity.HasIndex(e => e.Status);
             });
         }
 
@@ -458,11 +448,8 @@ namespace Aikido.Data
                     .HasForeignKey(p => p.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                // entity.HasOne(p => p.SeminarMember).WithMany(sm => sm.AllPayments)
-
                 entity.HasIndex(e => e.Date);
                 entity.HasIndex(e => e.UserId);
-                // entity.HasIndex(e => e.SeminarMemberId); 
             });
         }
 

@@ -1,4 +1,4 @@
-﻿using Aikido.AdditionalData;
+﻿using Aikido.AdditionalData.Enums;
 using Aikido.Application.Services;
 using Aikido.Dto;
 using Aikido.Dto.Groups;

@@ -1,4 +1,4 @@
-﻿using Aikido.AdditionalData;
+﻿using Aikido.AdditionalData.Enums;
 using Aikido.Dto.ExclusionDates;
 using Aikido.Dto.Schedule;
 using Aikido.Dto.Users;
