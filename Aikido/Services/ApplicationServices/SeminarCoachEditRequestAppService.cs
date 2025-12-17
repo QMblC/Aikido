@@ -5,6 +5,7 @@ using Aikido.Entities.Seminar.SeminarMemberRequest;
 using Aikido.Exceptions;
 using Aikido.Services;
 using Aikido.Services.DatabaseServices.Seminar;
+using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
 namespace Aikido.Application.Services
@@ -53,10 +54,10 @@ namespace Aikido.Application.Services
             await _requestDbService.DeleteRequest(requestId);
         }
 
-        public async Task ApplyRequest(long requestId)
+        public async Task ApplyRequest(long requestId, long reviewerId)
         {
             var request = await _requestDbService.GetCoachRequest(requestId);
-            await _requestDbService.ApplyRequest(requestId);
+            await _requestDbService.ApplyRequest(requestId, reviewerId);
 
             var list = new SeminarMemberCoachRequestListCreationDto(request);
 
@@ -67,9 +68,16 @@ namespace Aikido.Application.Services
             }
         }
 
-        public async Task RejectRequest(long requestId, string comment)
+        public async Task RejectRequest(long requestId, long reviewerId, string comment)
         {
-            await _requestDbService.RejectRequest(requestId, comment);
+            await _requestDbService.RejectRequest(requestId, reviewerId, comment);
+        }
+
+        public async Task<ActionResult<List<SeminarMemberCoachRequestDto>>> GetCoachRequests(long seminarId, long clubId)
+        {
+            var requests = await _requestDbService.GetCoachRequests(seminarId, clubId);
+
+            return requests.Select(r => new SeminarMemberCoachRequestDto(r)).ToList();
         }
 
     }

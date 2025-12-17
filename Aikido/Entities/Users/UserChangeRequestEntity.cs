@@ -34,7 +34,6 @@ namespace Aikido.Entities.Users
     public enum RequestStatus
     {
         Pending,
-        Approved,
         Rejected,
         Applied   
     }

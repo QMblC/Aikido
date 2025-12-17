@@ -94,7 +94,6 @@ namespace Aikido.Services.DatabaseServices
             if (request.Status != RequestStatus.Pending)
                 throw new InvalidOperationException("Заявка уже обработана");
 
-            request.Status = RequestStatus.Approved;
             request.ReviewedAt = DateTime.UtcNow;
 
             await ApplyChanges(request);

@@ -23,7 +23,7 @@ namespace Aikido.Entities.Seminar.SeminarMemberRequest
         public virtual UserEntity? RequestedBy { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public long ReviewedById { get; set; }
+        public long? ReviewedById { get; set; }
         public virtual UserEntity? ReviewedBy { get; set; }
         public DateTime? ReviewedAt { get; set; }
 

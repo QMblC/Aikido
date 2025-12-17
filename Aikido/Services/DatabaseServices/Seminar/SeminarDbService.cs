@@ -561,6 +561,11 @@ namespace Aikido.Services.DatabaseServices.Seminar
 
         public async Task CreateSeminarMembersFromRequest(long seminarId)
         {
+            var membersToDelete = _context.SeminarMembers
+                .Where(sm => sm.SeminarId == seminarId);
+
+            _context.RemoveRange(membersToDelete);
+
             var members = await GetRequestedMembers(seminarId);
             var seminarMembersToCreate = new List<SeminarMemberEntity>();
 
@@ -755,7 +760,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
                 .Select(m => m.UserId)
                 .ToList();
 
-            var membersToDelete = await _context.SeminarMembers
+            var membersToDelete = await _context.SeminarMembersManagerRequests
                 .Where(sm => sm.SeminarId == seminarId
                     && sm.CoachId == memberList.CoachId
                     && sm.ClubId == memberList.ClubId
@@ -779,7 +784,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
             if (paymentsToDelete.Count > 0)
                 _context.Payments.RemoveRange(paymentsToDelete);
 
-            _context.SeminarMembers.RemoveRange(membersToDelete);
+            _context.SeminarMembersManagerRequests.RemoveRange(membersToDelete);
 
             await _context.SaveChangesAsync();
         }

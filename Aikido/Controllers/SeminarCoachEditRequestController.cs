@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Aikido.Controllers
 {
     [ApiController]
-    [Route("api/seminar/{seminarId}/coach-request")]
+    [Route("api")]
     public class SeminarCoachEditRequestController : ControllerBase
     {
         private readonly SeminarCoachEditRequestAppService _seminarCoachEditAppServiceAppService;
@@ -27,7 +27,7 @@ namespace Aikido.Controllers
         /// </summary>
         /// <param name="requestId"></param>
         /// <returns></returns>
-        [HttpGet("get/{requestId}/data")]
+        [HttpGet("seminar/coach-request/get/{requestId}/data")]
         public async Task<ActionResult<List<SeminarMemberRequestDto>>> GetRequestData(long requestId)
         {
             try
@@ -48,7 +48,7 @@ namespace Aikido.Controllers
         /// <param name="clubId"></param>
         /// <param name="coachId"></param>
         /// <returns></returns>
-        [HttpGet("club/{clubId}/coach/{coachId}")]
+        [HttpGet("seminar/{seminarId}/coach-request/club/{clubId}/coach/{coachId}")]
         public async Task<ActionResult<List<SeminarMemberRequestDto>>> GetCoachClubRequests(long seminarId, long clubId, long coachId)
         {
             try
@@ -68,12 +68,12 @@ namespace Aikido.Controllers
         /// <param name="seminarId"></param>
         /// <param name="clubId"></param>
         /// <returns></returns>
-        [HttpGet("club/{clubId}")]
+        [HttpGet("seminar/{seminarId}/coach-request/club/{clubId}")]
         public async Task<ActionResult<List<SeminarMemberCoachRequestDto>>> GetCoachRequests(long seminarId, long clubId)
         {
             try
             {
-
+                await _seminarCoachEditAppServiceAppService.GetCoachRequests(seminarId, clubId);
                 return Ok();
             }
             catch (Exception ex)
@@ -88,7 +88,7 @@ namespace Aikido.Controllers
         /// <param name="seminarId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        [HttpPost("create")]
+        [HttpPost("seminar/{seminarId}/coach-request/create")]
         public async Task<IActionResult> CreateCoachRequest(long seminarId,
             [FromBody] SeminarMemberCoachRequestListCreationDto request)
         {
@@ -109,13 +109,13 @@ namespace Aikido.Controllers
         /// <param name="requestId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        [HttpPut("update/{requestId}")]
+        [HttpPut("seminar/{seminarId}/coach-request/update/{requestId}")]
         public async Task<IActionResult> UpdateRequestByCoach(long requestId,
             [FromBody] SeminarMemberCoachRequestListCreationDto request)
         {
             try
             {
-                await _seminarCoachEditAppServiceAppService.CreateCoachRequest(requestId, request);
+                await _seminarCoachEditAppServiceAppService.UpdateRequestByCoach(requestId, request);
                 return Ok();
             }
             catch (Exception ex)
@@ -129,7 +129,7 @@ namespace Aikido.Controllers
         /// </summary>
         /// <param name="requestId"></param>
         /// <returns></returns>
-        [HttpDelete("delete/{requestId}")]
+        [HttpDelete("seminar/{seminarId}/coach-request/delete/{requestId}")]
         public async Task<IActionResult> DeleteCoachRequest(long requestId)
         {
             try
@@ -147,14 +147,14 @@ namespace Aikido.Controllers
         /// Применение изменений указанной заявки
         /// </summary>
         /// <param name="id"></param>
-        /// <param name="comment"></param>
+        /// <param name="reviewerId"></param>
         /// <returns></returns>
-        [HttpPut("apply/{id}")]
-        public async Task<IActionResult> ApplyRequest(long id)
+        [HttpPut("seminar/coach-request/apply/{id}")]
+        public async Task<IActionResult> ApplyRequest(long id, [FromQuery] long reviewerId)
         {
             try
             {
-                await _seminarCoachEditAppServiceAppService.ApplyRequest(id);
+                await _seminarCoachEditAppServiceAppService.ApplyRequest(id, reviewerId);
                 return Ok();
             }
             catch (Exception ex)
@@ -167,14 +167,15 @@ namespace Aikido.Controllers
         /// Отклонение изменений указанной заявки
         /// </summary>
         /// <param name="id"></param>
+        /// <param name="reviewerId"></param>
         /// <param name="comment"></param>
         /// <returns></returns>
-        [HttpPut("reject/{id}")]
-        public async Task<IActionResult> RejectRequest(long id, [FromBody] string comment)
+        [HttpPut("seminar/coach-request/reject/{id}")]
+        public async Task<IActionResult> RejectRequest(long id, [FromQuery] long reviewerId, [FromBody] string comment)
         {
             try
             {
-                await _seminarCoachEditAppServiceAppService.RejectRequest(id, comment);
+                await _seminarCoachEditAppServiceAppService.RejectRequest(id, reviewerId, comment);
                 return Ok();
             }
             catch (Exception ex)

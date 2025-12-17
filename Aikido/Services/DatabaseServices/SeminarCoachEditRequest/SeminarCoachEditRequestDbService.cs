@@ -9,6 +9,7 @@ using Aikido.Entities.Seminar.SeminarMember;
 using Aikido.Entities.Seminar.SeminarMemberRequest;
 using Aikido.Entities.Users;
 using Aikido.Exceptions;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
@@ -71,6 +72,14 @@ namespace Aikido.Services.DatabaseServices.Seminar
             return dataOutput;
         }
 
+        public async Task<List<SeminarMemberCoachRequestEntity>> GetCoachRequests(long seminarId, long clubId)
+        {
+            return await _context.SeminarMemberCoachRequests
+                .Where(r => r.SeminarId == seminarId
+                && r.ClubId == clubId)
+                .ToListAsync();
+        }
+
         public async Task<SeminarMemberCoachRequestEntity> GetCoachRequest(long seminarId, long clubId, long coachId)
         {
             return await _context.SeminarMemberCoachRequests
@@ -106,21 +115,26 @@ namespace Aikido.Services.DatabaseServices.Seminar
             await _context.SaveChangesAsync();
         }
 
-        public async Task ApplyRequest(long id)
+        public async Task ApplyRequest(long id, long reviewerId)
         {
             var request = await GetCoachRequest(id);
 
             request.Status = RequestStatus.Applied;
+            request.ReviewedAt = DateTime.UtcNow;
+            request.ReviewerComment = null;
+            request.ReviewedById = reviewerId;
 
             _context.SeminarMemberCoachRequests.Update(request);
             await _context.SaveChangesAsync();
         }
 
-        public async Task RejectRequest(long id, string comment)
+        public async Task RejectRequest(long id, long reviewerId, string comment)
         {
             var request = await GetCoachRequest(id);
 
-            request.Status = RequestStatus.Applied;
+            request.ReviewedAt = DateTime.UtcNow;
+            request.Status = RequestStatus.Rejected;
+            request.ReviewedById = reviewerId;
             request.ReviewerComment = comment;
 
             _context.SeminarMemberCoachRequests.Update(request);

@@ -17,11 +17,11 @@ namespace Aikido.Dto.Seminars.Members.CoachEditRequest
         public string? RequestedByName { get; set; }
         public DateTime? CreatedAt { get; set; }
 
-        public long ReviewedById { get; set; }
+        public long? ReviewedById { get; set; }
         public string? ReviewedByName { get; set; }
         public DateTime? ReviewedAt { get; set; }
 
-        public RequestStatus Status { get; set; }
+        public string Status { get; set; }
 
         public string? ReviewerComment { get; set; }
 
@@ -39,7 +39,7 @@ namespace Aikido.Dto.Seminars.Members.CoachEditRequest
             ReviewedByName = request.ReviewedBy?.FullName;
             ReviewedAt = request.ReviewedAt;
 
-            Status = request.Status;
+            Status = EnumParser.ConvertEnumToString(request.Status);
             ReviewerComment = request.ReviewerComment;
         }
     }

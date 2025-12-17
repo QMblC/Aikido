@@ -89,6 +89,19 @@ namespace Aikido.Dto.Seminars.Members
             ManagerFullName = group.Club?.Manager?.FullName;
 
             Note = memberRequest.Note;
+
+            IsSeminarPayed = memberRequest.IsSeminarPayed;
+            SeminarPriceInRubles = memberRequest.SeminarPriceInRubles;
+
+            IsAnnualFeePayed = memberRequest.IsAnnualFeePayed;
+            AnnualFeePriceInRubles = memberRequest.AnnualFeePriceInRubles;
+
+            IsBudoPassportPayed = memberRequest.IsBudoPassportPayed;
+            BudoPassportPriceInRubles = memberRequest.BudoPassportPriceInRubles;
+
+            IsCertificationPayed = memberRequest.IsCertificationPayed;
+            CertificationPriceInRubles = memberRequest.CertificationPriceInRubles;
+
             IsConfirmed = false;
         }
 
