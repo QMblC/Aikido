@@ -6,6 +6,6 @@ namespace Aikido.Dto.Seminars.Members
     {
         public long ManagerId { get; set; }
         public long ClubId { get; set; }
-        public List<SeminarMemberManagerRequestCreationDto> Members { get; set; } = new();
+        public List<SeminarMemberRequestCreationDto> Members { get; set; } = new();
     }
 }

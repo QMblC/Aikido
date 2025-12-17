@@ -1,6 +1,7 @@
 ﻿using Aikido.Dto.Seminars;
 using Aikido.Dto.Seminars.Creation;
 using Aikido.Dto.Seminars.Members;
+using Aikido.Dto.Seminars.Members.CoachEditRequest;
 using Aikido.Entities.Seminar;
 using Aikido.Entities.Seminar.SeminarMember;
 using Aikido.Entities.Seminar.SeminarMemberRequest;
@@ -50,5 +51,6 @@ namespace Aikido.Services.DatabaseServices.Seminar
         Task CreateSeminarMembersFromRequest(long seminarId);
         Task CreateSeminarMembers(long seminarId, SeminarMemberListDto memberList);
         Task<List<SeminarMemberManagerRequestEntity>> GetCoachMembersByClub(long seminarId, long clubId, long coachId);
+        Task CreateSeminarCoachMembers(long seminarId, SeminarMemberCoachRequestListCreationDto memberList);
     }
 }

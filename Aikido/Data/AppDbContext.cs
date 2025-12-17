@@ -34,7 +34,7 @@ namespace Aikido.Data
 
         public DbSet<UserChangeRequestEntity> UserChangeRequests { get; set; }
         public DbSet<RefreshTokenEntity> RefreshTokens { get; set; }
-        public DbSet<SeminarMemberTrainerEditRequestEntity> SeminarMemberTrainerEditRequests { get; set; }
+        public DbSet<SeminarMemberCoachRequestEntity> SeminarMemberCoachRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -177,47 +177,6 @@ namespace Aikido.Data
                     .HasForeignKey(e => e.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
-
-
-            modelBuilder.Entity<SeminarMemberTrainerEditRequestEntity>()
-                .HasKey(e => e.Id);
-
-            modelBuilder.Entity<SeminarMemberTrainerEditRequestEntity>()
-                .HasOne(e => e.Seminar)
-                .WithMany()
-                .HasForeignKey(e => e.SeminarId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<SeminarMemberTrainerEditRequestEntity>()
-                .HasOne(e => e.Trainer)
-                .WithMany()
-                .HasForeignKey(e => e.TrainerId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<SeminarMemberTrainerEditRequestEntity>()
-                .HasOne(e => e.User)
-                .WithMany()
-                .HasForeignKey(e => e.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<SeminarMemberTrainerEditRequestEntity>()
-                .HasOne(e => e.Coach)
-                .WithMany()
-                .HasForeignKey(e => e.CoachId)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            modelBuilder.Entity<SeminarMemberTrainerEditRequestEntity>()
-                .HasOne(e => e.Manager)
-                .WithMany()
-                .HasForeignKey(e => e.ManagerId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<SeminarMemberTrainerEditRequestEntity>()
-                .HasOne(e => e.Club)
-                .WithMany()
-                .HasForeignKey(e => e.ClubId)
-                .OnDelete(DeleteBehavior.Restrict);
-
 
             ConfigureSeminarEntity(modelBuilder);
             ConfigureSeminarMemberManagerRequestEntity(modelBuilder);

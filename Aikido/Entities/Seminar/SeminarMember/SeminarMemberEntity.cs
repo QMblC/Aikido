@@ -70,7 +70,7 @@ namespace Aikido.Entities.Seminar.SeminarMember
             long coachId,
             SeminarEntity seminar,
             UserMembershipEntity userMembership,
-            SeminarMemberCreationDto seminarMember,
+            ISeminarMemberCreation seminarMember,
             SeminarMemberStatus status = SeminarMemberStatus.None)
         {
             SeminarId = seminar.Id;

@@ -44,14 +44,14 @@ namespace Aikido.Entities.Seminar.SeminarMemberRequest
         public SeminarMemberManagerRequestEntity(long coachId,
             SeminarEntity seminar,
             UserMembershipEntity userMemberShip,
-            SeminarMemberManagerRequestCreationDto seminarMember)
+            SeminarMemberRequestCreationDto seminarMember)
         {
             UpdateData(coachId, seminar, userMemberShip, seminarMember);
         }
 
         public SeminarMemberManagerRequestEntity(SeminarEntity seminar,
             UserMembershipEntity userMembership,
-            SeminarMemberManagerRequestCreationDto seminarMember)
+            SeminarMemberRequestCreationDto seminarMember)
         {
             UpdateData(seminar, userMembership, seminarMember);
         }
@@ -74,7 +74,7 @@ namespace Aikido.Entities.Seminar.SeminarMemberRequest
 
         public void UpdateData(SeminarEntity seminar,
             UserMembershipEntity userMembership,
-            SeminarMemberManagerRequestCreationDto seminarMember)
+            SeminarMemberRequestCreationDto seminarMember)
         {
             SeminarId = seminar.Id;
             UserId = userMembership.UserId;
@@ -98,7 +98,7 @@ namespace Aikido.Entities.Seminar.SeminarMemberRequest
             long coachId,
             SeminarEntity seminar,
             UserMembershipEntity userMembership,
-            SeminarMemberManagerRequestCreationDto seminarMember) 
+            SeminarMemberRequestCreationDto seminarMember) 
         {
             SeminarId = seminar.Id;
             UserId = seminarMember.UserId;

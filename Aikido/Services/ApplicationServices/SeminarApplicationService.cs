@@ -305,29 +305,29 @@ namespace Aikido.Application.Services
 
         #region ManagerRequest
 
-        public async Task<List<SeminarMemberManagerRequestDto>> GetRequestedMembers(long seminarId, long managerId)
+        public async Task<List<SeminarMemberRequestDto>> GetRequestedMembers(long seminarId, long managerId)
         {
             var members = await _seminarDbService.GetManagerMembersAsync(seminarId, managerId);
-            var membersDto = new List<SeminarMemberManagerRequestDto>();
+            var membersDto = new List<SeminarMemberRequestDto>();
 
             foreach (var member in members)
             {
                 var memberPayments = await _paymentDbService.GetSeminarMemberPayments(seminarId, member.UserId);
-                membersDto.Add(new SeminarMemberManagerRequestDto(member, memberPayments));
+                membersDto.Add(new SeminarMemberRequestDto(member, memberPayments));
             }
 
             return membersDto;
         }
 
-        public async Task<List<SeminarMemberManagerRequestDto>> GetClubRequestedMembers(long seminarId, long clubId)
+        public async Task<List<SeminarMemberRequestDto>> GetClubRequestedMembers(long seminarId, long clubId)
         {
             var members = await _seminarDbService.GetManagerMembersByClubAsync(seminarId, clubId);
-            var membersDto = new List<SeminarMemberManagerRequestDto>();
+            var membersDto = new List<SeminarMemberRequestDto>();
 
             foreach (var member in members)
             {
                 var memberPayments = await _paymentDbService.GetSeminarMemberPayments(seminarId, member.UserId);
-                membersDto.Add(new SeminarMemberManagerRequestDto(member, memberPayments));
+                membersDto.Add(new SeminarMemberRequestDto(member, memberPayments));
             }
 
             return membersDto;
@@ -340,13 +340,13 @@ namespace Aikido.Application.Services
                 .ToList();
         }
 
-        public async Task<SeminarMemberManagerRequestDto> GetNewSeminarMemberManagerRequest(long seminarId, long userId)
+        public async Task<SeminarMemberRequestDto> GetNewSeminarMemberManagerRequest(long seminarId, long userId)
         {
             var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
             var mainUserMembership = _userDbService.GetMainUserMembership(userId);
             var payments = await _paymentDbService.GetFakeSeminarMemberPayment(seminarId, userId);
 
-            return new SeminarMemberManagerRequestDto(seminar, mainUserMembership, payments);
+            return new SeminarMemberRequestDto(seminar, mainUserMembership, payments);
         }
 
         public async Task CreateManagerMembersByClubAsync(long seminarId, SeminarMemberManagerRequestListDto managerRequest)
@@ -373,10 +373,10 @@ namespace Aikido.Application.Services
         }
         #endregion
 
-        public async Task<List<SeminarMemberManagerRequestDto>> GetAllManagerRequests(long seminarId)
+        public async Task<List<SeminarMemberRequestDto>> GetAllManagerRequests(long seminarId)
         {
             var members = await _seminarDbService.GetRequestedMembers(seminarId);
-            var membersDto = new List<SeminarMemberManagerRequestDto>();
+            var membersDto = new List<SeminarMemberRequestDto>();
 
             foreach (var member in members)
             {
@@ -424,15 +424,15 @@ namespace Aikido.Application.Services
             }
         }
 
-        public async Task<List<SeminarMemberManagerRequestDto>> GetCoachMembersByClub(long seminarId, long clubId, long coachId)
+        public async Task<List<SeminarMemberRequestDto>> GetCoachMembersByClub(long seminarId, long clubId, long coachId)
         {
             var members = await _seminarDbService.GetCoachMembersByClub(seminarId, clubId, coachId);
-            var membersDto = new List<SeminarMemberManagerRequestDto>();
+            var membersDto = new List<SeminarMemberRequestDto>();
 
             foreach (var member in members)
             {
                 var memberPayments = await _paymentDbService.GetSeminarMemberPayments(seminarId, member.UserId);
-                membersDto.Add(new SeminarMemberManagerRequestDto(member, memberPayments));
+                membersDto.Add(new SeminarMemberRequestDto(member, memberPayments));
             }
 
             return membersDto;

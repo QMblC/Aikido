@@ -10,6 +10,7 @@ using Aikido.Requests;
 using Aikido.Services;
 using DocumentFormat.OpenXml.Drawing.Charts;
 using DocumentFormat.OpenXml.ExtendedProperties;
+using DocumentFormat.OpenXml.Office2016.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
@@ -368,7 +369,7 @@ namespace Aikido.Controllers
                             CertificationGrade = m.CertificationGrade,
                             SeminarPriceInRubles = m.SeminarPriceInRubles,
                             BudoPassportPriceInRubles = m.BudoPassportPriceInRubles,
-                            AnnualFeePriceInRubles = m.AnnualFeePriceInRubles,   
+                            AnnualFeePriceInRubles = m.AnnualFeePriceInRubles,
                             CertificationPriceInRubles = m.CertificationPriceInRubles
 
                         };
@@ -408,8 +409,8 @@ namespace Aikido.Controllers
                         var creationMember = new FinalSeminarMemberDto()
                         {
                             UserId = m.UserId,
-                            Status = m.CertificationGrade != null 
-                            ? EnumParser.ConvertEnumToString(SeminarMemberStatus.Certified) 
+                            Status = m.CertificationGrade != null
+                            ? EnumParser.ConvertEnumToString(SeminarMemberStatus.Certified)
                             : EnumParser.ConvertEnumToString(SeminarMemberStatus.Training),
                             CertificationGrade = m.CertificationGrade,
                             SeminarPriceInRubles = m.SeminarPriceInRubles,
@@ -457,7 +458,7 @@ namespace Aikido.Controllers
         /// <param name="managerId"></param>
         /// <returns></returns>
         [HttpGet("{seminarId}/requested-members/manager/{managerId}")]
-        public async Task<ActionResult<List<SeminarMemberManagerRequestDto>>> GetSeminarMembersManagerRequest(long seminarId,
+        public async Task<ActionResult<List<SeminarMemberRequestDto>>> GetSeminarMembersManagerRequest(long seminarId,
             long managerId)
         {
             try
@@ -478,7 +479,7 @@ namespace Aikido.Controllers
         /// <param name="clubId"></param>
         /// <returns></returns>
         [HttpGet("{seminarId}/requested-members/club/{clubId}")]
-        public async Task<ActionResult<List<SeminarMemberManagerRequestDto>>> GetClubSeminarMembersManagerRequest(long seminarId,
+        public async Task<ActionResult<List<SeminarMemberRequestDto>>> GetClubSeminarMembersManagerRequest(long seminarId,
             long clubId)
         {
             try
@@ -514,12 +515,13 @@ namespace Aikido.Controllers
 
         /// <summary>
         /// Получение стартовой информации о выбранном участнике
+        /// Можно использовать и для руководителей и для тренеров
         /// </summary>
         /// <param name="seminarId"></param>
         /// <param name="userId"></param>
         /// <returns></returns>
         [HttpGet("{seminarId}/get/{userId}/start-data")]
-        public async Task<ActionResult<SeminarMemberManagerRequestDto>> GetSeminarMemberManagerRequestStartData(long seminarId,
+        public async Task<ActionResult<SeminarMemberRequestDto>> GetSeminarMemberManagerRequestStartData(long seminarId,
             long userId)
         {
             try
@@ -605,7 +607,7 @@ namespace Aikido.Controllers
         /// <param name="seminarId"></param>
         /// <returns></returns>
         [HttpGet("{seminarId}/requested-members")]
-        public async Task<ActionResult<List<SeminarMemberManagerRequestDto>>> GetManagerMembers(long seminarId)
+        public async Task<ActionResult<List<SeminarMemberRequestDto>>> GetManagerMembers(long seminarId)
         {
             try
             {
@@ -712,6 +714,58 @@ namespace Aikido.Controllers
             {
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
+        }
+
+        #endregion
+
+        #region CoachRequests
+
+        /// <summary>
+        /// Получение участников указанного тренера по клубам
+        /// </summary>
+        /// <param name="seminarId"></param>
+        /// <param name="clubId"></param>
+        /// <param name="coachId"></param>
+        /// <returns></returns>
+        [HttpGet("coach/{coachId}/club/{clubId}/members")]
+        public async Task<ActionResult<List<SeminarMemberRequestDto>>> GetCoachMembersByClub(long seminarId,
+            long clubId,
+            long coachId)
+        {
+            try
+            {
+                var members = await _seminarApplicationService.GetCoachMembersByClub(seminarId, clubId, coachId);
+                return Ok(members);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+            
+        }
+
+        /// <summary>
+        /// Поиск по имени участников клуба, которых тренерует тренер
+        /// </summary>
+        /// <param name="coachId"></param>
+        /// <param name="clubId"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        [HttpGet("coach/{coachId}/club/{clubId}")]
+        public async Task<ActionResult<SeminarMemberRequestDto>> FindCoachMemberByClub(long coachId,
+            long clubId,
+            [FromQuery] string name)
+        {
+            try
+            {
+                var members = await _seminarApplicationService.FindCoachMemberInClubByName(clubId, coachId, name);
+                return Ok(members);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+            
         }
 
         #endregion

@@ -120,8 +120,8 @@ builder.Services.AddScoped<ScheduleApplicationService>();
 builder.Services.AddScoped<UserChangeRequestDbService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<AuthApplicationService>();
-builder.Services.AddScoped<ISeminarTrainerEditRequestDbService, SeminarTrainerEditRequestDbService>();
-builder.Services.AddScoped<SeminarTrainerEditRequestAppService>();
+builder.Services.AddScoped<SeminarCoachEditRequestDbService>();
+builder.Services.AddScoped<SeminarCoachEditRequestAppService>();
 
 
 

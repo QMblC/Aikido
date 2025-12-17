@@ -2,6 +2,7 @@
 using Aikido.Data;
 using Aikido.Dto.Seminars;
 using Aikido.Dto.Seminars.Members;
+using Aikido.Dto.Seminars.Members.CoachEditRequest;
 using Aikido.Entities;
 using Aikido.Entities.Seminar;
 using Aikido.Entities.Seminar.SeminarMember;
@@ -702,6 +703,85 @@ namespace Aikido.Services.DatabaseServices.Seminar
                 .ToListAsync();
 
             return members;
+        }
+
+        public async Task CreateSeminarCoachMembers(long seminarId, SeminarMemberCoachRequestListCreationDto memberList)
+        {
+            var seminar = await _context.Seminars.FindAsync(seminarId);
+
+            if (seminar == null)
+            {
+                throw new EntityNotFoundException(nameof(seminar));
+            }
+
+            await DeleteExcessMembers(seminarId, memberList);
+
+            var seminarMembersCreation = new List<SeminarMemberManagerRequestEntity>();
+            var seminarMembersUpdate = new List<SeminarMemberManagerRequestEntity>();
+
+            var seminarMembers = await GetCoachMembersByClub(seminarId, memberList.ClubId.Value, memberList.CoachId.Value);
+
+            foreach (var member in memberList.Members)
+            {
+                var userMembership = _context.UserMemberships.AsQueryable()
+                    .Where(um => um.UserId == member.UserId
+                    && um.GroupId == member.GroupId)
+                    .Include(um => um.Club)
+                    .Include(um => um.User)
+                    .Include(um => um.Group)
+                    .FirstOrDefault() ?? throw new EntityNotFoundException(nameof(UserMembershipEntity));
+
+                if (!seminarMembers.Any(m => m.UserId == member.UserId))
+                {
+                    seminarMembersCreation.Add(new(memberList.CoachId.Value, seminar, userMembership, member));
+                }
+                else
+                {
+                    var currentMember = seminarMembers.First(m => m.UserId == member.UserId);
+
+                    currentMember.UpdateData(seminar, userMembership, member);
+                    seminarMembersUpdate.Add(currentMember);
+                }
+            }
+
+            await _context.SeminarMembersManagerRequests.AddRangeAsync(seminarMembersCreation);
+            _context.SeminarMembersManagerRequests.UpdateRange(seminarMembersUpdate);
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task DeleteExcessMembers(long seminarId, SeminarMemberCoachRequestListCreationDto memberList)
+        {
+            var userIds = memberList.Members
+                .Select(m => m.UserId)
+                .ToList();
+
+            var membersToDelete = await _context.SeminarMembers
+                .Where(sm => sm.SeminarId == seminarId
+                    && sm.CoachId == memberList.CoachId
+                    && sm.ClubId == memberList.ClubId
+                    && !userIds.Contains(sm.UserId))
+                .ToListAsync();
+
+            if (membersToDelete.Count == 0)
+                return;
+
+            var userIdsToDelete = membersToDelete
+                .Select(m => m.UserId)
+                .Distinct()
+                .ToList();
+
+            var paymentsToDelete = await _context.Payments
+                .Where(p => p.EventType == EventType.Seminar
+                    && p.EventId == seminarId
+                    && userIdsToDelete.Contains(p.UserId))
+                .ToListAsync();
+
+            if (paymentsToDelete.Count > 0)
+                _context.Payments.RemoveRange(paymentsToDelete);
+
+            _context.SeminarMembers.RemoveRange(membersToDelete);
+
+            await _context.SaveChangesAsync();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Aikido.AdditionalData.Enums;
+using Aikido.Dto.Seminars.Members.Creation;
 using Aikido.Entities;
 using Aikido.Entities.Seminar;
 using Aikido.Entities.Seminar.SeminarMemberRequest;
@@ -8,7 +9,7 @@ using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace Aikido.Dto.Seminars.Members
 {
-    public class SeminarMemberManagerRequestDto : DtoBase, ISeminarMemberDataDto
+    public class SeminarMemberRequestDto : DtoBase, ISeminarMemberDataDto
     {
         public long UserId { get; set; }
         public string? UserFullName { get; set; } = string.Empty;
@@ -53,7 +54,45 @@ namespace Aikido.Dto.Seminars.Members
         public bool IsConfirmed { get; set; } = false;
         public string? Note { get; set; }
 
-        public SeminarMemberManagerRequestDto(SeminarEntity seminar, UserMembershipEntity mainUserMembership, List<PaymentEntity> payments)
+        public SeminarMemberRequestDto(SeminarMemberRequestCreationDto memberRequest,
+            UserEntity user,
+            SeminarEntity seminar,
+            SeminarGroupEntity seminarGroup,
+            GroupEntity group)
+        {
+            UserId = memberRequest.UserId;
+            UserFullName = user.FullName ?? string.Empty;
+            UserBirthday = user.Birthday;
+
+            SeminarId = seminar.Id;
+            SeminarName = seminar.Name ?? string.Empty;
+            SeminarDate = seminar.Date;
+
+            GroupId = memberRequest.GroupId;
+            GroupName = group.Name;
+            AgeGroup = EnumParser.ConvertEnumToString(group.AgeGroup);
+
+            ClubId = group.ClubId;
+            ClubName = group.Club?.Name;
+            ClubCity = group.Club?.City;
+
+            SeminarGroupId = memberRequest.SeminarGroupId;
+            SeminarGroupName = seminarGroup?.Name;
+
+            OldGrade = EnumParser.ConvertEnumToString(user.Grade);
+            CertificationGrade = memberRequest.CertificationGrade.ToString();
+
+            CoachId = group.UserMemberships.FirstOrDefault(um => um.RoleInGroup == Role.Coach)?.User?.Id;
+            CoachName = group.UserMemberships.FirstOrDefault(um => um.RoleInGroup == Role.Coach)?.User?.FullName;
+
+            ManagerId = group.Club?.ManagerId;
+            ManagerFullName = group.Club?.Manager?.FullName;
+
+            Note = memberRequest.Note;
+            IsConfirmed = false;
+        }
+
+        public SeminarMemberRequestDto(SeminarEntity seminar, UserMembershipEntity mainUserMembership, List<PaymentEntity> payments)
         {
             UserId = mainUserMembership.UserId;
             UserFullName = mainUserMembership.User?.FullName ?? string.Empty;
@@ -134,7 +173,7 @@ namespace Aikido.Dto.Seminars.Members
             }
         }
 
-        public SeminarMemberManagerRequestDto(SeminarMemberManagerRequestEntity member, List<PaymentEntity> payments)
+        public SeminarMemberRequestDto(SeminarMemberManagerRequestEntity member, List<PaymentEntity> payments)
         {
             Id = member.Id;
             UserId = member.UserId;
