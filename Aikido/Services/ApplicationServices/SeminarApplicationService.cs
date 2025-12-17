@@ -319,9 +319,9 @@ namespace Aikido.Application.Services
             return membersDto;
         }
 
-        public async Task<List<SeminarMemberManagerRequestDto>> GetClubRequestedMembers(long seminarId, long managerId, long clubId)
+        public async Task<List<SeminarMemberManagerRequestDto>> GetClubRequestedMembers(long seminarId, long clubId)
         {
-            var members = await _seminarDbService.GetManagerMembersByClubAsync(seminarId, managerId, clubId);
+            var members = await _seminarDbService.GetManagerMembersByClubAsync(seminarId, clubId);
             var membersDto = new List<SeminarMemberManagerRequestDto>();
 
             foreach (var member in members)
@@ -422,6 +422,27 @@ namespace Aikido.Application.Services
             {
                 await _paymentDbService.CreateOrUpdateMemberPayments(seminarId, member);
             }
+        }
+
+        public async Task<List<SeminarMemberManagerRequestDto>> GetCoachMembersByClub(long seminarId, long clubId, long coachId)
+        {
+            var members = await _seminarDbService.GetCoachMembersByClub(seminarId, clubId, coachId);
+            var membersDto = new List<SeminarMemberManagerRequestDto>();
+
+            foreach (var member in members)
+            {
+                var memberPayments = await _paymentDbService.GetSeminarMemberPayments(seminarId, member.UserId);
+                membersDto.Add(new SeminarMemberManagerRequestDto(member, memberPayments));
+            }
+
+            return membersDto;
+        }
+
+        public async Task<List<UserShortDto>> FindCoachMemberInClubByName(long clubId, long coachId, string name)
+        {
+            var users = await _userDbService.FindCoachMemberInClubByName(clubId, coachId, name);
+            return users.Select(u => new UserShortDto(u))
+                .ToList();
         }
     }
 }

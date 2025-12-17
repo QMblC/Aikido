@@ -9,14 +9,15 @@ using Aikido.Services.DatabaseServices.Group;
 using Aikido.Services.DatabaseServices.Seminar;
 using Aikido.Services.DatabaseServices.User;
 using Aikido.Services.UnitOfWork;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System.Reflection;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 
 
 Directory.CreateDirectory("logs");
@@ -119,6 +120,8 @@ builder.Services.AddScoped<ScheduleApplicationService>();
 builder.Services.AddScoped<UserChangeRequestDbService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<AuthApplicationService>();
+builder.Services.AddScoped<ISeminarTrainerEditRequestDbService, SeminarTrainerEditRequestDbService>();
+builder.Services.AddScoped<SeminarTrainerEditRequestAppService>();
 
 
 

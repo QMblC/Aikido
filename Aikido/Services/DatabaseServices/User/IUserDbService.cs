@@ -31,5 +31,6 @@ namespace Aikido.Services.DatabaseServices.User
         Task UpdateUserGrade(long userId, Grade grade);
         Task UpdateUserBudoPassport(long userId, bool value);
         Task<List<UserEntity>> FindClubMemberByName(long clubId, string name);
+        Task<List<UserEntity>> FindCoachMemberInClubByName(long clubId, long coachId, string name);
     }
 }

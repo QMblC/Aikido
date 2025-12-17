@@ -380,7 +380,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
 
         public async Task<List<SeminarMemberManagerRequestEntity>> GetManagerMembersAsync(long seminarId, long managerId)
         {
-            var members = await _context.SeminarMembersManagerRequest.AsQueryable()
+            var members = await _context.SeminarMembersManagerRequests.AsQueryable()
                 .Where(sm => sm.SeminarId == seminarId
                 && sm.ManagerId == managerId)
                 .Include(sm => sm.User)
@@ -399,10 +399,19 @@ namespace Aikido.Services.DatabaseServices.Seminar
 
         public async Task<List<SeminarMemberManagerRequestEntity>> GetManagerMembersByClubAsync(
             long seminarId,
-            long managerId,
             long clubId)
         {
-            var members = await GetManagerMembersAsync(seminarId, managerId);
+            var members = await _context.SeminarMembersManagerRequests.AsQueryable()
+                .Where(sm => sm.SeminarId == seminarId
+                && sm.ClubId == clubId)
+                .Include(sm => sm.User)
+                .Include(sm => sm.Club)
+                .Include(sm => sm.Group)
+                .Include(sm => sm.Seminar)
+                .Include(sm => sm.SeminarGroup)
+                .Include(sm => sm.Coach)
+                .Include(sm => sm.Manager)
+                .ToListAsync();
 
             return members
                 .Where(sm => sm.ClubId == clubId)
@@ -423,7 +432,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
             var seminarMembersCreation = new List<SeminarMemberManagerRequestEntity>();
             var seminarMemberUpdate = new List<SeminarMemberManagerRequestEntity>();
 
-            var clubSeminarMembers = await GetManagerMembersByClubAsync(seminarId, managerRequest.ManagerId, managerRequest.ClubId);
+            var clubSeminarMembers = await GetManagerMembersByClubAsync(seminarId, managerRequest.ClubId);
 
             foreach (var member in managerRequest.Members)
             {
@@ -446,8 +455,8 @@ namespace Aikido.Services.DatabaseServices.Seminar
                 }     
             }
 
-            await _context.SeminarMembersManagerRequest.AddRangeAsync(seminarMembersCreation);
-            _context.SeminarMembersManagerRequest.UpdateRange(seminarMemberUpdate);
+            await _context.SeminarMembersManagerRequests.AddRangeAsync(seminarMembersCreation);
+            _context.SeminarMembersManagerRequests.UpdateRange(seminarMemberUpdate);
             await _context.SaveChangesAsync();
         }
 
@@ -457,7 +466,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
                 .Select(m => m.UserId)
                 .ToList();
 
-            var membersToDelete = await _context.SeminarMembersManagerRequest
+            var membersToDelete = await _context.SeminarMembersManagerRequests
                 .Where(sm => sm.SeminarId == seminarId
                     && sm.ClubId == managerRequest.ClubId
                     && sm.ManagerId == managerRequest.ManagerId
@@ -481,7 +490,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
             if (paymentsToDelete.Count > 0)
                 _context.Payments.RemoveRange(paymentsToDelete);
 
-            _context.SeminarMembersManagerRequest.RemoveRange(membersToDelete);
+            _context.SeminarMembersManagerRequests.RemoveRange(membersToDelete);
 
             await _context.SaveChangesAsync();
         }
@@ -491,9 +500,9 @@ namespace Aikido.Services.DatabaseServices.Seminar
             long managerId,
             long clubId)
         {
-            var members = await GetManagerMembersByClubAsync(seminarId, managerId, clubId);
+            var members = await GetManagerMembersByClubAsync(seminarId, clubId);
 
-            _context.SeminarMembersManagerRequest.RemoveRange(members);
+            _context.SeminarMembersManagerRequests.RemoveRange(members);
             await _context.SaveChangesAsync();
         }
 
@@ -501,14 +510,14 @@ namespace Aikido.Services.DatabaseServices.Seminar
             long managerId,
             long clubId)
         {
-            var members = await GetManagerMembersByClubAsync(seminarId, managerId, clubId);
+            var members = await GetManagerMembersByClubAsync(seminarId, clubId);
 
             foreach (var member in members)
             {
                 member.IsConfirmed = true;
             }
 
-            _context.SeminarMembersManagerRequest.UpdateRange(members);
+            _context.SeminarMembersManagerRequests.UpdateRange(members);
 
             await _context.SaveChangesAsync();
         }
@@ -517,14 +526,14 @@ namespace Aikido.Services.DatabaseServices.Seminar
             long managerId,
             long clubId)
         {
-            var members = await GetManagerMembersByClubAsync(seminarId, managerId, clubId);
+            var members = await GetManagerMembersByClubAsync(seminarId, clubId);
 
             foreach (var member in members)
             {
                 member.IsConfirmed = false;
             }
 
-            _context.SeminarMembersManagerRequest.UpdateRange(members);
+            _context.SeminarMembersManagerRequests.UpdateRange(members);
 
             await _context.SaveChangesAsync();
         }
@@ -535,7 +544,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
 
         public async Task<List<SeminarMemberManagerRequestEntity>> GetRequestedMembers(long seminarId)
         {
-            var members = await _context.SeminarMembersManagerRequest.AsQueryable()
+            var members = await _context.SeminarMembersManagerRequests.AsQueryable()
                 .Where(sm => sm.SeminarId == seminarId)
                 .Include(sm => sm.User)
                 .Include(sm => sm.Club)
@@ -674,8 +683,25 @@ namespace Aikido.Services.DatabaseServices.Seminar
                 request.Add(new(seminar, mainUserMembership));
             }
 
-            await _context.SeminarMembersManagerRequest.AddRangeAsync(request);
+            await _context.SeminarMembersManagerRequests.AddRangeAsync(request);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<SeminarMemberManagerRequestEntity>> GetCoachMembersByClub(long seminarId, long clubId, long coachId)
+        {
+            var members = await _context.SeminarMembersManagerRequests.AsQueryable()
+                .Where(sm => sm.SeminarId == seminarId
+                && sm.ClubId == clubId && sm.CoachId == coachId)
+                .Include(sm => sm.User)
+                .Include(sm => sm.Club)
+                .Include(sm => sm.Group)
+                .Include(sm => sm.Seminar)
+                .Include(sm => sm.SeminarGroup)
+                .Include(sm => sm.Coach)
+                .Include(sm => sm.Manager)
+                .ToListAsync();
+
+            return members;
         }
     }
 }

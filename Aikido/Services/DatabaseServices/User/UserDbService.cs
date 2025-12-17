@@ -370,6 +370,32 @@ namespace Aikido.Services.DatabaseServices.User
                     .ThenInclude(ug => ug.Group)
                 .AsQueryable();
                 
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                var nameLower = name.ToLower();
+                query = query.Where(u =>
+                    ((u.LastName ?? "") + " " + (u.FirstName ?? "") + " " + (u.MiddleName ?? ""))
+                    .ToLower()
+                    .Contains(nameLower)
+                );
+            }
+
+            return await query.ToListAsync();
+        }
+
+        public async Task<List<UserEntity>> FindCoachMemberInClubByName(long clubId, long coachId, string name)
+        {
+            var query = _context.Users
+                .Include(u => u.UserMemberships)
+                    .ThenInclude(um => um.Club)
+                .Include(u => u.UserMemberships)
+                    .ThenInclude(um => um.Group)
+                .Where(u => u.UserMemberships.Any(um => um.IsMain
+                    && um.ClubId == clubId
+                    && um.RoleInGroup == Role.User
+                    && um.Group.UserMemberships.Any(um2 => um2.UserId == coachId && um2.RoleInGroup == Role.Coach)))
+                .AsQueryable();
+
 
             if (!string.IsNullOrWhiteSpace(name))
             {

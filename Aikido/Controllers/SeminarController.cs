@@ -456,7 +456,7 @@ namespace Aikido.Controllers
         /// <param name="seminarId"></param>
         /// <param name="managerId"></param>
         /// <returns></returns>
-        [HttpGet("{seminarId}/requested-members/{managerId}")]
+        [HttpGet("{seminarId}/requested-members/manager/{managerId}")]
         public async Task<ActionResult<List<SeminarMemberManagerRequestDto>>> GetSeminarMembersManagerRequest(long seminarId,
             long managerId)
         {
@@ -475,17 +475,15 @@ namespace Aikido.Controllers
         /// Получение списка участников семинара конкретного клуба
         /// </summary>
         /// <param name="seminarId"></param>
-        /// <param name="managerId"></param>
         /// <param name="clubId"></param>
         /// <returns></returns>
-        [HttpGet("{seminarId}/requested-members/{managerId}/{clubId}")]
+        [HttpGet("{seminarId}/requested-members/club/{clubId}")]
         public async Task<ActionResult<List<SeminarMemberManagerRequestDto>>> GetClubSeminarMembersManagerRequest(long seminarId,
-            long managerId,
             long clubId)
         {
             try
             {
-                var members = await _seminarApplicationService.GetClubRequestedMembers(seminarId, managerId, clubId);
+                var members = await _seminarApplicationService.GetClubRequestedMembers(seminarId, clubId);
                 return Ok(members);
             }
             catch (Exception ex)
