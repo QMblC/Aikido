@@ -1,4 +1,4 @@
-﻿using Aikido.AdditionalData;
+﻿using Aikido.AdditionalData.Enums;
 using Aikido.Data;
 using Aikido.Dto;
 using Aikido.Dto.Groups;
@@ -276,7 +276,7 @@ namespace Aikido.Services
                     : EnumParser.GetEnumMemberValue(EnumParser.ConvertStringToEnum<Grade>(m.OldGrade));
                 worksheet.Cell(rowNum, 5).Value = m.CertificationGrade == "None" ? "" 
                     : EnumParser.GetEnumMemberValue(EnumParser.ConvertStringToEnum<Grade>(m.CertificationGrade));
-                worksheet.Cell(rowNum, 6).Value = m.CreatorFullName ?? ""; 
+                worksheet.Cell(rowNum, 6).Value = m.CoachName ?? ""; 
                 worksheet.Cell(rowNum, 7).Value = m.ClubName;
                 worksheet.Cell(rowNum, 8).Value = m.ClubCity;
                 worksheet.Cell(rowNum, 9).Value = m.AgeGroup == null ? "" 
@@ -356,7 +356,7 @@ namespace Aikido.Services
                         UserFullName = row.Cell(3).GetString(),
                         OldGrade = EnumParser.ConvertEnumToString(EnumParser.GetEnumByMemberValue<Grade>(row.Cell(4).GetString())),
                         CertificationGrade = EnumParser.ConvertEnumToString(EnumParser.GetEnumByMemberValue<Grade>(row.Cell(5).GetString())),
-                        CreatorFullName = row.Cell(6).GetString(),
+                        CoachName = row.Cell(6).GetString(),
                         ClubName = row.Cell(7).GetString(),
                         ClubCity = row.Cell(8).GetString(),
                         AgeGroup = row.Cell(9).GetString(),

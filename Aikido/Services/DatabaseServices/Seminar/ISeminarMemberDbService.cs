@@ -1,4 +1,4 @@
-﻿using Aikido.Entities.Seminar;
+﻿using Aikido.Entities.Seminar.SeminarMember;
 using Aikido.Services.DatabaseServices.Base;
 
 namespace Aikido.Services.DatabaseServices.Seminar

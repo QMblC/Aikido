@@ -3,10 +3,10 @@ using Aikido.Services.DatabaseServices.User;
 using Aikido.Services.DatabaseServices.Club;
 using Aikido.Exceptions;
 using Aikido.Services.UnitOfWork;
-using Aikido.AdditionalData;
 using Aikido.Dto.Users;
 using Aikido.Dto.Groups;
 using Aikido.Dto.Users.Creation;
+using Aikido.AdditionalData.Enums;
 
 namespace Aikido.Application.Services
 {

@@ -1,10 +1,13 @@
-﻿namespace Aikido.Dto.Seminars.Members
+﻿namespace Aikido.Dto.Seminars.Members.Creation
 {
-    public class SeminarMemberCreationDto
+    public interface ISeminarMemberCreation
     {
         public long UserId { get; set; }
         public long? SeminarGroupId { get; set; }
-        public string? CertificationGrade { get; set; } = string.Empty;
+        public string? CertificationGrade { get; set; }
+
+        public long? GroupId { get; set; }
+        public long? CoachId { get; set; }
 
         public bool IsSeminarPayed { get; set; }
         public decimal? SeminarPriceInRubles { get; set; }
@@ -17,5 +20,7 @@
 
         public bool IsCertificationPayed { get; set; }
         public decimal? CertificationPriceInRubles { get; set; }
+
+        public string? Note { get; set; }
     }
 }

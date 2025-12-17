@@ -1,15 +1,21 @@
-﻿using Aikido.Dto;
+﻿using Aikido.AdditionalData;
+using Aikido.AdditionalData.Enums;
+using Aikido.Dto;
 using Aikido.Dto.Seminars;
+using Aikido.Entities.Seminar.SeminarMember;
+using Aikido.Entities.Seminar.SeminarMemberRequest;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities.Seminar
 {
-    public class SeminarEntity : IDbEntity
+    public class SeminarEntity : IEvent, IDbEntity
     {
         [Key]
         public long Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public DateTime Date { get; set; }
+
+        public string Name { get; set; }
+        public DateTime Date { get; set; }  
+        public EventType EventType { get; set; }
 
         public string? Description { get; set; }
         public string? Location { get; set; }
@@ -27,6 +33,8 @@ namespace Aikido.Entities.Seminar
         public long CreatorId { get; set; }
         public UserEntity Creator { get; set; }
 
+        public virtual ICollection<UserEntity> Editors { get; set; } = new List<UserEntity>();
+
         public long? RegulationId { get; set; }
         public SeminarRegulationEntity? Regulation { get; set; }
 
@@ -36,9 +44,12 @@ namespace Aikido.Entities.Seminar
 
         public virtual ICollection<SeminarCoachStatementEntity> CoachStatements { get; set; } = new List<SeminarCoachStatementEntity>();
         public virtual ICollection<SeminarContactInfoEntity>? ContactInfo { get; set; } = new List<SeminarContactInfoEntity>();
+        public virtual ICollection<SeminarMemberManagerRequestEntity> ManagerRequestMembers { get; set; } = new List<SeminarMemberManagerRequestEntity>();
         public virtual ICollection<SeminarMemberEntity> Members { get; set; } = new List<SeminarMemberEntity>();
         public virtual ICollection<SeminarGroupEntity>? Groups { get; set; } = new List<SeminarGroupEntity>();
         public virtual ICollection<SeminarScheduleEntity>? Schedule { get; set; } = new List<SeminarScheduleEntity>();
+        public virtual ICollection<PaymentEntity> Payments { get; set; } = new List<PaymentEntity>();
+
 
         public SeminarEntity() { }
 
@@ -47,6 +58,7 @@ namespace Aikido.Entities.Seminar
             UpdateFromJson(seminarData);
             CreatedDate = DateTime.UtcNow;
         }
+
 
         public void UpdateFromJson(SeminarDto seminarData)
         {

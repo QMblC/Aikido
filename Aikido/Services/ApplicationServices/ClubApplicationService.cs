@@ -5,9 +5,9 @@ using Aikido.Services.DatabaseServices.User;
 using Aikido.Exceptions;
 using Aikido.Entities;
 using Aikido.Entities.Users;
-using Aikido.AdditionalData;
 using Aikido.Dto.Users;
 using Aikido.Dto.Groups;
+using Aikido.AdditionalData.Enums;
 
 namespace Aikido.Application.Services
 {

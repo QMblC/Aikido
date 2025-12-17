@@ -1,4 +1,4 @@
-﻿using Aikido.AdditionalData;
+﻿using Aikido.AdditionalData.Enums;
 using Aikido.Data;
 using Aikido.Dto.Users;
 using Aikido.Dto.Users.Creation;
@@ -51,6 +51,19 @@ namespace Aikido.Services.DatabaseServices.User
             .ToListAsync();
 
             return users;
+        }
+
+        public async Task<List<UserEntity>> GetManagers()
+        {
+            var managers = await _context.Users.AsQueryable()
+                .Where(u => u.Role == Role.Manager)
+                .Include(u => u.UserMemberships)
+                    .ThenInclude(um => um.Club)
+                .Include(u => u.UserMemberships)
+                    .ThenInclude(um => um.Group)
+                .ToListAsync();
+
+            return managers;
         }
 
         public async Task<List<UserEntity>> GetCoachStudentByName(long coachId, string name)
@@ -215,10 +228,15 @@ namespace Aikido.Services.DatabaseServices.User
             var mainUserMembership = _context.UserMemberships.AsQueryable()
                 .Where(um => um.IsMain == true
                 && um.UserId == userId)
+                .Include(um => um.User)
+                .Include(um => um.Club)
+                    .ThenInclude(um => um.Manager)
+                .Include(um => um.Group)
+                    .ThenInclude(um => um.UserMemberships)
+                        .ThenInclude(um => um.User)
                 .FirstOrDefault();
 
-            return mainUserMembership 
-                ?? throw new EntityNotFoundException(nameof(UserMembershipEntity));
+            return mainUserMembership;
         }
 
         public async Task SetNewMainUserMembership(long userId)
@@ -241,7 +259,11 @@ namespace Aikido.Services.DatabaseServices.User
                 if (userMembership.IsMain)
                 {
                     var oldMainUserMembership = GetMainUserMembership(userId);
-                    oldMainUserMembership.IsMain = false;
+
+                    if (oldMainUserMembership != null)
+                    {
+                        oldMainUserMembership.IsMain = false;
+                    }
                 }
 
                 var userMembershipEntity = new UserMembershipEntity(userId, userMembership);
@@ -334,6 +356,58 @@ namespace Aikido.Services.DatabaseServices.User
             _context.Update(user);
 
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<UserEntity>> FindClubMemberByName(long clubId, string name)
+        {
+            var query = _context.Users
+                .Where(u => u.UserMemberships.Any(um => um.IsMain
+                && um.ClubId == clubId
+                && um.RoleInGroup == Role.User))
+                .Include(u => u.UserMemberships)
+                    .ThenInclude(uc => uc.Club)
+                .Include(u => u.UserMemberships)
+                    .ThenInclude(ug => ug.Group)
+                .AsQueryable();
+                
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                var nameLower = name.ToLower();
+                query = query.Where(u =>
+                    ((u.LastName ?? "") + " " + (u.FirstName ?? "") + " " + (u.MiddleName ?? ""))
+                    .ToLower()
+                    .Contains(nameLower)
+                );
+            }
+
+            return await query.ToListAsync();
+        }
+
+        public async Task<List<UserEntity>> FindCoachMemberInClubByName(long clubId, long coachId, string name)
+        {
+            var query = _context.Users
+                .Include(u => u.UserMemberships)
+                    .ThenInclude(um => um.Club)
+                .Include(u => u.UserMemberships)
+                    .ThenInclude(um => um.Group)
+                .Where(u => u.UserMemberships.Any(um => um.IsMain
+                    && um.ClubId == clubId
+                    && um.RoleInGroup == Role.User
+                    && um.Group.UserMemberships.Any(um2 => um2.UserId == coachId && um2.RoleInGroup == Role.Coach)))
+                .AsQueryable();
+
+
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                var nameLower = name.ToLower();
+                query = query.Where(u =>
+                    ((u.LastName ?? "") + " " + (u.FirstName ?? "") + " " + (u.MiddleName ?? ""))
+                    .ToLower()
+                    .Contains(nameLower)
+                );
+            }
+
+            return await query.ToListAsync();
         }
     }
 }

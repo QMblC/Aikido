@@ -1,4 +1,4 @@
-﻿using Aikido.AdditionalData;
+﻿using Aikido.AdditionalData.Enums;
 using Aikido.Dto.Groups;
 using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;

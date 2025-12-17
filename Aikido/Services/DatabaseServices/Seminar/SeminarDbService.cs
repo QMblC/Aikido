@@ -1,12 +1,17 @@
-﻿using Aikido.AdditionalData;
+﻿using Aikido.AdditionalData.Enums;
 using Aikido.Data;
 using Aikido.Dto.Seminars;
 using Aikido.Dto.Seminars.Members;
+using Aikido.Dto.Seminars.Members.CoachEditRequest;
 using Aikido.Entities;
 using Aikido.Entities.Seminar;
+using Aikido.Entities.Seminar.SeminarMember;
+using Aikido.Entities.Seminar.SeminarMemberRequest;
 using Aikido.Entities.Users;
 using Aikido.Exceptions;
+using DocumentFormat.OpenXml.ExtendedProperties;
 using DocumentFormat.OpenXml.InkML;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using Microsoft.EntityFrameworkCore;
 
 namespace Aikido.Services.DatabaseServices.Seminar
@@ -28,6 +33,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
                 .Include(s => s.ContactInfo)
                 .Include(s => s.Schedule)
                 .Include(s => s.Regulation)
+                .Include(s => s.Payments)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
             if (seminar == null)
@@ -58,14 +64,10 @@ namespace Aikido.Services.DatabaseServices.Seminar
             return await _context.SeminarMembers
                 .Include(sm => sm.User)
                 .Include(sm => sm.Seminar)
-                .Include(sm => sm.TrainingGroup)
-                    .ThenInclude(g => g.Club)
+                .Include(sm => sm.Club)
+                .Include(sm => sm.Group)
                 .Include(sm => sm.SeminarGroup)
-                .Include(sm => sm.Creator)
-                .Include(sm => sm.SeminarPayment)
-                .Include(sm => sm.BudoPassportPayment)
-                .Include(sm => sm.AnnualFeePayment)
-                .Include(sm => sm.CertificationPayment)
+                .Include(sm => sm.Coach)
                 .Where(sm => sm.SeminarId == seminarId)
                 .OrderBy(sm => sm.User!.LastName)
                 .ThenBy(sm => sm.User!.FirstName)
@@ -96,133 +98,140 @@ namespace Aikido.Services.DatabaseServices.Seminar
             await _context.SaveChangesAsync();
         }
 
-        public async Task AddSeminarMembersAsync(long seminarId, SeminarMemberGroupDto memberGroup)//ToDo UnitOfWork
+        public async Task UpdateEditorList(long seminarId, List<long> editorIds)
         {
-            await RemoveExcess(seminarId, memberGroup.Members, memberGroup.CoachId);
+            var seminar = await GetByIdOrThrowException(seminarId);
 
-            var coachId = memberGroup.CoachId;
+            seminar.Editors = editorIds.Select(id => _context.Users.Find(id)
+                ?? throw new EntityNotFoundException(nameof(UserEntity)))
+                .ToList();
 
-            var seminar = await _context.Seminars.FindAsync(seminarId);
-            if (seminar == null)
-            {
-                throw new EntityNotFoundException(nameof(seminar));
-            }
-
-            var userIds = memberGroup.Members.Select(m => m.UserId).ToList();
-            var usersDict = await _context.Users
-                .Where(u => userIds.Contains(u.Id))
-                .ToDictionaryAsync(u => u.Id);
-
-            var existingMembers = await _context.SeminarMembers
-                .Where(sm => sm.SeminarId == seminarId && userIds.Contains(sm.UserId))
-                .ToDictionaryAsync(sm => sm.UserId);
-
-            foreach (var memberDto in memberGroup.Members)
-            {
-                if (!usersDict.TryGetValue(memberDto.UserId, out var user))
-                {
-                    throw new EntityNotFoundException(nameof(UserEntity));
-                }
-
-                var userMembership = _context.UserMemberships.AsQueryable()
-                    .Where(um => um.UserId == memberDto.UserId
-                    && um.RoleInGroup == Role.User)
-                    .FirstOrDefault(um => um.Group.UserMemberships.Any(um => um.UserId == coachId));
-
-                if (userMembership == null)
-                {
-                    throw new EntityNotFoundException(nameof(UserMembershipEntity));
-                }
-
-                if (!existingMembers.TryGetValue(memberDto.UserId, out var member))
-                {
-                    member = new SeminarMemberEntity(coachId, seminar, userMembership, memberDto);
-                    _context.SeminarMembers.Add(member);
-                }
-                else
-                {
-                    member.UpdateData(coachId, seminar, userMembership, memberDto);
-                    _context.SeminarMembers.Update(member);
-                }
-            }
-
+            _context.Update(seminar);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task AddSeminarMembersAsync(long seminarId, SeminarMemberListDto memberGroup)//ToDo UnitOfWork
+        {
+            //await RemoveExcess(seminarId, memberGroup.Members, memberGroup.CoachId);
+
+            //var coachId = memberGroup.CoachId;
+
+            //var seminar = await _context.Seminars.FindAsync(seminarId);
+            //if (seminar == null)
+            //{
+            //    throw new EntityNotFoundException(nameof(seminar));
+            //}
+
+            //var userIds = memberGroup.Members.Select(m => m.UserId).ToList();
+            //var usersDict = await _context.Users
+            //    .Where(u => userIds.Contains(u.Id))
+            //    .ToDictionaryAsync(u => u.Id);
+
+            //var existingMembers = await _context.SeminarMembers
+            //    .Where(sm => sm.SeminarId == seminarId && userIds.Contains(sm.UserId))
+            //    .ToDictionaryAsync(sm => sm.UserId);
+
+            //foreach (var memberDto in memberGroup.Members)
+            //{
+            //    if (!usersDict.TryGetValue(memberDto.UserId, out var user))
+            //    {
+            //        throw new EntityNotFoundException(nameof(UserEntity));
+            //    }
+
+            //    var userMembership = _context.UserMemberships.AsQueryable()
+            //        .Where(um => um.UserId == memberDto.UserId
+            //        && um.RoleInGroup == Role.User)
+            //        .FirstOrDefault(um => um.Group.UserMemberships.Any(um => um.UserId == coachId));
+
+            //    if (userMembership == null)
+            //    {
+            //        throw new EntityNotFoundException(nameof(UserMembershipEntity));
+            //    }
+
+            //    if (!existingMembers.TryGetValue(memberDto.UserId, out var member))
+            //    {
+            //        member = new SeminarMemberEntity(coachId, seminar, userMembership, memberDto);
+            //        _context.SeminarMembers.Add(member);
+            //    }
+            //    else
+            //    {
+            //        member.UpdateData(coachId, seminar, userMembership, memberDto);
+            //        _context.SeminarMembers.Update(member);
+            //    }
+            //}
+
+            //await _context.SaveChangesAsync();
         }
 
         public async Task SetFinalSeminarMembersAsync(long seminarId, List<FinalSeminarMemberDto> members)
         {
-            await RemoveExcess(seminarId, members.Select(sm => sm as SeminarMemberCreationDto).ToList());
+            //await RemoveExcess(seminarId, members.Select(sm => sm as SeminarMemberCreationDto).ToList());
 
-            var seminar = await _context.Seminars.FindAsync(seminarId);
-            if (seminar == null)
-            {
-                throw new EntityNotFoundException(nameof(seminar));
-            }
+            //var seminar = await _context.Seminars.FindAsync(seminarId);
+            //if (seminar == null)
+            //{
+            //    throw new EntityNotFoundException(nameof(seminar));
+            //}
 
-            var creatorId = seminar.CreatorId;
+            //var creatorId = seminar.CreatorId;
 
-            var userIds = members.Select(m => m.UserId).ToList();
-            var usersDict = await _context.Users
-                .Where(u => userIds.Contains(u.Id))
-                .ToDictionaryAsync(u => u.Id);
+            //var userIds = members.Select(m => m.UserId).ToList();
+            //var usersDict = await _context.Users
+            //    .Where(u => userIds.Contains(u.Id))
+            //    .ToDictionaryAsync(u => u.Id);
 
-            var existingMembers = await _context.SeminarMembers
-                .Where(sm => sm.SeminarId == seminarId && userIds.Contains(sm.UserId))
-                .ToDictionaryAsync(sm => sm.UserId);
+            //var existingMembers = await _context.SeminarMembers
+            //    .Where(sm => sm.SeminarId == seminarId && userIds.Contains(sm.UserId))
+            //    .ToDictionaryAsync(sm => sm.UserId);
 
-            foreach (var memberDto in members)
-            {
-                if (!usersDict.TryGetValue(memberDto.UserId, out var user))
-                {
-                    throw new EntityNotFoundException(nameof(UserEntity));
-                }
+            //foreach (var memberDto in members)
+            //{
+            //    if (!usersDict.TryGetValue(memberDto.UserId, out var user))
+            //    {
+            //        throw new EntityNotFoundException(nameof(UserEntity));
+            //    }
 
-                var userMembership = _context.UserMemberships.AsQueryable()
-                    .Where(um => um.UserId == memberDto.UserId
-                    && um.RoleInGroup == Role.User)
-                    .FirstOrDefault();
+            //    var userMembership = _context.UserMemberships.AsQueryable()
+            //        .Where(um => um.UserId == memberDto.UserId
+            //        && um.RoleInGroup == Role.User)
+            //        .FirstOrDefault();
 
-                if (userMembership == null)
-                {
-                    throw new EntityNotFoundException(nameof(UserMembershipEntity));
-                }
+            //    if (userMembership == null)
+            //    {
+            //        throw new EntityNotFoundException(nameof(UserMembershipEntity));
+            //    }
 
-                if (!existingMembers.TryGetValue(memberDto.UserId, out var member))
-                {
-                    member = new SeminarMemberEntity(
-                        creatorId,
-                        seminar,
-                        userMembership,
-                        memberDto,
-                        EnumParser.ConvertStringToEnum<SeminarMemberStatus>(memberDto.Status));
-                    _context.SeminarMembers.Add(member);
-                }
-                else
-                {
-                    member.UpdateData(
-                        member.CreatorId.Value,
-                        seminar,
-                        userMembership,
-                        memberDto,
-                        EnumParser.ConvertStringToEnum<SeminarMemberStatus>(memberDto.Status));
-                    _context.SeminarMembers.Update(member);
-                }
-            }
-            await _context.SaveChangesAsync();
+            //    if (!existingMembers.TryGetValue(memberDto.UserId, out var member))
+            //    {
+            //        member = new SeminarMemberEntity(
+            //            creatorId,
+            //            seminar,
+            //            userMembership,
+            //            memberDto,
+            //            EnumParser.ConvertStringToEnum<SeminarMemberStatus>(memberDto.Status));
+            //        _context.SeminarMembers.Add(member);
+            //    }
+            //    else
+            //    {
+            //        member.UpdateData(
+            //            member.CoachId.Value,
+            //            seminar,
+            //            userMembership,
+            //            memberDto,
+            //            EnumParser.ConvertStringToEnum<SeminarMemberStatus>(memberDto.Status));
+            //        _context.SeminarMembers.Update(member);
+            //    }
+            //}
+            //await _context.SaveChangesAsync();
         }
 
-        private async Task RemoveExcess(long seminarId, List<SeminarMemberCreationDto> membersDto, long? creatorId = null)
+        private async Task RemoveExcess(long seminarId, List<ISeminarMemberData> membersDto)
         {
             var userIds = membersDto.Select(m => m.UserId).ToList();
 
             var membersToDelete = _context.SeminarMembers
                 .Where(sm => sm.SeminarId == seminarId)
                 .Where(sm => !userIds.Contains(sm.UserId));
-
-            if (creatorId != null)
-            {
-                membersToDelete = membersToDelete.Where(sm => sm.CreatorId == creatorId);
-            }
 
             if (await membersToDelete.AnyAsync())
             {
@@ -258,15 +267,11 @@ namespace Aikido.Services.DatabaseServices.Seminar
         {
             return await _context.SeminarMembers.AsQueryable()
                 .Include(sm => sm.User)
-                .Include(sm => sm.TrainingGroup)
-                    .ThenInclude(g => g.Club)
+                .Include(sm => sm.Club)
+                .Include(sm => sm.Group)
                 .Include(sm => sm.Seminar)
                 .Include(sm => sm.SeminarGroup)
-                .Include(sm => sm.Creator)
-                .Include(sm => sm.SeminarPayment)
-                .Include(sm => sm.BudoPassportPayment)
-                .Include(sm => sm.AnnualFeePayment)
-                .Include(sm => sm.CertificationPayment)
+                .Include(sm => sm.Coach)
                 .Where(sm => sm.UserId == userId
                 && sm.SeminarId == seminarId)
                 .FirstOrDefaultAsync() ?? throw new EntityNotFoundException(nameof(SeminarMemberEntity));
@@ -362,18 +367,426 @@ namespace Aikido.Services.DatabaseServices.Seminar
             return await _context.SeminarMembers
                 .AsQueryable()
                 .Where(sm => sm.SeminarId == seminarId
-                && sm.CreatorId == coachId)
+                && sm.CoachId == coachId)
                 .Include(sm => sm.User)
-                .Include(sm => sm.TrainingGroup)
-                    .ThenInclude(g => g.Club)
+                .Include(sm => sm.Club)
+                .Include(sm => sm.Group)
                 .Include(sm => sm.Seminar)
                 .Include(sm => sm.SeminarGroup)
-                .Include(sm => sm.Creator)
-                .Include(sm => sm.SeminarPayment)
-                .Include(sm => sm.BudoPassportPayment)
-                .Include(sm => sm.AnnualFeePayment)
-                .Include(sm => sm.CertificationPayment)
+                .Include(sm => sm.Coach)
                 .ToListAsync();
+        }
+
+        #region ManagerMembers
+
+        public async Task<List<SeminarMemberManagerRequestEntity>> GetManagerMembersAsync(long seminarId, long managerId)
+        {
+            var members = await _context.SeminarMembersManagerRequests.AsQueryable()
+                .Where(sm => sm.SeminarId == seminarId
+                && sm.ManagerId == managerId)
+                .Include(sm => sm.User)
+                .Include(sm => sm.Club)
+                .Include(sm => sm.Group)
+                .Include(sm => sm.Seminar)
+                .Include(sm => sm.SeminarGroup)
+                .Include(sm => sm.Coach)
+                .Include(sm => sm.Manager)
+                .ToListAsync();
+
+            return members ?? new();
+
+            throw new NotImplementedException();
+        }
+
+        public async Task<List<SeminarMemberManagerRequestEntity>> GetManagerMembersByClubAsync(
+            long seminarId,
+            long clubId)
+        {
+            var members = await _context.SeminarMembersManagerRequests.AsQueryable()
+                .Where(sm => sm.SeminarId == seminarId
+                && sm.ClubId == clubId)
+                .Include(sm => sm.User)
+                .Include(sm => sm.Club)
+                .Include(sm => sm.Group)
+                .Include(sm => sm.Seminar)
+                .Include(sm => sm.SeminarGroup)
+                .Include(sm => sm.Coach)
+                .Include(sm => sm.Manager)
+                .ToListAsync();
+
+            return members
+                .Where(sm => sm.ClubId == clubId)
+                .ToList();
+        }
+
+        public async Task CreateManagerMembersByClubAsync(long seminarId, SeminarMemberManagerRequestListDto managerRequest)
+        {
+            var seminar = await _context.Seminars.FindAsync(seminarId);
+
+            if (seminar == null)
+            {
+                throw new EntityNotFoundException(nameof(seminar));
+            }
+
+            await DeleteExcess(seminarId, managerRequest);
+
+            var seminarMembersCreation = new List<SeminarMemberManagerRequestEntity>();
+            var seminarMemberUpdate = new List<SeminarMemberManagerRequestEntity>();
+
+            var clubSeminarMembers = await GetManagerMembersByClubAsync(seminarId, managerRequest.ClubId);
+
+            foreach (var member in managerRequest.Members)
+            {
+                var userMembership = _context.UserMemberships.AsQueryable()
+                    .Where(um => um.UserId == member.UserId
+                    && um.GroupId == member.GroupId)
+                    .Include(um => um.Club)
+                    .FirstOrDefault() ?? throw new EntityNotFoundException(nameof(UserMembershipEntity));        
+                
+                if (!clubSeminarMembers.Any(m => m.UserId == member.UserId))
+                {
+                    seminarMembersCreation.Add(new(seminar, userMembership, member));
+                }
+                else
+                {
+                    var currentMember = clubSeminarMembers.First(m => m.UserId == member.UserId);
+                    
+                    currentMember.UpdateData(seminar, userMembership, member);
+                    seminarMemberUpdate.Add(currentMember);
+                }     
+            }
+
+            await _context.SeminarMembersManagerRequests.AddRangeAsync(seminarMembersCreation);
+            _context.SeminarMembersManagerRequests.UpdateRange(seminarMemberUpdate);
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task DeleteExcess(long seminarId, SeminarMemberManagerRequestListDto managerRequest)
+        {
+            var userIds = managerRequest.Members
+                .Select(m => m.UserId)
+                .ToList();
+
+            var membersToDelete = await _context.SeminarMembersManagerRequests
+                .Where(sm => sm.SeminarId == seminarId
+                    && sm.ClubId == managerRequest.ClubId
+                    && sm.ManagerId == managerRequest.ManagerId
+                    && !userIds.Contains(sm.UserId))
+                .ToListAsync();
+
+            if (membersToDelete.Count == 0)
+                return;
+
+            var userIdsToDelete = membersToDelete
+                .Select(m => m.UserId)
+                .Distinct()
+                .ToList();
+
+            var paymentsToDelete = await _context.Payments
+                .Where(p => p.EventType == EventType.Seminar
+                    && p.EventId == seminarId
+                    && userIdsToDelete.Contains(p.UserId))
+                .ToListAsync();
+
+            if (paymentsToDelete.Count > 0)
+                _context.Payments.RemoveRange(paymentsToDelete);
+
+            _context.SeminarMembersManagerRequests.RemoveRange(membersToDelete);
+
+            await _context.SaveChangesAsync();
+        }
+
+
+        public async Task DeleteManagerMembersByClubAsync(long seminarId,
+            long managerId,
+            long clubId)
+        {
+            var members = await GetManagerMembersByClubAsync(seminarId, clubId);
+
+            _context.SeminarMembersManagerRequests.RemoveRange(members);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task ConfirmManagerMembersByClubAsync(long seminarId,
+            long managerId,
+            long clubId)
+        {
+            var members = await GetManagerMembersByClubAsync(seminarId, clubId);
+
+            foreach (var member in members)
+            {
+                member.IsConfirmed = true;
+            }
+
+            _context.SeminarMembersManagerRequests.UpdateRange(members);
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task CancelManagerMemberByClubAsync(long seminarId,
+            long managerId,
+            long clubId)
+        {
+            var members = await GetManagerMembersByClubAsync(seminarId, clubId);
+
+            foreach (var member in members)
+            {
+                member.IsConfirmed = false;
+            }
+
+            _context.SeminarMembersManagerRequests.UpdateRange(members);
+
+            await _context.SaveChangesAsync();
+        }
+
+        #endregion
+
+        #region SeminarMembers
+
+        public async Task<List<SeminarMemberManagerRequestEntity>> GetRequestedMembers(long seminarId)
+        {
+            var members = await _context.SeminarMembersManagerRequests.AsQueryable()
+                .Where(sm => sm.SeminarId == seminarId)
+                .Include(sm => sm.User)
+                .Include(sm => sm.Club)
+                .Include(sm => sm.Group)
+                .Include(sm => sm.Seminar)
+                .Include(sm => sm.SeminarGroup)
+                .Include(sm => sm.Coach)
+                .Include(sm => sm.Manager)
+                .ToListAsync();
+
+            return members;
+        }
+
+        public async Task CreateSeminarMembersFromRequest(long seminarId)
+        {
+            var membersToDelete = _context.SeminarMembers
+                .Where(sm => sm.SeminarId == seminarId);
+
+            _context.RemoveRange(membersToDelete);
+
+            var members = await GetRequestedMembers(seminarId);
+            var seminarMembersToCreate = new List<SeminarMemberEntity>();
+
+            foreach(var member in members.Where(m => m.IsConfirmed))
+            {
+                seminarMembersToCreate.Add(new(member));
+            }
+
+            await _context.SeminarMembers.AddRangeAsync(seminarMembersToCreate);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task CreateSeminarMembers(long seminarId, SeminarMemberListDto memberList)
+        {
+            var seminar = await _context.Seminars.FindAsync(seminarId);
+
+            if (seminar == null)
+            {
+                throw new EntityNotFoundException(nameof(seminar));
+            }
+
+            await DeleteExcessMembers(seminarId, memberList);
+
+            var seminarMembersCreation = new List<SeminarMemberEntity>();
+            var seminarMembersUpdate = new List<SeminarMemberEntity>();
+
+            var seminarMembers = await GetSeminarMembersAsync(seminarId);
+
+            foreach (var member in memberList.Members)
+            {
+                var userMembership = _context.UserMemberships.AsQueryable()
+                    .Where(um => um.UserId == member.UserId
+                    && um.GroupId == member.GroupId)
+                    .Include(um => um.Club)
+                    .Include(um => um.User)
+                    .Include(um => um.Group)
+                    .FirstOrDefault() ?? throw new EntityNotFoundException(nameof(UserMembershipEntity));
+
+                if (!seminarMembers.Any(m => m.UserId == member.UserId))
+                {
+                    seminarMembersCreation.Add(new(memberList.CreatorId, seminar, userMembership, member));
+                }
+                else
+                {
+                    var currentMember = seminarMembers.First(m => m.UserId == member.UserId);
+
+                    currentMember.UpdateData(seminar, userMembership, member);
+                    seminarMembersUpdate.Add(currentMember);
+                }
+            }
+
+            await _context.SeminarMembers.AddRangeAsync(seminarMembersCreation);
+            _context.SeminarMembers.UpdateRange(seminarMembersUpdate);
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task DeleteExcessMembers(long seminarId, SeminarMemberListDto memberList)
+        {
+            var userIds = memberList.Members
+                .Select(m => m.UserId)
+                .ToList();
+
+            var membersToDelete = await _context.SeminarMembers
+                .Where(sm => sm.SeminarId == seminarId
+                    && sm.CoachId == memberList.CreatorId
+                    && !userIds.Contains(sm.UserId))
+                .ToListAsync();
+
+            if (membersToDelete.Count == 0)
+                return;
+
+            var userIdsToDelete = membersToDelete
+                .Select(m => m.UserId)
+                .Distinct()
+                .ToList();
+
+            var paymentsToDelete = await _context.Payments
+                .Where(p => p.EventType == EventType.Seminar
+                    && p.EventId == seminarId
+                    && userIdsToDelete.Contains(p.UserId))
+                .ToListAsync();
+
+            if (paymentsToDelete.Count > 0)
+                _context.Payments.RemoveRange(paymentsToDelete);
+
+            _context.SeminarMembers.RemoveRange(membersToDelete);
+
+            await _context.SaveChangesAsync();
+        }
+
+        #endregion
+
+        public async Task InitializeSeminar(long seminarId)
+        {
+            var seminar = await _context.Seminars.FindAsync(seminarId);
+
+            if (seminar == null)
+            {
+                throw new EntityNotFoundException(nameof(seminar));
+            }
+
+            var mainUserMemberships = _context.UserMemberships.AsQueryable()
+                .Where(um => um.IsMain)
+                .Include(um => um.Club)
+                    .ThenInclude(c => c.Manager)
+                .Include(um => um.Group)
+                    .ThenInclude(g => g.UserMemberships)
+                        .ThenInclude(um => um.User)
+                .ToList();
+
+            var request = new List<SeminarMemberManagerRequestEntity>();
+
+            foreach(var mainUserMembership in mainUserMemberships)
+            {
+                var clubManager = mainUserMembership.Club?.Manager 
+                    ?? throw new EntityNotFoundException(nameof(mainUserMembership.Club));
+
+                var coach = mainUserMembership.Group?.UserMemberships.First(um => um.RoleInGroup == Role.Coach).User
+                    ?? throw new EntityNotFoundException(nameof(mainUserMembership.Club));//Здесь возможно стоит переделать и начать выделять главного тренера в группе
+
+                request.Add(new(seminar, mainUserMembership));
+            }
+
+            await _context.SeminarMembersManagerRequests.AddRangeAsync(request);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<SeminarMemberManagerRequestEntity>> GetCoachMembersByClub(long seminarId, long clubId, long coachId)
+        {
+            var members = await _context.SeminarMembersManagerRequests.AsQueryable()
+                .Where(sm => sm.SeminarId == seminarId
+                && sm.ClubId == clubId && sm.CoachId == coachId)
+                .Include(sm => sm.User)
+                .Include(sm => sm.Club)
+                .Include(sm => sm.Group)
+                .Include(sm => sm.Seminar)
+                .Include(sm => sm.SeminarGroup)
+                .Include(sm => sm.Coach)
+                .Include(sm => sm.Manager)
+                .ToListAsync();
+
+            return members;
+        }
+
+        public async Task CreateSeminarCoachMembers(long seminarId, SeminarMemberCoachRequestListCreationDto memberList)
+        {
+            var seminar = await _context.Seminars.FindAsync(seminarId);
+
+            if (seminar == null)
+            {
+                throw new EntityNotFoundException(nameof(seminar));
+            }
+
+            await DeleteExcessMembers(seminarId, memberList);
+
+            var seminarMembersCreation = new List<SeminarMemberManagerRequestEntity>();
+            var seminarMembersUpdate = new List<SeminarMemberManagerRequestEntity>();
+
+            var seminarMembers = await GetCoachMembersByClub(seminarId, memberList.ClubId.Value, memberList.CoachId.Value);
+
+            foreach (var member in memberList.Members)
+            {
+                var userMembership = _context.UserMemberships.AsQueryable()
+                    .Where(um => um.UserId == member.UserId
+                    && um.GroupId == member.GroupId)
+                    .Include(um => um.Club)
+                    .Include(um => um.User)
+                    .Include(um => um.Group)
+                    .FirstOrDefault() ?? throw new EntityNotFoundException(nameof(UserMembershipEntity));
+
+                if (!seminarMembers.Any(m => m.UserId == member.UserId))
+                {
+                    seminarMembersCreation.Add(new(memberList.CoachId.Value, seminar, userMembership, member));
+                }
+                else
+                {
+                    var currentMember = seminarMembers.First(m => m.UserId == member.UserId);
+
+                    currentMember.UpdateData(seminar, userMembership, member);
+                    seminarMembersUpdate.Add(currentMember);
+                }
+            }
+
+            await _context.SeminarMembersManagerRequests.AddRangeAsync(seminarMembersCreation);
+            _context.SeminarMembersManagerRequests.UpdateRange(seminarMembersUpdate);
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task DeleteExcessMembers(long seminarId, SeminarMemberCoachRequestListCreationDto memberList)
+        {
+            var userIds = memberList.Members
+                .Select(m => m.UserId)
+                .ToList();
+
+            var membersToDelete = await _context.SeminarMembersManagerRequests
+                .Where(sm => sm.SeminarId == seminarId
+                    && sm.CoachId == memberList.CoachId
+                    && sm.ClubId == memberList.ClubId
+                    && !userIds.Contains(sm.UserId))
+                .ToListAsync();
+
+            if (membersToDelete.Count == 0)
+                return;
+
+            var userIdsToDelete = membersToDelete
+                .Select(m => m.UserId)
+                .Distinct()
+                .ToList();
+
+            var paymentsToDelete = await _context.Payments
+                .Where(p => p.EventType == EventType.Seminar
+                    && p.EventId == seminarId
+                    && userIdsToDelete.Contains(p.UserId))
+                .ToListAsync();
+
+            if (paymentsToDelete.Count > 0)
+                _context.Payments.RemoveRange(paymentsToDelete);
+
+            _context.SeminarMembersManagerRequests.RemoveRange(membersToDelete);
+
+            await _context.SaveChangesAsync();
         }
     }
 }

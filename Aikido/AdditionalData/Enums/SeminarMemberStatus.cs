@@ -1,12 +1,12 @@
 ﻿using System.Runtime.Serialization;
 
-namespace Aikido.AdditionalData
+namespace Aikido.AdditionalData.Enums
 {
     public enum SeminarMemberStatus
     {
         [EnumMember(Value = "Нет")]
         None,
-        [EnumMember(Value = ("Тренировка"))]
+        [EnumMember(Value = "Тренировка")]
         Training,
         [EnumMember(Value = "Не аттестован")]
         NotCertified,

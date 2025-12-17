@@ -1,4 +1,4 @@
-﻿using Aikido.AdditionalData;
+﻿using Aikido.AdditionalData.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities

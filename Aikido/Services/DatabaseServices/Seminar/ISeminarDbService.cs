@@ -1,7 +1,12 @@
 ﻿using Aikido.Dto.Seminars;
 using Aikido.Dto.Seminars.Creation;
 using Aikido.Dto.Seminars.Members;
+using Aikido.Dto.Seminars.Members.CoachEditRequest;
 using Aikido.Entities.Seminar;
+using Aikido.Entities.Seminar.SeminarMember;
+using Aikido.Entities.Seminar.SeminarMemberRequest;
+using Aikido.Entities.Users;
+using Aikido.Exceptions;
 
 namespace Aikido.Services.DatabaseServices.Seminar
 {
@@ -19,7 +24,9 @@ namespace Aikido.Services.DatabaseServices.Seminar
         Task UpdateAsync(long id, SeminarDto seminarData);
         Task DeleteAsync(long id);
 
-        Task AddSeminarMembersAsync(long seminarId, SeminarMemberGroupDto membersDto);
+        Task UpdateEditorList(long seminarId, List<long> editorIds);
+
+        Task AddSeminarMembersAsync(long seminarId, SeminarMemberListDto membersDto);
         Task SetFinalSeminarMembersAsync(long seminarId, List<FinalSeminarMemberDto> members);
         Task RemoveMemberAsync(long seminarId, long userId);
         Task<bool> IsMemberAsync(long seminarId, long userId);
@@ -32,5 +39,18 @@ namespace Aikido.Services.DatabaseServices.Seminar
         Task CancelSeminarResult(long seminarId);
         Task<SeminarMemberEntity> GetSeminarMemberAsync(long seminarId, long userId);
         Task<List<SeminarMemberEntity>> GetCoachMembersAsync(long seminarId, long coachId);
+
+        Task<List<SeminarMemberManagerRequestEntity>> GetManagerMembersAsync(long seminarId, long managerId);
+        Task<List<SeminarMemberManagerRequestEntity>> GetManagerMembersByClubAsync(long seminarId, long clubId);
+        Task CreateManagerMembersByClubAsync(long seminarId, SeminarMemberManagerRequestListDto managerRequest);
+        Task DeleteManagerMembersByClubAsync(long seminarId, long managerId, long clubId);
+        Task ConfirmManagerMembersByClubAsync(long seminarId, long managerId, long clubId);
+        Task CancelManagerMemberByClubAsync(long seminarId, long managerId, long clubId);
+        Task InitializeSeminar(long seminarId);
+        Task<List<SeminarMemberManagerRequestEntity>> GetRequestedMembers(long seminarId);
+        Task CreateSeminarMembersFromRequest(long seminarId);
+        Task CreateSeminarMembers(long seminarId, SeminarMemberListDto memberList);
+        Task<List<SeminarMemberManagerRequestEntity>> GetCoachMembersByClub(long seminarId, long clubId, long coachId);
+        Task CreateSeminarCoachMembers(long seminarId, SeminarMemberCoachRequestListCreationDto memberList);
     }
 }
