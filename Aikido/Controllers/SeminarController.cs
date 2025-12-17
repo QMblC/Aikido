@@ -261,6 +261,11 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Применяет результаты семинара
+        /// </summary>
+        /// <param name="seminarId"></param>
+        /// <returns></returns>
         [HttpPut("{seminarId}/apply")]
         public async Task<IActionResult> ApplySeminarResult(long seminarId)
         {
@@ -275,6 +280,11 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Отменяет результаты семинара
+        /// </summary>
+        /// <param name="seminarId"></param>
+        /// <returns></returns>
         [HttpPut("{seminarId}/cancel")]
         public async Task<IActionResult> CancelSeminarResult(long seminarId)
         {
