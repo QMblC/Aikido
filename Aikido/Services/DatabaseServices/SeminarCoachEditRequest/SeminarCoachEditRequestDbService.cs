@@ -75,6 +75,10 @@ namespace Aikido.Services.DatabaseServices.Seminar
         public async Task<List<SeminarMemberCoachRequestEntity>> GetCoachRequests(long seminarId, long clubId)
         {
             return await _context.SeminarMemberCoachRequests
+                .Include(r => r.Club)
+                .Include(r => r.RequestedBy)
+                .Include(r => r.Seminar)
+                .Include(r => r.ReviewedBy)
                 .Where(r => r.SeminarId == seminarId
                 && r.ClubId == clubId)
                 .ToListAsync();
