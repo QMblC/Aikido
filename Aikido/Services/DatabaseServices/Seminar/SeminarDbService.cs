@@ -383,8 +383,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
         {
             var members = await _context.SeminarMembersManagerRequests.AsQueryable()
                 .Where(sm => sm.SeminarId == seminarId
-                && sm.ManagerId == managerId
-                && sm.IsConfirmed)
+                && sm.ManagerId == managerId)
                 .Include(sm => sm.User)
                 .Include(sm => sm.Club)
                 .Include(sm => sm.Group)
