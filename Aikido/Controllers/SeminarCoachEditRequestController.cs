@@ -73,8 +73,8 @@ namespace Aikido.Controllers
         {
             try
             {
-                await _seminarCoachEditAppServiceAppService.GetCoachRequests(seminarId, clubId);
-                return Ok();
+                var members = await _seminarCoachEditAppServiceAppService.GetCoachRequests(seminarId, clubId);
+                return Ok(members);
             }
             catch (Exception ex)
             {
