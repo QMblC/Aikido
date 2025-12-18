@@ -217,7 +217,7 @@ namespace Aikido.Services
             var workbook = new XLWorkbook();
             var worksheet = workbook.Worksheets.Add("Шаблон пользователей");
 
-            var colCount = 15;
+            var colCount = 16; // Увеличено с 15 на 16
 
             worksheet.Cell(1, 1).Value = $"Ведомость на {members.First().SeminarName}";
             worksheet.Range(1, 1, 1, colCount).Merge().Style
@@ -229,27 +229,27 @@ namespace Aikido.Services
 
             worksheet.Range(3, 1, 4, colCount).Style.Fill.SetBackgroundColor(XLColor.White);
 
-            worksheet.Cell(5, 1).Value = ""; 
-            worksheet.Cell(5, 2).Value = ""; 
-            worksheet.Range(5, 3, 5, 8).Merge().Value = "Данные участника";
-            worksheet.Range(5, 3, 5, 8).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center).Font.SetBold();
-            worksheet.Range(5, 3, 5, 8).Style.Fill.SetBackgroundColor(XLColor.LightBlue);
+            worksheet.Cell(5, 1).Value = "";
+            worksheet.Cell(5, 2).Value = "";
+            worksheet.Range(5, 3, 5, 9).Merge().Value = "Данные участника"; // Изменено с 5, 3, 5, 8 на 5, 3, 5, 9
+            worksheet.Range(5, 3, 5, 9).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center).Font.SetBold();
+            worksheet.Range(5, 3, 5, 9).Style.Fill.SetBackgroundColor(XLColor.LightBlue);
 
-            worksheet.Range(5, 9, 5, 10).Merge().Value = "Распределение";
-            worksheet.Range(5, 9, 5, 10).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center).Font.SetBold();
-            worksheet.Range(5, 9, 5, 10).Style.Fill.SetBackgroundColor(XLColor.LightBlue);
+            worksheet.Range(5, 10, 5, 11).Merge().Value = "Распределение"; // Изменено с 5, 9, 5, 10 на 5, 10, 5, 11
+            worksheet.Range(5, 10, 5, 11).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center).Font.SetBold();
+            worksheet.Range(5, 10, 5, 11).Style.Fill.SetBackgroundColor(XLColor.LightBlue);
 
-            worksheet.Range(5, 11, 5, 14).Merge().Value = "Платёжная ведомость";
-            worksheet.Range(5, 11, 5, 14).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center).Font.SetBold();
-            worksheet.Range(5, 11, 5, 14).Style.Fill.SetBackgroundColor(XLColor.LightBlue);
+            worksheet.Range(5, 12, 5, 15).Merge().Value = "Платёжная ведомость"; // Изменено с 5, 11, 5, 14 на 5, 12, 5, 15
+            worksheet.Range(5, 12, 5, 15).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center).Font.SetBold();
+            worksheet.Range(5, 12, 5, 15).Style.Fill.SetBackgroundColor(XLColor.LightBlue);
 
-            worksheet.Cell(5, 15).Value = "примечания";
+            worksheet.Cell(5, 16).Value = "примечания"; // Изменено с 5, 15 на 5, 16
             worksheet.Row(5).Style.Font.SetBold();
             worksheet.Row(5).Style.Fill.SetBackgroundColor(XLColor.LightBlue);
 
             var headers = new List<string>
             {
-                "№", "userId", "ФИО", "Степень кю/дан", "Аттестуется", "Тренер", "Клуб", "Город",
+                "№", "userId", "ФИО", "Дата рождения", "Степень кю/дан", "Аттестуется", "Тренер", "Клуб", "Город",
                 "Возрастная группа", "Программа",
                 $"Годовой взнос {members.First().SeminarDate.Value.Year}", "Семинар", "Аттестация", "Паспорт", "примечания"
             };
@@ -272,34 +272,49 @@ namespace Aikido.Services
                 worksheet.Cell(rowNum, 1).Value = index++;
                 worksheet.Cell(rowNum, 2).Value = m.UserId;
                 worksheet.Cell(rowNum, 3).Value = m.UserFullName ?? "";
-                worksheet.Cell(rowNum, 4).Value = m.OldGrade == "None" ? ""
+                worksheet.Cell(rowNum, 4).Value = m.UserBirthday.HasValue
+                    ? m.UserBirthday.Value.ToString("dd.MM.yyyy")
+                    : ""; // Добавлено получение даты рождения
+                worksheet.Cell(rowNum, 5).Value = m.OldGrade == "None" ? ""
                     : EnumParser.GetEnumMemberValue(EnumParser.ConvertStringToEnum<Grade>(m.OldGrade));
-                worksheet.Cell(rowNum, 5).Value = m.CertificationGrade == "None" ? "" 
+                worksheet.Cell(rowNum, 6).Value = m.CertificationGrade == "None" ? ""
                     : EnumParser.GetEnumMemberValue(EnumParser.ConvertStringToEnum<Grade>(m.CertificationGrade));
-                worksheet.Cell(rowNum, 6).Value = m.CoachName ?? ""; 
-                worksheet.Cell(rowNum, 7).Value = m.ClubName;
-                worksheet.Cell(rowNum, 8).Value = m.ClubCity;
-                worksheet.Cell(rowNum, 9).Value = m.AgeGroup == null ? "" 
+                worksheet.Cell(rowNum, 7).Value = m.CoachName ?? "";
+                worksheet.Cell(rowNum, 8).Value = m.ClubName;
+                worksheet.Cell(rowNum, 9).Value = m.ClubCity;
+                worksheet.Cell(rowNum, 10).Value = m.AgeGroup == null ? ""
                     : EnumParser.GetEnumMemberValue(EnumParser.ConvertStringToEnum<AgeGroup>(m.AgeGroup));
 
                 if (EnumParser.ConvertStringToEnum<Grade>(m.CertificationGrade) == Grade.None)
                 {
-                    worksheet.Cell(rowNum, 10).Value = "";
+                    if (EnumParser.ConvertStringToEnum<Grade>(m.OldGrade) > Grade.Kyu1Child)
+                    {
+                        worksheet.Cell(rowNum, 11).Value = "Взрослая";
+                    }
+                    else if (EnumParser.ConvertStringToEnum<Grade>(m.OldGrade) == Grade.None)
+                    {
+                        worksheet.Cell(rowNum, 11).Value = "Не определено";
+                    }
+                    else
+                    {
+                        worksheet.Cell(rowNum, 11).Value = "Детская";
+                    }
+
                 }
                 else if (EnumParser.ConvertStringToEnum<Grade>(m.CertificationGrade) > Grade.Kyu1Child)
                 {
-                    worksheet.Cell(rowNum, 10).Value = "Взрослая";
+                    worksheet.Cell(rowNum, 11).Value = "Взрослая";
                 }
                 else
                 {
-                    worksheet.Cell(rowNum, 10).Value = "Детская";
+                    worksheet.Cell(rowNum, 11).Value = "Детская";
                 }
-                worksheet.Cell(rowNum, 11).Value = m.AnnualFeePriceInRubles ?? (decimal?)null;
-                worksheet.Cell(rowNum, 12).Value = m.SeminarPriceInRubles ?? (decimal?)null;
-                worksheet.Cell(rowNum, 13).Value = m.CertificationPriceInRubles ?? (decimal?)null;
-                worksheet.Cell(rowNum, 14).Value = m.BudoPassportPriceInRubles ?? (decimal?)null;
+                worksheet.Cell(rowNum, 12).Value = m.AnnualFeePriceInRubles ?? (decimal?)null;
+                worksheet.Cell(rowNum, 13).Value = m.SeminarPriceInRubles ?? (decimal?)null;
+                worksheet.Cell(rowNum, 14).Value = m.CertificationPriceInRubles ?? (decimal?)null;
+                worksheet.Cell(rowNum, 15).Value = m.BudoPassportPriceInRubles ?? (decimal?)null;
 
-                worksheet.Cell(rowNum, 15).Value = "";
+                worksheet.Cell(rowNum, 16).Value = ""; // Изменено с rowNum, 15 на rowNum, 16
 
                 sumAnnual += m.AnnualFeePriceInRubles ?? 0;
                 sumSeminar += m.SeminarPriceInRubles ?? 0;
@@ -312,13 +327,12 @@ namespace Aikido.Services
             var startDataRow = 7;
             var endDataRow = rowNum - 1;
 
-            worksheet.Cell(rowNum, 11).FormulaA1 = $"SUM(K{startDataRow}:K{endDataRow})";
-            worksheet.Cell(rowNum, 12).FormulaA1 = $"SUM(L{startDataRow}:L{endDataRow})";
-            worksheet.Cell(rowNum, 13).FormulaA1 = $"SUM(M{startDataRow}:M{endDataRow})";
-            worksheet.Cell(rowNum, 14).FormulaA1 = $"SUM(N{startDataRow}:N{endDataRow})";
+            worksheet.Cell(rowNum, 12).FormulaA1 = $"SUM(L{startDataRow}:L{endDataRow})"; // Изменено с K на L
+            worksheet.Cell(rowNum, 13).FormulaA1 = $"SUM(M{startDataRow}:M{endDataRow})"; // Изменено с L на M
+            worksheet.Cell(rowNum, 14).FormulaA1 = $"SUM(N{startDataRow}:N{endDataRow})"; // Изменено с M на N
+            worksheet.Cell(rowNum, 15).FormulaA1 = $"SUM(O{startDataRow}:O{endDataRow})"; // Изменено с N на O
 
-            worksheet.Cell(rowNum, 15).FormulaA1 = $"SUM(K{rowNum}:N{rowNum})";
-
+            worksheet.Cell(rowNum, 16).FormulaA1 = $"SUM(L{rowNum}:O{rowNum})"; // Изменено с K:N на L:O
 
             worksheet.Range(rowNum, 1, rowNum, colCount).Style.Font.SetBold();
             worksheet.Range(rowNum, 1, rowNum, colCount).Style.Fill.SetBackgroundColor(XLColor.LightGray);
@@ -334,6 +348,7 @@ namespace Aikido.Services
 
             return stream;
         }
+
 
         public List<SeminarMemberDto> ParseSeminarMembersTable(Stream excelStream)
         {
