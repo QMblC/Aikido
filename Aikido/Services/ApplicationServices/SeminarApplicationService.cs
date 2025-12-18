@@ -394,7 +394,8 @@ namespace Aikido.Application.Services
 
             foreach(var manager in managers)
             {
-                var requestedMembers = await _seminarDbService.GetManagerMembersAsync(seminarId, manager.Id);
+                var requestedMembers = await _seminarDbService.GetRequestedMembers(seminarId);
+                requestedMembers = requestedMembers.Where(m => m.ManagerId  == manager.Id).ToList();
                 managerRequestList.Add(new(new UserShortDto(manager), requestedMembers.Count));
             }
 

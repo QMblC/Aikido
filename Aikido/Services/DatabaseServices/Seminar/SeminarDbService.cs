@@ -546,7 +546,8 @@ namespace Aikido.Services.DatabaseServices.Seminar
         public async Task<List<SeminarMemberManagerRequestEntity>> GetRequestedMembers(long seminarId)
         {
             var members = await _context.SeminarMembersManagerRequests.AsQueryable()
-                .Where(sm => sm.SeminarId == seminarId)
+                .Where(sm => sm.SeminarId == seminarId
+                && sm.IsConfirmed)
                 .Include(sm => sm.User)
                 .Include(sm => sm.Club)
                 .Include(sm => sm.Group)
