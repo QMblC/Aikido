@@ -631,7 +631,6 @@ namespace Aikido.Services.DatabaseServices.Seminar
 
             var membersToDelete = await _context.SeminarMembers
                 .Where(sm => sm.SeminarId == seminarId
-                    && sm.CoachId == memberList.CreatorId
                     && !userIds.Contains(sm.UserId))
                 .ToListAsync();
 
