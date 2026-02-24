@@ -82,6 +82,11 @@ namespace Aikido.Application.Services
             await _clubDbService.UpdateAsync(id, clubData);
         }
 
+        public async Task SoftDeleteClub(long id)
+        {
+
+        }
+
         public async Task DeleteClubAsync(long id)
         {
             if (!await _clubDbService.Exists(id))
