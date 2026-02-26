@@ -3,10 +3,12 @@ using Aikido.Configuration;
 using Aikido.Data;
 using Aikido.Middleware;
 using Aikido.Services;
+using Aikido.Services.ApplicationServices;
 using Aikido.Services.DatabaseServices;
 using Aikido.Services.DatabaseServices.Club;
 using Aikido.Services.DatabaseServices.Group;
 using Aikido.Services.DatabaseServices.Seminar;
+using Aikido.Services.DatabaseServices.StatisticService;
 using Aikido.Services.DatabaseServices.User;
 using Aikido.Services.UnitOfWork;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
@@ -122,6 +124,8 @@ builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<AuthApplicationService>();
 builder.Services.AddScoped<SeminarCoachEditRequestDbService>();
 builder.Services.AddScoped<SeminarCoachEditRequestAppService>();
+builder.Services.AddScoped<IStatisticDbService, StatisticDbService>();
+builder.Services.AddScoped<StatisticApplicationService>();
 
 
 
