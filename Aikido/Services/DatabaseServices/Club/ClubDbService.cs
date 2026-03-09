@@ -52,11 +52,11 @@ namespace Aikido.Services.DatabaseServices.Club
             return await _context.Clubs.AnyAsync(c => c.Id == id);
         }
 
-        public async Task<List<ClubEntity>> GetAllAsync()
+        public async Task<List<ClubEntity>> GetAllActiveAsync()
         {
             return await _context.Clubs
                 .Include(c => c.Manager)
-                .Where(c => c.IsActive)
+                .Where(c => c.ClosedAt == null)
                 .OrderBy(c => c.Name)
                 .ToListAsync();
         }
@@ -76,12 +76,28 @@ namespace Aikido.Services.DatabaseServices.Club
             await _context.SaveChangesAsync();
         }
 
+        public async Task CloseAsync(long id)
+        {
+            var club = await GetByIdOrThrowException(id);
+            club.ClosedAt = DateTime.UtcNow;
+            _context.Clubs.Update(club);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task RecoverAsync(long id)
+        {
+            var club = await GetByIdOrThrowException(id);
+            club.ClosedAt = null;
+            _context.Clubs.Update(club);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task DeleteAsync(long id)
         {
             var club = await GetByIdOrThrowException(id);
             if (club.Groups.Count > 0)
             {
-                throw new Exception("Club can\'t contain any groups before deleting");
+                throw new Exception("Клуб не может содержать групп");
             }
             _context.Remove(club); 
             await _context.SaveChangesAsync();
@@ -91,7 +107,11 @@ namespace Aikido.Services.DatabaseServices.Club
         {
             return await _context.UserMemberships
                 .Include(um => um.User)
-                .Where(um => um.ClubId == clubId && um.User != null)
+                .Include(um => um.Group)
+                .Where(um => um.ClubId == clubId 
+                && um.User != null 
+                && um.Group.ClosedAt == null
+                && um.ClosedAt == null)
                 .OrderBy(um => um.User.LastName)
                 .ThenBy(um => um.User.FirstName)
                 .ThenBy(um => um.User.MiddleName)
@@ -125,7 +145,7 @@ namespace Aikido.Services.DatabaseServices.Club
                     .ThenInclude(um => um.User)
                 .Include(g => g.Schedule)
                 .Include(g => g.ExclusionDates)
-                .Where(g => g.ClubId == clubId && g.IsActive)
+                .Where(g => g.ClubId == clubId && g.ClosedAt == null)
                 .OrderBy(g => g.Name)
                 .ToListAsync();
         }

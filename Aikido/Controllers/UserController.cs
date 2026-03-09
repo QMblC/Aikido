@@ -3,8 +3,10 @@ using Aikido.Application.Services;
 using Aikido.Dto.Users;
 using Aikido.Dto.Users.Creation;
 using Aikido.Entities.Filters;
+using Aikido.Exceptions;
 using Aikido.Requests;
 using Aikido.Services;
+using Aikido.Services.ApplicationServices;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,14 +18,17 @@ namespace Aikido.Controllers
     public class UserController : ControllerBase
     {
         private readonly UserApplicationService _userApplicationService;
+        private readonly UserMembershipApplicationService _userMembershipApplicationService;
         private readonly TableService _tableService;
 
         public UserController(
             UserApplicationService userApplicationService,
-            TableService tableService)
+            TableService tableService,
+            UserMembershipApplicationService userMembershipApplicationService)
         {
             _userApplicationService = userApplicationService;
             _tableService = tableService;
+            _userMembershipApplicationService = userMembershipApplicationService;
         }
 
         [HttpGet("get/{id}")]
@@ -109,7 +114,7 @@ namespace Aikido.Controllers
         {
             try
             {
-                var memberships = await _userApplicationService.GetUserMembershipsAsync(userId);
+                var memberships = await _userMembershipApplicationService.GetUserMembershipsAsync(userId);
                 return Ok(memberships
                     .Distinct()
                     .ToList());
@@ -120,13 +125,18 @@ namespace Aikido.Controllers
             }
         }
 
-
+        /// <summary>
+        /// Добавление в группу
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="userMembership"></param>
+        /// <returns></returns>
         [HttpPost("{userId}/add/membership")]
         public async Task<IActionResult> AddUserMembership(long userId, [FromBody] UserMembershipCreationDto userMembership)
         {
             try
             {
-                await _userApplicationService.AddUserMembershipAsync(userId, userMembership);
+                await _userMembershipApplicationService.AddUserMembershipAsync(userId, userMembership);
                 return Ok(new { Message = "Пользователь успешно добавлен в группу" });
             }
             catch (ArgumentException ex)
@@ -139,13 +149,23 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Открепление от группы
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="groupId"></param>
+        /// <returns></returns>
         [HttpDelete("{userId}/groups/{groupId}")]
         public async Task<IActionResult> RemoveUserFromGroup(long userId, long groupId)
         {
             try
             {
-                await _userApplicationService.RemoveUserMembershipAsync(userId, groupId);
+                await _userMembershipApplicationService.CloseUserMembershipAsync(userId, groupId);
                 return Ok(new { Message = "Пользователь успешно удален из группы" });
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return NotFound(new { Message = "Не удалось найти членство в группе", Details = ex.Message });
             }
             catch (Exception ex)
             {
@@ -250,6 +270,35 @@ namespace Aikido.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Ошибка при создании шаблона.", Details = ex.Message });
+            }
+        }
+
+        [HttpPost("create/table")]
+        public async Task<IActionResult> SetFinalStatement([FromForm] TableFileRequest tableFile)
+        {
+            try
+            {
+                var file = tableFile.Table;
+
+                if (file == null || file.Length == 0)
+                    return BadRequest("Файл Excel не найден или пустой!");
+
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    var partialMembers = _tableService.ParseUserCreationTable(stream);
+                    foreach (var member in partialMembers)
+                    {
+                        await _userApplicationService.CreateUserAsync(member);
+                    }
+                    return Ok();
+                }
+
+                    
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при создании пользователей.", Details = ex.Message });
             }
         }
     }

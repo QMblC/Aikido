@@ -36,9 +36,9 @@ namespace Aikido.Dto
             ManagerId = club.ManagerId;
             ManagerName = club.Manager?.FullName;
             FoundedDate = club.FoundedDate;
-            IsActive = club.IsActive;
+            IsActive = club.ClosedAt == null;
             MemberCount = club.UserMemberships?.Count() ?? 0;
-            GroupCount = club.Groups?.Count(g => g.IsActive) ?? 0;
+            GroupCount = club.Groups?.Count(g => g.ClosedAt == null) ?? 0;
         }
     }
 }

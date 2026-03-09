@@ -1,13 +1,15 @@
-﻿using Aikido.Dto;
+﻿using Aikido.AdditionalData.Enums;
+using Aikido.Dto;
+using Aikido.Dto.Groups;
+using Aikido.Dto.Users;
+using Aikido.Entities;
+using Aikido.Entities.Users;
+using Aikido.Exceptions;
+using Aikido.Services;
 using Aikido.Services.DatabaseServices.Club;
 using Aikido.Services.DatabaseServices.Group;
 using Aikido.Services.DatabaseServices.User;
-using Aikido.Exceptions;
-using Aikido.Entities;
-using Aikido.Entities.Users;
-using Aikido.Dto.Users;
-using Aikido.Dto.Groups;
-using Aikido.AdditionalData.Enums;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace Aikido.Application.Services
 {
@@ -16,15 +18,18 @@ namespace Aikido.Application.Services
         private readonly IClubDbService _clubDbService;
         private readonly IGroupDbService _groupDbService;
         private readonly IUserDbService _userDbService;
+        private readonly ScheduleDbService _scheduleDbService;
 
         public ClubApplicationService(
             IClubDbService clubDbService,
             IGroupDbService groupDbService,
-            IUserDbService userDbService)
+            IUserDbService userDbService,
+            ScheduleDbService scheduleDbService)
         {
             _clubDbService = clubDbService;
             _groupDbService = groupDbService;
             _userDbService = userDbService;
+            _scheduleDbService = scheduleDbService;
         }
 
         public async Task<ClubDto> GetClubByIdAsync(long id)
@@ -35,7 +40,7 @@ namespace Aikido.Application.Services
 
         public async Task<List<ClubDto>> GetAllClubsAsync()
         {
-            var clubs = await _clubDbService.GetAllAsync();
+            var clubs = await _clubDbService.GetAllActiveAsync();
             return clubs.Select(c => new ClubDto(c)).ToList();
         }
 
@@ -82,9 +87,24 @@ namespace Aikido.Application.Services
             await _clubDbService.UpdateAsync(id, clubData);
         }
 
-        public async Task SoftDeleteClub(long id)
-        {
+        public async Task CloseClubAsync(long id)
+        {      
+            var groups = await _clubDbService.GetClubGroupsAsync(id);
 
+            if (groups.Count == 0)
+            {
+                await _clubDbService.CloseAsync(id);
+            }
+            else
+            {
+                throw new InvalidOperationException("Невозможно закрыть клуб, пока в нём есть активные группы");
+            }
+            
+        }
+
+        public async Task RecoverClubAsync(long id)
+        {
+            await _clubDbService.RecoverAsync(id);
         }
 
         public async Task DeleteClubAsync(long id)

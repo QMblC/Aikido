@@ -15,11 +15,14 @@ namespace Aikido.Entities
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
 
+        public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
+        public DateTime? ClosedAt { get; set; }
 
         public ScheduleEntity() { }
 
         public ScheduleEntity(long groupId, IScheduleDto scheduleData)
         {
+            CreatedAt = DateTime.UtcNow;
             UpdateFromJson(groupId, scheduleData);
         }
 

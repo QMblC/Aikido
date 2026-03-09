@@ -4,12 +4,16 @@ using Aikido.Dto;
 using Aikido.Dto.Groups;
 using Aikido.Dto.Seminars.Members;
 using Aikido.Dto.Users;
+using Aikido.Dto.Users.Creation;
 using Aikido.Entities;
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
+using System.Reflection;
+using System.Runtime.Serialization;
 
 namespace Aikido.Services
 {
@@ -113,15 +117,37 @@ namespace Aikido.Services
             var workbookPart = document.AddWorkbookPart();
             workbookPart.Workbook = new Workbook();
 
-            var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
-            worksheetPart.Worksheet = new Worksheet(new SheetData());
-
             var sheets = document.WorkbookPart.Workbook.AppendChild(new Sheets());
+
+            var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
+            var styles = AddStyles(workbookPart);
+            worksheetPart.Worksheet = new Worksheet(new SheetData());
+            var columns = new Columns(
+                new Column
+                {
+                    Min = 8,
+                    Max = 8,
+                    Style = 1, // текстовый стиль
+                    Width = 20,
+                    CustomWidth = true
+                },
+                new Column
+                {
+                    Min = 11,
+                    Max = 11,
+                    Style = 1, // текстовый стиль
+                    Width = 20,
+                    CustomWidth = true
+                }
+            );
+
+            worksheetPart.Worksheet.InsertAt(columns, 0);
+
             var sheet = new Sheet
             {
-                Id = document.WorkbookPart.GetIdOfPart(worksheetPart),
+                Id = workbookPart.GetIdOfPart(worksheetPart),
                 SheetId = 1,
-                Name = "UserTemplate"
+                Name = "Создание пользователей"
             };
             sheets.Append(sheet);
 
@@ -129,30 +155,124 @@ namespace Aikido.Services
 
             var headerRow = new Row();
             var headers = new List<string>();
-
-            if (includeIds)
-                headers.Add("Id");
+            if (includeIds) headers.Add("Id");
 
             headers.AddRange(new[]
             {
-                "Name", "Role", "Grade", "Phone", "City",
-                "ClubIds (comma separated)", "GroupIds (comma separated)",
-                "Sex", "Birthday (YYYY-MM-DD)", "Education", "ProgramType",
-                "ParentFullName", "ParentPhoneNumber"
+                "Фамилия", "Имя", "Отчество",
+                "Логин", "Пароль", "Роль",
+                "Пояс", "Телефон", "Город",
+                "Пол", "Дата рождения (ДД.ММ.ГГГГ)"
             });
 
             foreach (var header in headers)
             {
-                headerRow.Append(new Cell { CellValue = new CellValue(header), DataType = CellValues.String });
+                headerRow.Append(new Cell
+                {
+                    CellValue = new CellValue(header),
+                    DataType = CellValues.String
+                });
             }
 
             sheetData.AppendChild(headerRow);
+
+            var lookupSheetPart = workbookPart.AddNewPart<WorksheetPart>();
+            lookupSheetPart.Worksheet = new Worksheet(new SheetData());
+
+            var lookupSheet = new Sheet
+            {
+                Id = workbookPart.GetIdOfPart(lookupSheetPart),
+                SheetId = 2,
+                Name = "Справочник"
+            };
+            sheets.Append(lookupSheet);
+
+            var lookupSheetData = lookupSheetPart.Worksheet.GetFirstChild<SheetData>();
+
+            var lookupHeaderRow = new Row();
+            var lookupHeaders = new[] { "Роль", "Пояс", "Пол" };
+            foreach (var h in lookupHeaders)
+            {
+                lookupHeaderRow.Append(new Cell
+                {
+                    CellValue = new CellValue(h),
+                    DataType = CellValues.String
+                });
+            }
+            lookupSheetData.AppendChild(lookupHeaderRow);
+
+            string GetEnumMemberValue<T>(T value) where T : Enum
+            {
+                var member = typeof(T).GetMember(value.ToString()).FirstOrDefault();
+                var attr = member?.GetCustomAttribute<EnumMemberAttribute>();
+                return attr?.Value ?? value.ToString();
+            }
+
+            var roles = Enum.GetValues(typeof(Role))
+                            .Cast<Role>()
+                            .Select(GetEnumMemberValue)
+                            .ToArray();
+
+            var belts = Enum.GetValues(typeof(Grade))
+                            .Cast<Grade>()
+                            .Select(GetEnumMemberValue)
+                            .ToArray();
+
+            var sexes = Enum.GetValues(typeof(Sex))
+                            .Cast<Sex>()
+                            .Select(GetEnumMemberValue)
+                            .ToArray();
+
+            var maxRows = Math.Max(roles.Length, Math.Max(belts.Length, sexes.Length));
+
+            for (int i = 0; i < maxRows; i++)
+            {
+                var row = new Row();
+
+                row.Append(new Cell
+                {
+                    CellValue = new CellValue(i < roles.Length ? roles[i] : string.Empty),
+                    DataType = CellValues.String
+                });
+
+                row.Append(new Cell
+                {
+                    CellValue = new CellValue(i < belts.Length ? belts[i] : string.Empty),
+                    DataType = CellValues.String
+                });
+
+                row.Append(new Cell
+                {
+                    CellValue = new CellValue(i < sexes.Length ? sexes[i] : string.Empty),
+                    DataType = CellValues.String
+                });
+
+                lookupSheetData.AppendChild(row);
+            }
 
             workbookPart.Workbook.Save();
             document.Dispose();
 
             stream.Position = 0;
             return stream;
+        }
+
+        private WorkbookStylesPart AddStyles(WorkbookPart workbookPart)
+        {
+            var stylesPart = workbookPart.AddNewPart<WorkbookStylesPart>();
+
+            stylesPart.Stylesheet = new Stylesheet(
+                new Fonts(new Font()),
+                new Fills(new Fill()),
+                new Borders(new Border()),
+                new CellFormats(
+                    new CellFormat(), // default
+                    new CellFormat { NumberFormatId = 49, ApplyNumberFormat = true } // текст
+                )
+            );
+
+            stylesPart.Stylesheet.Save();
+            return stylesPart;
         }
 
         public async Task<MemoryStream> ExportSeminarsToExcelAsync()
@@ -474,6 +594,137 @@ namespace Aikido.Services
             return stream;
         }
 
+        public List<UserCreationDto> ParseUserCreationTable(Stream excelStream)
+        {
+            var users = new List<UserCreationDto>();
+
+            using var document = SpreadsheetDocument.Open(excelStream, false);
+            var workbookPart = document.WorkbookPart;
+
+            var sheet = workbookPart.Workbook.Sheets.Cast<Sheet>()
+                .FirstOrDefault(s => s.Name == "Создание пользователей");
+
+            if (sheet == null)
+                return users;
+
+            var worksheetPart = (WorksheetPart)workbookPart.GetPartById(sheet.Id!);
+
+            var rows = worksheetPart.Worksheet
+                .Elements<SheetData>()
+                .First()
+                .Elements<Row>()
+                .Skip(1); // пропускаем заголовок
+
+            foreach (var row in rows)
+            {
+                var cellDictionary = row.Elements<Cell>()
+                    .ToDictionary(GetColumnIndex);
+
+                if (!cellDictionary.Any())
+                    continue;
+
+                int index = 0;
+                var dto = new UserCreationDto();
+
+                string? GetCellValue(int i)
+                {
+                    if (!cellDictionary.TryGetValue(i, out var cell))
+                        return null;
+
+                    return GetCellText(cell, workbookPart);
+                }
+
+                dto.LastName = GetCellValue(index++);
+                dto.FirstName = GetCellValue(index++);
+                dto.MiddleName = GetCellValue(index++);
+                dto.Login = GetCellValue(index++);
+                dto.Password = GetCellValue(index++);
+
+                dto.Role = EnumParser.ConvertEnumToString(
+                    EnumParser.GetEnumByMemberValue<Role>(GetCellValue(index++)));
+
+                dto.Grade = EnumParser.ConvertEnumToString(
+                    EnumParser.GetEnumByMemberValue<Grade>(GetCellValue(index++)));
+
+                dto.PhoneNumber = GetCellValue(index++);
+                dto.City = GetCellValue(index++);
+
+                dto.Sex = EnumParser.ConvertEnumToString(
+                    EnumParser.GetEnumByMemberValue<Sex>(GetCellValue(index++)));
+
+                var birthdayStr = GetCellValue(index++);
+
+                if (!string.IsNullOrWhiteSpace(birthdayStr))
+                {
+                    DateTime birthday;
+
+                    if (double.TryParse(birthdayStr, NumberStyles.Any, CultureInfo.InvariantCulture, out var oaDate))
+                    {
+                        birthday = DateTime.FromOADate(oaDate);
+                    }
+                    else if (DateTime.TryParseExact(
+                        birthdayStr,
+                        "dd.MM.yyyy",
+                        CultureInfo.InvariantCulture,
+                        DateTimeStyles.None,
+                        out var parsed))
+                    {
+                        birthday = parsed;
+                    }
+                    else
+                    {
+                        throw new InvalidDataException("Неправильный формат даты");
+                    }
+
+                    dto.Birthday = DateTime.SpecifyKind(birthday.Date, DateTimeKind.Utc);
+                }
+
+                users.Add(dto);
+            }
+
+            return users;
+        }
+
+        private int GetColumnIndex(Cell cell)
+        {
+            var reference = cell.CellReference!.Value;
+
+            int columnIndex = 0;
+
+            foreach (var ch in reference)
+            {
+                if (char.IsLetter(ch))
+                {
+                    columnIndex *= 26;
+                    columnIndex += (ch - 'A' + 1);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return columnIndex - 1;
+        }
+
+        private string? GetCellText(Cell cell, WorkbookPart workbookPart)
+        {
+            if (cell == null)
+                return null;
+
+            var value = cell.InnerText;
+
+            if (cell.DataType == null)
+                return value;
+
+            if (cell.DataType.Value == CellValues.SharedString)
+            {
+                var stringTable = workbookPart.SharedStringTablePart;
+                return stringTable?.SharedStringTable.ElementAt(int.Parse(value)).InnerText;
+            }
+
+            return value;
+        }
 
 
         private decimal? GetDecimalOrNull(IXLCell cell)

@@ -40,7 +40,7 @@ namespace Aikido.Dto.Groups
             ClubId = group.ClubId;
             ClubName = group.Club?.Name;
             AgeGroup = EnumParser.ConvertEnumToString(group.AgeGroup);
-            CreatedDate = group.CreatedDate;
+            CreatedDate = group.CreatedAt;
             Schedule = group.Schedule
                 .Select(s => new ScheduleDto(s))
                 .ToList();

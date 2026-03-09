@@ -29,6 +29,8 @@ namespace Aikido.Dto.Users
 
         public DateTime? CreationDate { get; set; }
 
+        public long? MainUserMembershipId { get;  }
+
         public List<UserMembershipDto>? UserMembershipDtos { get; set; } = new();
 
         public UserDto() { }
@@ -55,7 +57,8 @@ namespace Aikido.Dto.Users
             ParentFullName = user.ParentFullName;
             ParentPhoneNumber = user.ParentPhoneNumber;
             RegistrationDate = user.RegistrationDate;
-            CreationDate = user.CreationDate;
+            CreationDate = user.CreatedAt;
+            MainUserMembershipId = user.MainUserMembershipAsUserId;
         }
 
         public UserDto(UserEntity user, List<UserMembershipEntity> userMemberships) : this(user)

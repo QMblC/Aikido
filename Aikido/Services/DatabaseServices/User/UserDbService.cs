@@ -168,7 +168,13 @@ namespace Aikido.Services.DatabaseServices.User
         public async Task UpdateUser(long id, UserCreationDto userData)
         {
             var user = await GetByIdOrThrowException(id);
-            user.UpdateFromJson(userData);
+            user.Update(userData);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateUser(UserEntity user)
+        {
+            _context.Users.Update(user);
             await _context.SaveChangesAsync();
         }
 
@@ -179,7 +185,7 @@ namespace Aikido.Services.DatabaseServices.User
                 if (userData.Id.HasValue)
                 {
                     var user = await GetByIdOrThrowException(userData.Id.Value);
-                    user.UpdateFromJson(userData);
+                    user.Update(userData);
                 }
             }
             await _context.SaveChangesAsync();
@@ -192,42 +198,62 @@ namespace Aikido.Services.DatabaseServices.User
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<UserMembershipEntity>> GetUserMembershipsAsync(long userId)
+        public async Task<List<UserMembershipEntity>> GetActiveUserMembershipsAsync(long userId)
         {
             return await _context.UserMemberships
-                .Where(ug => ug.UserId == userId)
+                .Where(um => um.UserId == userId
+                && um.ClosedAt == null)
                 .Include(um => um.User)
-                .Include(ug => ug.Group)
+                .Include(um => um.Group)
                     .ThenInclude(g => g.UserMemberships)
                         .ThenInclude(um => um.User)
-                .Include(ug => ug.Group)
+                .Include(um => um.Group)
                     .ThenInclude(g => g.Club)
                 .Include(um => um.Attendances)
-                .OrderByDescending(ug => ug.JoinDate)
+                .OrderByDescending(ug => ug.CreateAt)
                 .ToListAsync();
         }
 
-        public UserMembershipEntity GetUserMembership(long userId, long groupId)
+        public async Task<List<UserMembershipEntity>> GetActiveUserMembershipsAsUserAsync(long userId)
         {
-            return _context.UserMemberships
-                .AsQueryable()
+            return await _context.UserMemberships
                 .Where(um => um.UserId == userId
-                && um.GroupId == groupId)
+                && um.ClosedAt == null
+                && um.RoleInGroup == Role.User)
+                .Include(um => um.User)
+                .Include(um => um.Group)
+                    .ThenInclude(g => g.UserMemberships)
+                        .ThenInclude(um => um.User)
+                .Include(um => um.Group)
+                    .ThenInclude(g => g.Club)
+                .Include(um => um.Attendances)
+                .OrderByDescending(ug => ug.CreateAt)
+                .ToListAsync();
+        }
+
+        public UserMembershipEntity GetActiveUserMembership(long userId, long groupId)
+        {
+            var entity = _context.UserMemberships
                 .Include(um => um.User)
                 .Include(um => um.Attendances)
-                .Include(ug => ug.Group)
+                .Include(um => um.Group)
                     .ThenInclude(g => g.UserMemberships)
-                .Include(ug => ug.Group)
+                .Include(um => um.Group)
                     .ThenInclude(g => g.Club)
-                .FirstOrDefault() 
-                ?? throw new EntityNotFoundException(nameof(UserMembershipEntity));
+                .FirstOrDefault(um =>
+                    um.UserId == userId &&
+                    um.GroupId == groupId &&
+                    um.ClosedAt == null);
+
+            return entity ?? throw new EntityNotFoundException(nameof(UserMembershipEntity));
         }
 
         public UserMembershipEntity GetMainUserMembership(long userId)
         {
             var mainUserMembership = _context.UserMemberships.AsQueryable()
                 .Where(um => um.IsMain == true
-                && um.UserId == userId)
+                && um.UserId == userId
+                && um.ClosedAt == null)
                 .Include(um => um.User)
                 .Include(um => um.Club)
                     .ThenInclude(um => um.Manager)
@@ -239,56 +265,82 @@ namespace Aikido.Services.DatabaseServices.User
             return mainUserMembership;
         }
 
-        public async Task SetNewMainUserMembership(long userId)
+        public async Task<bool> UserMembershipExists(long userId, long groupId)
         {
-            var newMainUserMembership = await _context.UserMemberships.AsQueryable()
-                .OrderBy(um => um.JoinDate)
-                .FirstOrDefaultAsync(um => um.UserId == userId);
+            var userMembership = await _context.UserMemberships.Where(um => um.UserId == userId
+                && um.GroupId == groupId
+                && um.ClosedAt == null)
+                .FirstOrDefaultAsync();
+
+            return userMembership != null;
         }
 
-        public async Task AddUserMembershipAsync(long userId, UserMembershipCreationDto userMembership)
+        public async Task<long> CreateUserMembershipAsync(long userId, UserMembershipCreationDto userMembership)
+        {
+            var userMembershipEntity = new UserMembershipEntity(userId, userMembership);
+            await _context.UserMemberships.AddAsync(userMembershipEntity);
+            await _context.SaveChangesAsync();
+
+            return userMembershipEntity.Id;
+        }
+
+        public async Task UpdateUserMembershipAsync(long userId, UserMembershipCreationDto userMembership)
         {
             var clubId = userMembership.ClubId;
             var groupId = userMembership.GroupId;
 
             var existingMembership = await _context.UserMemberships
-                .FirstOrDefaultAsync(um => um.UserId == userId && um.ClubId == clubId && um.GroupId == groupId);
+                .FirstAsync(um => um.UserId == userId 
+                && um.ClubId == clubId 
+                && um.GroupId == groupId
+                && um.ClosedAt == null);
 
-            if (existingMembership == null)
-            {
-                if (userMembership.IsMain)
-                {
-                    var oldMainUserMembership = GetMainUserMembership(userId);
+            existingMembership.IsMain = userMembership.IsMain;
 
-                    if (oldMainUserMembership != null)
-                    {
-                        oldMainUserMembership.IsMain = false;
-                    }
-                }
-
-                var userMembershipEntity = new UserMembershipEntity(userId, userMembership);
-                _context.UserMemberships.Add(userMembershipEntity);         
-            }
-            else
-            {
-                if (existingMembership.IsMain && userMembership.IsMain == false)
-                {
-                    existingMembership.IsMain = false;
-                    await SetNewMainUserMembership(userId);
-                }
-                if (!existingMembership.IsMain && userMembership.IsMain == true)
-                {
-                    var oldMainUserMembership = GetMainUserMembership(userId);
-                    oldMainUserMembership.IsMain = false;
-                    existingMembership.IsMain = true;
-                }
-                existingMembership.RoleInGroup = EnumParser.ConvertStringToEnum<Role>(userMembership.RoleInGroup);
-            }
-
+            _context.Update(existingMembership);
             await _context.SaveChangesAsync();
+        }
 
-            var group = await _context.Groups.FindAsync(groupId);
+        public async Task UpdateUserMembershipAsync(UserMembershipEntity userMembership)
+        {
+            _context.UserMemberships.Update(userMembership);
+            await _context.SaveChangesAsync();
+        }
 
+        public async Task CloseUserMembershipAsync(long userId, long groupId)
+        {
+            var userMembership = await _context.UserMemberships
+                .Where(um => um.UserId == userId
+                && um.GroupId == groupId
+                && um.ClosedAt == null)
+                .FirstOrDefaultAsync();
+
+            if (userMembership == null)
+            {
+                throw new EntityNotFoundException(nameof(UserMembershipEntity));
+            }
+
+            userMembership.ClosedAt = DateTime.UtcNow;
+
+            _context.UserMemberships.Update(userMembership);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task RecoverUserMembershipAsync(long userId, long groupId)
+        {
+            var userMembership = await _context.UserMemberships
+                .Where(um => um.UserId == userId
+                && um.GroupId == groupId)
+                .FirstOrDefaultAsync();
+
+            if (userMembership == null)
+            {
+                throw new EntityNotFoundException(nameof(UserMembershipEntity));
+            }
+
+            userMembership.ClosedAt = null;
+
+            _context.UserMemberships.Update(userMembership);
             await _context.SaveChangesAsync();
         }
 
@@ -296,16 +348,6 @@ namespace Aikido.Services.DatabaseServices.User
         {
             var userMembership = await _context.UserMemberships
                 .FirstOrDefaultAsync(um => um.UserId == userId && um.GroupId == groupId);
-
-            if (userMembership == null)
-            {
-                throw new EntityNotFoundException(nameof(UserMembershipEntity));
-            }
-
-            if (userMembership.IsMain)
-            {
-                throw new OpertaionForbiddenException("Невозможно удалить главную группу");
-            }
 
             _context.Remove(userMembership);
             await _context.SaveChangesAsync();
@@ -323,19 +365,10 @@ namespace Aikido.Services.DatabaseServices.User
                 _context.Remove(userMembership);
             }
 
+            var user = await _context.Users.FindAsync(userId);
+            user.MainUserMembershipAsUserId = null;
+
             await _context.SaveChangesAsync();
-        }
-
-        public async Task UpdateUserMembershipAsync(long userId, long groupId, UserMembershipDto membershipInfo)
-        {
-            var userMembership = await _context.UserMemberships
-                .FirstOrDefaultAsync(um => um.UserId == userId && um.GroupId == groupId);
-
-            if (userMembership != null)
-            {
-                userMembership.RoleInGroup = EnumParser.ConvertStringToEnum<Role>(membershipInfo.RoleInGroup);
-                await _context.SaveChangesAsync();
-            }
         }
 
         public async Task UpdateUserGrade(long userId, Grade grade)

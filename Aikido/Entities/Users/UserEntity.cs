@@ -19,6 +19,9 @@ namespace Aikido.Entities
         public string FirstName { get; set; }
         public string? MiddleName { get; set; }
 
+        public long? MainUserMembershipAsUserId { get; set; }
+        public virtual UserMembershipEntity MainUserMembershipAsUser { get; set; }
+
         public Sex Sex { get; set; }
         public byte[] Photo { get; set; } = [];
         public string? PhoneNumber { get; set; }
@@ -38,7 +41,8 @@ namespace Aikido.Entities
 
         public long? CreatorId { get; set; }
         public virtual UserEntity Creator { get; set; }
-        public virtual DateTime? CreationDate { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ClosedAt { get; set; }
 
 
         public virtual ICollection<SeminarMemberEntity> Certifications { get; set; } = new List<SeminarMemberEntity>();
@@ -52,21 +56,13 @@ namespace Aikido.Entities
 
         public UserEntity() { }
 
-        public UserEntity(string role, string lastName, string firstName, string secondName)
-        {
-            Role = EnumParser.ConvertStringToEnum<Role>(role);
-            LastName = lastName;
-            FirstName = firstName;
-            MiddleName = secondName;
-        }
-
         public UserEntity(IUserDto userNewData)
         {
-            UpdateFromJson(userNewData);
-            CreationDate = DateTime.UtcNow;
+            Update(userNewData);
+            CreatedAt = DateTime.UtcNow;
         }
 
-        public void UpdateFromJson(IUserDto userNewData)
+        public void Update(IUserDto userNewData)
         {
             if (userNewData.Role != null)
                 Role = EnumParser.ConvertStringToEnum<Role>(userNewData.Role);

@@ -39,7 +39,7 @@ namespace Aikido.Application.Services
 
         public async Task<long> CreateAttendanceAsync(long groupId, AttendanceCreationDto attendanceData)
         {
-            var userMembership = _userDbService.GetUserMembership(attendanceData.UserId, groupId);
+            var userMembership = _userDbService.GetActiveUserMembership(attendanceData.UserId, groupId);
             return await _attendanceDbService.CreateAttendance(userMembership, attendanceData.Date);
         }
 

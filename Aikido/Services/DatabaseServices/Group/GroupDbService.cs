@@ -37,19 +37,22 @@ namespace Aikido.Services.DatabaseServices.Group
             return group;
         }
 
-        public async Task<GroupEntity> GetGroupById(long id)
+        public async Task<GroupEntity> GetGroupByIdAsync(long id)
         {
             return await GetByIdOrThrowException(id);
         }
 
-        public async Task<bool> Exists(long id)
-        {
-            return await _context.Groups.AnyAsync(g => g.Id == id);
-        }
-
-        public async Task<List<GroupEntity>> GetAllAsync()
+        public async Task<bool> ExistsActive(long id)
         {
             return await _context.Groups
+                .AnyAsync(g => g.Id == id
+                && g.ClosedAt == null);
+        }
+
+        public async Task<List<GroupEntity>> GetAllActiveAsync()
+        {
+            return await _context.Groups
+                .Where(g => g.ClosedAt == null)
                 .Include(g => g.Club)
                 .Include(g => g.Schedule)
                 .Include(g => g.ExclusionDates)
@@ -63,7 +66,8 @@ namespace Aikido.Services.DatabaseServices.Group
                 .Include(g => g.Club)
                 .Include(g => g.Schedule)
                 .Include(g => g.ExclusionDates)
-                .Where(g => g.ClubId == clubId && g.IsActive)
+                .Where(g => g.ClubId == clubId 
+                && g.ClosedAt == null)
                 .OrderBy(g => g.Name)
                 .ToListAsync();
         }
@@ -73,7 +77,7 @@ namespace Aikido.Services.DatabaseServices.Group
             var group = new GroupEntity(groupData);
 
             if (group.ClubId == 0 || group.ClubId == null)
-                throw new ArgumentException("ClubId is required");
+                throw new ArgumentException("У группы должен быть клуб");
 
             _context.Groups.Add(group);
 
@@ -116,8 +120,16 @@ namespace Aikido.Services.DatabaseServices.Group
             {
                 foreach (var schedule in group.Schedule)
                 {
-                    _context.Remove(schedule);
+                    if (!groupData.Schedule.Any(s => s.DayOfWeek == schedule.DayOfWeek
+                    && s.StartTime == schedule.StartTime
+                    && s.EndTime == schedule.EndTime))
+                    {
+                        schedule.ClosedAt = DateTime.UtcNow;
+                    }
+                    
                 }
+
+                _context.UpdateRange(group.Schedule);
             }
 
             if (groupData.ExclusionDates != null)
@@ -171,6 +183,28 @@ namespace Aikido.Services.DatabaseServices.Group
                 await _context.UserMemberships.AddRangeAsync(coaches);
             }
 
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task CloseAsync(long id)
+        {
+            await SetGroupStatus(id, false);
+        }
+
+        public async Task RecoverAsync(long id)
+        {
+            await SetGroupStatus(id, true);
+        }
+
+        private async Task SetGroupStatus(long id, bool isActiveStatus)
+        {
+            var group = await GetGroupByIdAsync(id);
+            if (group == null)
+            {
+                throw new EntityNotFoundException(nameof(GroupEntity));
+            }
+            group.ClosedAt = isActiveStatus? null : DateTime.UtcNow;
+            _context.Groups.Update(group);
             await _context.SaveChangesAsync();
         }
 

@@ -39,10 +39,10 @@ namespace Aikido.Dto.Users
             GroupName = userMembership.Group?.Name;
 
             IsMain = userMembership.IsMain;
-            IsActive = userMembership.IsActive;
+            IsActive = userMembership.ClosedAt == null;
 
-            JoinDate = userMembership.JoinDate;
-            LeaveDate = userMembership.LeaveDate;
+            JoinDate = userMembership.CreateAt;
+            LeaveDate = userMembership.ClosedAt;
             RoleInGroup = userMembership.RoleInGroup.ToString();
             AttendanceCount = userMembership.Attendances.Count();
             LastAttendanceDate = userMembership.Attendances.Count > 0

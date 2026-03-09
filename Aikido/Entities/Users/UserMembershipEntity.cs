@@ -19,10 +19,9 @@ namespace Aikido.Entities.Users
         public virtual GroupEntity? Group { get; set; }
 
         public bool IsMain { get; set; }
-        public bool IsActive { get; set; }
 
-        public DateTime JoinDate { get; set; } = DateTime.UtcNow;
-        public DateTime? LeaveDate { get; set; }
+        public DateTime CreateAt { get; set; } = DateTime.UtcNow;
+        public DateTime? ClosedAt { get; set; }
         public Role RoleInGroup { get; set; } = Role.User;
 
         public virtual ICollection<AttendanceEntity> Attendances { get; set; } = new List<AttendanceEntity>();
@@ -33,7 +32,6 @@ namespace Aikido.Entities.Users
             ClubId = userMembership.ClubId.Value;
             GroupId = userMembership.GroupId.Value;
 
-            IsActive = userMembership.IsActive;
             IsMain = userMembership.IsMain;
 
             RoleInGroup = EnumParser.ConvertStringToEnum<Role>(userMembership.RoleInGroup);
