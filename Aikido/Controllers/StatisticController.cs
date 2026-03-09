@@ -135,6 +135,12 @@ namespace Aikido.Controllers
             return Ok(metrics);
         }
 
+        /// <summary>
+        /// Процент рота мастеров
+        /// </summary>
+        /// <param name="year"></param>
+        /// <param name="filter"></param>
+        /// <returns></returns>
         [HttpGet("dan-grow-percent/{year}")]
         public async Task<ActionResult<StatisticMetricDto>> GetDanGrowPercent(int year, [FromQuery] StatAttendanceFilter filter)
         {
@@ -142,6 +148,12 @@ namespace Aikido.Controllers
             return Ok(metric);
         }
 
+        /// <summary>
+        /// Количество мастеров по месяца
+        /// </summary>
+        /// <param name="year"></param>
+        /// <param name="filter"></param>
+        /// <returns></returns>
         [HttpGet("dan-amount/monthly/{year}")]
         public async Task<ActionResult<StatisticMetricDto>> GetMonthlyDanAmount(int year, [FromQuery] StatAttendanceFilter filter)
         {

@@ -272,5 +272,34 @@ namespace Aikido.Controllers
                 return StatusCode(500, new { Message = "Ошибка при создании шаблона.", Details = ex.Message });
             }
         }
+
+        [HttpPost("create/table")]
+        public async Task<IActionResult> SetFinalStatement([FromForm] TableFileRequest tableFile)
+        {
+            try
+            {
+                var file = tableFile.Table;
+
+                if (file == null || file.Length == 0)
+                    return BadRequest("Файл Excel не найден или пустой!");
+
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    var partialMembers = _tableService.ParseUserCreationTable(stream);
+                    foreach (var member in partialMembers)
+                    {
+                        await _userApplicationService.CreateUserAsync(member);
+                    }
+                    return Ok();
+                }
+
+                    
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при создании пользователей.", Details = ex.Message });
+            }
+        }
     }
 }
