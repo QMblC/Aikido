@@ -123,7 +123,10 @@ namespace Aikido.Services.ApplicationServices
                 newMainUserMembership.IsMain = true;
                 await _userDbService.UpdateUserMembershipAsync(newMainUserMembership);
 
-                newMainUserMembership?.User?.MainUserMembershipAsUserId = newMainUserMembership.Id;
+                if (newMainUserMembership?.User != null)
+                {
+                    newMainUserMembership.User.MainUserMembershipAsUserId = newMainUserMembership.Id;
+                }
                 await _userDbService.UpdateUser(newMainUserMembership.User);
             }
             
@@ -132,12 +135,11 @@ namespace Aikido.Services.ApplicationServices
         private async Task SetNewMainUserMembershipAsync(long userId, long groupId)
         {
             var userMembership = _userDbService.GetActiveUserMembership(userId, groupId);
-            if (userMembership != null)
+            if (userMembership?.User != null)
             {
-                userMembership?.User?.MainUserMembershipAsUserId = userMembership.Id;
+                userMembership.User.MainUserMembershipAsUserId = userMembership.Id;
                 await _userDbService.UpdateUser(userMembership.User);
             }
-
         }
 
         private async Task UnsetMainUserMembershipAsync(long userId)
