@@ -104,7 +104,7 @@ builder.Services.AddScoped<ISeminarDbService, SeminarDbService>();
 
 builder.Services.AddScoped<AttendanceDbService>();
 builder.Services.AddScoped<PaymentService>();
-builder.Services.AddScoped<ScheduleService>();
+builder.Services.AddScoped<ScheduleDbService>();
 
 builder.Services.AddScoped<EventService>();
 builder.Services.AddScoped<TableService>();
@@ -126,6 +126,7 @@ builder.Services.AddScoped<SeminarCoachEditRequestDbService>();
 builder.Services.AddScoped<SeminarCoachEditRequestAppService>();
 builder.Services.AddScoped<IStatisticDbService, StatisticDbService>();
 builder.Services.AddScoped<StatisticApplicationService>();
+builder.Services.AddScoped<UserMembershipApplicationService>();
 
 
 

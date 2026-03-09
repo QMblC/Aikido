@@ -180,6 +180,53 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Мягкое удаление клуба
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpDelete("close/{id}")]
+        public async Task<IActionResult> CloseClub(long id)
+        {
+            try
+            {
+                await _clubApplicationService.CloseClubAsync(id);
+                return Ok();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(409, new { Message = "Операция невозможна", Details = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Восстановление клуба после мягкого восстановления
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpPatch("recover/{id}")]
+        public async Task<IActionResult> RecoverClub(long id)
+        {
+            try
+            {
+                await _clubApplicationService.RecoverClubAsync(id);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Полное удаление клуба
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteClub(long id)
         {

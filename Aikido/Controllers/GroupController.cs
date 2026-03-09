@@ -4,6 +4,7 @@ using Aikido.Dto.Groups;
 using Aikido.Dto.Users;
 using Aikido.Dto.Users.Creation;
 using Aikido.Requests;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Aikido.Controllers
@@ -98,17 +99,10 @@ namespace Aikido.Controllers
         }
 
         [HttpPost("add/member/{userId}")]
-        public async Task<IActionResult> AddUserToGroup(long userId, [FromBody] UserMembershipCreationDto userMembership)
+        public async Task<IActionResult> AddUserToGroup(long userId, [FromBody] UserMembershipCreationShortDto userMembership)
         {
             try
             {
-                var role = EnumParser.ConvertStringToEnum<Role>(userMembership.RoleInGroup);
-
-                if (role != Role.User && role != Role.Coach)
-                {
-                    return StatusCode(400, new { Message = $"Некорректная роль для группы. Должно быть - User/Coach. Получено - {role.ToString()}" });
-                }
-
                 await _groupApplicationService.AddUserToGroupAsync(userId, userMembership);
                 return Ok(new { Message = "Пользователь успешно добавлен в группу" });
             }
@@ -176,6 +170,48 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Мягкое удаление группы и его расписания
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpDelete("close/{id}")]
+        public async Task<IActionResult> CloseGroup(long id)
+        {
+            try
+            {
+                await _groupApplicationService.CloseGroupAsync(id);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+        /// <summary>
+        /// Восстановление группы после мягкого удаления
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpPatch("recover/{id}")]
+        public async Task<IActionResult> RecoverGroup(long id)
+        {
+            try
+            {
+                await _groupApplicationService.RecoverGroupAsync(id);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+        
+        /// <summary>
+        /// Полное удаление группы
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteGroup(long id)
         {

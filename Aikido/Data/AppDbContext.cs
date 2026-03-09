@@ -60,6 +60,10 @@ namespace Aikido.Data
                 entity.HasMany(e => e.Certifications)
                     .WithOne(sm => sm.User);
 
+                entity.HasOne(e => e.MainUserMembershipAsUser)
+                    .WithMany()
+                    .HasForeignKey(e => e.MainUserMembershipAsUserId);
+
                 entity.HasIndex(e => e.Login).IsUnique();
                 entity.HasIndex(e => e.PhoneNumber);
             });

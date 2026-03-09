@@ -159,7 +159,7 @@ namespace Aikido.Controllers
                 });
             }
 
-            return Ok(new { IsAuthenticated = false });
+            return StatusCode(401);
         }
 
         private void SetAccessTokenCookie(string token)

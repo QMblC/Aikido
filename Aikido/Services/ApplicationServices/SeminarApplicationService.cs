@@ -174,7 +174,7 @@ namespace Aikido.Application.Services
         public async Task<SeminarMemberDto> GetStartMemberdata(long seminarId, long userId, long coachId)//ToDo проверять оплату AnnualFee
         {
             var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
-            var userMemberships = await _userDbService.GetUserMembershipsAsync(userId);
+            var userMemberships = await _userDbService.GetActiveUserMembershipsAsync(userId);
             var userMembership = userMemberships.Where(um => um.RoleInGroup == Role.User
                 && um.Group.UserMemberships
                 .Any(um => um.UserId == coachId && um.RoleInGroup == Role.Coach))

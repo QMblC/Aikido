@@ -38,12 +38,12 @@ namespace Aikido.Dto
             ManagerId = club.ManagerId;
             ManagerName = club.Manager?.FullName;
             FoundedDate = club.FoundedDate;
-            IsActive = club.IsActive;
+            IsActive = club.ClosedAt == null;
         }
 
         public ClubDetailsDto(ClubEntity club, List<GroupEntity> groups, List<UserMembershipEntity> members) : this(club)
         {
-            Groups = groups.Where(g => g.IsActive).Select(g => new GroupDto(g)).ToList();
+            Groups = groups.Where(g => g.ClosedAt == null).Select(g => new GroupDto(g)).ToList();
             Members = members.Where(m => m.User != null)
                             .Select(m => new UserShortDto(m.User!))
                             .ToList();

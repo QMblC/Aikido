@@ -1,12 +1,15 @@
-﻿using Aikido.Services.DatabaseServices.Group;
-using Aikido.Services.DatabaseServices.User;
-using Aikido.Services.DatabaseServices.Club;
-using Aikido.Exceptions;
-using Aikido.Services.UnitOfWork;
-using Aikido.Dto.Users;
+﻿using Aikido.AdditionalData.Enums;
 using Aikido.Dto.Groups;
+using Aikido.Dto.Users;
 using Aikido.Dto.Users.Creation;
-using Aikido.AdditionalData.Enums;
+using Aikido.Exceptions;
+using Aikido.Services;
+using Aikido.Services.ApplicationServices;
+using Aikido.Services.DatabaseServices.Club;
+using Aikido.Services.DatabaseServices.Group;
+using Aikido.Services.DatabaseServices.User;
+using Aikido.Services.UnitOfWork;
+using DocumentFormat.OpenXml.Office2010.Excel;
 
 namespace Aikido.Application.Services
 {
@@ -16,17 +19,23 @@ namespace Aikido.Application.Services
         private readonly IUserDbService _userDbService;
         private readonly IClubDbService _clubDbService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ScheduleDbService _scheduleDbService;
+        private readonly UserMembershipApplicationService _userMembershipApplicationService;
 
         public GroupApplicationService(
             IGroupDbService groupDbService,
             IUserDbService userDbService,
             IClubDbService clubDbService,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            ScheduleDbService scheduleDbService,
+            UserMembershipApplicationService userMembershipApplicationService)
         {
             _groupDbService = groupDbService;
             _userDbService = userDbService;
             _clubDbService = clubDbService;
             _unitOfWork = unitOfWork;
+            _scheduleDbService = scheduleDbService;
+            _userMembershipApplicationService = userMembershipApplicationService;
         }
 
         public async Task<GroupDto> GetGroupByIdAsync(long id)
@@ -44,21 +53,21 @@ namespace Aikido.Application.Services
 
         public async Task<List<GroupDto>> GetAllGroupsAsync()
         {
-            var groups = await _groupDbService.GetAllAsync();
+            var groups = await _groupDbService.GetAllActiveAsync();
             return groups.Select(g => new GroupDto(g)).ToList();
         }
 
         public async Task<List<GroupDto>> GetGroupsByUserAsync(long userId)
         {
-            var userMemberships = await _userDbService.GetUserMembershipsAsync(userId);
+            var userMemberships = await _userDbService.GetActiveUserMembershipsAsync(userId);
             return userMemberships.Where(ug => ug.Group != null)
-                           .Select(um => new GroupDto(um.Group!))
-                           .ToList();
+                .Select(um => new GroupDto(um.Group!))
+                .ToList();
         }
         
         public async Task<List<GroupShortDto>> GetGroupsByCoach(long coachId)
         {
-            var coachGroups = await _userDbService.GetUserMembershipsAsync(coachId);
+            var coachGroups = await _userDbService.GetActiveUserMembershipsAsync(coachId);
             return coachGroups.Where(ug => ug.Group != null
                 && ug.RoleInGroup == Role.Coach)
                 .Select(ug => new GroupShortDto(ug.Group))
@@ -77,70 +86,58 @@ namespace Aikido.Application.Services
 
         public async Task UpdateGroupAsync(long id, GroupCreationDto groupData)
         {
-            if (!await _groupDbService.Exists(id))
-            {
-                throw new EntityNotFoundException($"Группа с Id = {id} не найдена");
-            }
-
-
-            if (groupData.ClubId != null && !await _clubDbService.Exists(groupData.ClubId.Value))
-            {
-                throw new EntityNotFoundException($"Клуба с Id = {groupData.ClubId} не существует");
-            }
+            await EnsureGroupExists(id);
+            await EnsureClubExists(groupData.ClubId.Value);
 
             await _groupDbService.UpdateAsync(id, groupData);
         }
 
+        public async Task CloseGroupAsync(long id)
+        {
+            await _scheduleDbService.CloseGroupSchedules(id);
+
+            await _groupDbService.CloseAsync(id);
+        }
+
+        public async Task RecoverGroupAsync(long id)
+        {
+            await _groupDbService.RecoverAsync(id);
+        }
+
         public async Task DeleteGroupAsync(long id)
         {
-            if (!await _groupDbService.Exists(id))
-            {
-                throw new EntityNotFoundException($"Группа с Id = {id} не найдена");
-            }
+            await EnsureGroupExists(id);
 
             await _groupDbService.RemoveAllMembersFromGroupAsync(id);
             await _groupDbService.DeleteAsync(id);
         }
 
-        public async Task AddUserToGroupAsync(long userId, UserMembershipCreationDto userMembership)
+        public async Task AddUserToGroupAsync(long userId, UserMembershipCreationShortDto dto)
         {
-            var groupId = userMembership.GroupId.Value;
-            var clubId = userMembership.ClubId.Value;
+            var groupId = dto.GroupId;
 
-            if (!await _groupDbService.Exists(groupId))
-            {
-                throw new EntityNotFoundException($"Группы с Id = {groupId} не существует");
-            }
+            await EnsureGroupExists(groupId);
+            await EnsureUserExists(userId);
 
-            if (!await _userDbService.Exists(userId))
-            {
-                throw new EntityNotFoundException($"Пользователя с Id = {userId} не существует");
-            }
-
-            var group = await _groupDbService.GetGroupById(groupId);
+            var group = await _groupDbService.GetGroupByIdAsync(groupId);
 
             if (group.ClubId == null)
             {
                 throw new Exception($"У группы нет клуба");
             }
+            var userMembership = new UserMembershipCreationDto(group, dto.IsMain, dto.IsCoach);
 
-            if (!await _clubDbService.Exists(clubId))
-            {
-                throw new EntityNotFoundException($"Клуба с Id = {clubId} не существует");
-            }
-
-
-            await _userDbService.AddUserMembershipAsync(userId, userMembership);
+            await _userMembershipApplicationService.AddUserMembershipAsync(userId, userMembership);
         }
 
         public async Task RemoveUserFromGroupAsync(long groupId, long userId)
         {
-            await _userDbService.RemoveUserMembershipAsync(userId, groupId);
+            await _userMembershipApplicationService.CloseUserMembershipAsync(userId, groupId);
         }
 
         public async Task<bool> GroupExistsAsync(long id)
         {
-            return await _groupDbService.Exists(id);
+            return await _groupDbService.ExistsActive(id);
         }
 
         public async Task<List<UserShortDto>> GetGroupMembersAsync(long groupId)
@@ -149,6 +146,30 @@ namespace Aikido.Application.Services
             return members.Where(m => m.User != null)
                          .Select(m => new UserShortDto(m.User!))
                          .ToList();
+        }
+
+        private async Task EnsureUserExists(long userId)
+        {
+            if (!await _userDbService.Exists(userId))
+            {
+                throw new EntityNotFoundException($"Пользователя с Id = {userId} не существует");
+            }
+        }
+
+        private async Task EnsureGroupExists(long groupId)
+        {
+            if (!await _groupDbService.ExistsActive(groupId))
+            {
+                throw new EntityNotFoundException($"Группы с Id = {groupId} не существует");
+            }
+        }
+
+        private async Task EnsureClubExists(long clubId)
+        {
+            if (!await _clubDbService.Exists(clubId))
+            {
+                throw new EntityNotFoundException($"Группы с Id = {clubId} не существует");
+            }
         }
     }
 }

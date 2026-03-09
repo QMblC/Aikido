@@ -132,7 +132,7 @@ namespace Aikido.Services.DatabaseServices
                     var existingUser = await _context.Users.FindAsync(request.TargetUserId);
                     if (existingUser != null)
                     {
-                        existingUser.UpdateFromJson(updateData!);
+                        existingUser.Update(updateData!);
                     }
                     break;
 

@@ -12,9 +12,12 @@ namespace Aikido.Services.DatabaseServices.StatisticService
         Task<int> GetYearlyTrainings(int year, StatAttendanceFilter filter);
         Task<Dictionary<int, int>> GetYearlyTrainings(int firstYear, int lastYear, StatAttendanceFilter filter);
         Task<Dictionary<DateTime, int>> GetYearlyAttendancesByMonthes(int year, StatAttendanceFilter filter);
-        Task<int> GetMonthlyAttendances(int year, int month, StatAttendanceFilter filter);
-        Task<double> GetAverageMonthlyAttendancePercent(int year, int month, StatAttendanceFilter filter);
 
         #endregion
+
+        Task<Dictionary<DateTime, int>> GetMonthlyPupilAmount(int year, StatAttendanceFilter filter);
+
+        Task<Dictionary<DateTime, int>> GetPupilLeft(int year, StatAttendanceFilter filter);
+        Task<Dictionary<DateTime, int>> GetMonthlyDanAmount(int year, StatAttendanceFilter filter);
     }
 }

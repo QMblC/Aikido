@@ -17,9 +17,7 @@ namespace Aikido.Entities
         public string? TechnicalName { get; set; }
         public AgeGroup AgeGroup { get; set; } = AgeGroup.Adult;
         public int MaxMembers { get; set; } = 30;
-        public bool IsActive { get; set; } = true;
-        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
-        public DateTime? UpdatedDate { get; set; }
+
         public string? Description { get; set; }
         public Grade MinGrade { get; set; } = Grade.None;
         public Grade MaxGrade { get; set; } = Grade.None;
@@ -27,6 +25,9 @@ namespace Aikido.Entities
         public virtual List<UserMembershipEntity> UserMemberships { get; set; } = new();
         public virtual List<ScheduleEntity> Schedule { get; set; } = new();
         public virtual List<ExclusionDateEntity> ExclusionDates { get; set; } = new();
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? ClosedAt { get; set; }
 
         public GroupEntity() { }
 
@@ -46,7 +47,6 @@ namespace Aikido.Entities
 
             if (!string.IsNullOrEmpty(groupNewData.AgeGroup))
                 AgeGroup = EnumParser.ConvertStringToEnum<AgeGroup>(groupNewData.AgeGroup);        
-            UpdatedDate = DateTime.UtcNow;
         }
 
         public void UpdateSchedule(GroupCreationDto groupData)

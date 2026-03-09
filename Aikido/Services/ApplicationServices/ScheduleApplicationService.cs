@@ -7,9 +7,9 @@ namespace Aikido.Application.Services
 {
     public class ScheduleApplicationService
     {
-        private readonly ScheduleService _scheduleService;
+        private readonly ScheduleDbService _scheduleService;
 
-        public ScheduleApplicationService(ScheduleService scheduleService)
+        public ScheduleApplicationService(ScheduleDbService scheduleService)
         {
             _scheduleService = scheduleService;
         }

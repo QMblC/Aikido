@@ -47,8 +47,8 @@ namespace Aikido.Dto.Groups
             AgeGroup = group.AgeGroup.ToString();
             MemberCount = group.UserMemberships?.Count(um => um.RoleInGroup == Role.User) ?? 0;
             MaxMembers = group.MaxMembers;
-            IsActive = group.IsActive;
-            CreatedDate = group.CreatedDate;
+            IsActive = group.ClosedAt == null;
+            CreatedDate = group.CreatedAt;
             Description = group.Description;
             MinGrade = group.MinGrade.ToString();
             MaxGrade = group.MaxGrade.ToString();
