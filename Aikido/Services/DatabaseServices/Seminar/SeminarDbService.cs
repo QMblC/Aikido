@@ -680,13 +680,20 @@ namespace Aikido.Services.DatabaseServices.Seminar
 
             foreach(var mainUserMembership in mainUserMemberships)
             {
-                var clubManager = mainUserMembership.Club?.Manager 
+                try
+                {
+                    var clubManager = mainUserMembership.Club?.Manager
                     ?? throw new EntityNotFoundException(nameof(mainUserMembership.Club));
 
-                var coach = mainUserMembership.Group?.UserMemberships.First(um => um.RoleInGroup == Role.Coach).User
-                    ?? throw new EntityNotFoundException(nameof(mainUserMembership.Club));//Здесь возможно стоит переделать и начать выделять главного тренера в группе
+                    var coach = mainUserMembership.Group?.UserMemberships.First(um => um.RoleInGroup == Role.Coach).User
+                        ?? throw new EntityNotFoundException(nameof(mainUserMembership.Club));//Здесь возможно стоит переделать и начать выделять главного тренера в группе
 
-                request.Add(new(seminar, mainUserMembership));
+                    request.Add(new(seminar, mainUserMembership));
+                }
+                catch(Exception ex)
+                {
+                    continue;
+                }
             }
 
             await _context.SeminarMembersManagerRequests.AddRangeAsync(request);
