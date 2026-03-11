@@ -332,7 +332,7 @@ namespace Aikido.Services
             return stream;
         }
 
-        public MemoryStream CreateSeminarMembersTable(List<SeminarMemberDto> members)
+        public MemoryStream CreateSeminarMembersTable(List<ISeminarMemberDataDto> members)
         {
             var workbook = new XLWorkbook();
             var worksheet = workbook.Worksheets.Add("Шаблон пользователей");
