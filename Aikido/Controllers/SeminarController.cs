@@ -312,7 +312,7 @@ namespace Aikido.Controllers
                     return StatusCode(404, new { Message = "Не удалось найти участников" });
                 }
 
-                var stream = _tableService.CreateSeminarMembersTable(members);
+                var stream = _tableService.CreateSeminarMembersTable(members.Cast<ISeminarMemberDataDto>().ToList());
                 return File(stream,
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     $"Members.xlsx");
@@ -322,7 +322,11 @@ namespace Aikido.Controllers
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
         }
-
+        /// <summary>
+        /// Загрузка итоговой ведомости
+        /// </summary>
+        /// <param name="seminarId"></param>
+        /// <returns></returns>
         [HttpGet("{seminarId}/final-statement/table")]
         public async Task<IActionResult> GetFinalStatementTable(long seminarId)
         {
@@ -335,7 +339,7 @@ namespace Aikido.Controllers
                     return StatusCode(404, new { Message = "Не удалось найти участников" });
                 }
 
-                var stream = _tableService.CreateSeminarMembersTable(members);
+                var stream = _tableService.CreateSeminarMembersTable(members.Cast<ISeminarMemberDataDto>().ToList());
                 return File(stream,
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     $"Members.xlsx");
@@ -389,6 +393,12 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Загрузка списка финальной ведомости
+        /// </summary>
+        /// <param name="seminarId"></param>
+        /// <param name="tableFile"></param>
+        /// <returns></returns>
         [HttpPost("{seminarId}/final-statement/table")]
         public async Task<IActionResult> SetFinalStatement(long seminarId, [FromForm] TableFileRequest tableFile)
         {
@@ -432,6 +442,7 @@ namespace Aikido.Controllers
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
         }
+
 
         [HttpDelete("{seminarId}/coach/{coachId}/members")]
         public async Task<IActionResult> DeleteCoachMembers(long seminarId, long coachId)
@@ -766,6 +777,115 @@ namespace Aikido.Controllers
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
             
+        }
+
+        /// <summary>
+        /// Подтверждена ли ведомость клуба
+        /// </summary>
+        /// <param name="seminarId"></param>
+        /// <param name="clubId"></param>
+        /// <returns></returns>
+        [HttpGet("{seminarId}/requested-members/club/{clubId}/is-confirmed")]
+        public async Task<ActionResult<bool>> IsClubSeminarMembersManagerRequestConfirmed(long seminarId,
+            long clubId)
+        {
+            try
+            {
+                var isConfirmed = await IsClubSeminarMembersManagerRequestConfirmed(seminarId, clubId);
+                return Ok(isConfirmed);
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Таблица с участниками семинара конкретного клуба
+        /// </summary>
+        /// <param name="seminarId"></param>
+        /// <param name="clubId"></param>
+        /// <returns></returns>
+        [HttpGet("{seminarId}/requested-members/club/{clubId}/table")]
+        public async Task<IActionResult> GetClubSeminarMembersManagerRequestTable(long seminarId,
+            long clubId)
+        {
+            try
+            {
+                var members = await _seminarApplicationService.GetClubRequestedMembers(seminarId, clubId);
+
+                if (members == null)
+                {
+                    return NotFound($"Не найдены участники клуба с Id = {clubId}");
+                }
+
+                var stream = _tableService.CreateSeminarMembersTable(members.Cast<ISeminarMemberDataDto>().ToList());
+                return File(stream,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    $"Members.xlsx");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Таблица с участниками семинара конкретного клуба
+        /// </summary>
+        /// <param name="seminarId"></param>
+        /// <param name="managerId"></param>
+        /// <returns></returns>
+        [HttpGet("{seminarId}/requested-members/manager/{managerId}/table")]
+        public async Task<IActionResult> GetSeminarMembersManagerRequestTable(long seminarId,
+            long managerId)
+        {
+            try
+            {
+                var members = await _seminarApplicationService.GetRequestedMembers(seminarId, managerId);
+
+                if (members == null)
+                {
+                    return NotFound($"Не найдены участники руководителя с Id = {managerId}");
+                }
+
+                var stream = _tableService.CreateSeminarMembersTable(members.Cast<ISeminarMemberDataDto>().ToList());
+                return File(stream,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    $"Members.xlsx");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Таблица с участниками семинара от руководителей
+        /// </summary>
+        /// <param name="seminarId"></param>
+        /// <returns></returns>
+        [HttpGet("{seminarId}/requested-members/table")]
+        public async Task<IActionResult> GetManagerMembersTable(long seminarId)
+        {
+            try
+            {
+                var members = await _seminarApplicationService.GetAllManagerRequests(seminarId);
+
+                if (members == null)
+                {
+                    return NotFound($"Не найдены участники");
+                }
+
+                var stream = _tableService.CreateSeminarMembersTable(members.Cast<ISeminarMemberDataDto>().ToList());
+                return File(stream,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    $"Members.xlsx");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
         }
 
         #endregion

@@ -445,5 +445,12 @@ namespace Aikido.Application.Services
             return users.Select(u => new UserShortDto(u))
                 .ToList();
         }
+
+        public async Task<bool> IsClubSeminarMembersManagerRequestConfirmed(long seminarId, long clubId)
+        {
+            var members = await _seminarDbService.GetManagerMembersByClubAsync(seminarId, clubId);
+
+            return members.All(m => m.IsConfirmed);
+        }
     }
 }
