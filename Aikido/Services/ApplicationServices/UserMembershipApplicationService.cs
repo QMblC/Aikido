@@ -53,7 +53,7 @@ namespace Aikido.Services.ApplicationServices
                 await _userDbService.CreateUserMembershipAsync(userId, dto);
                 await SetNewMainUserMembershipAsync(userId, dto.GroupId.Value);
             }
-            else if (dto.IsMain && dto.RoleInGroup == EnumParser.ConvertEnumToString(Role.Coach))
+            else if (dto.RoleInGroup == EnumParser.ConvertEnumToString(Role.Coach))
             {
                 dto.IsMain = false;
                 await _userDbService.CreateUserMembershipAsync(userId, dto);

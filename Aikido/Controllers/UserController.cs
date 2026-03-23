@@ -173,7 +173,6 @@ namespace Aikido.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin,Manager")]
         [HttpGet("get/table")]
         public async Task<IActionResult> ExportUsers()
         {
@@ -292,9 +291,7 @@ namespace Aikido.Controllers
                         await _userApplicationService.CreateUserAsync(member);
                     }
                     return Ok();
-                }
-
-                    
+                }   
             }
             catch (Exception ex)
             {

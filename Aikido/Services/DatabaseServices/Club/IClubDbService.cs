@@ -17,8 +17,6 @@ namespace Aikido.Services.DatabaseServices.Club
         Task CloseAsync(long id);
         Task RecoverAsync(long id);
         Task DeleteAsync(long id);
-
-        
         Task<List<UserMembershipEntity>> GetClubMembersAsync(long clubId);
         Task RemoveAllMembersFromClubAsync(long clubId);
         Task<int> GetClubMemberCountAsync(long clubId);
