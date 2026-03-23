@@ -659,7 +659,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
         #endregion
 
         public async Task InitializeSeminar(long seminarId)
-        {
+        {//Посмотреть здесь ли ошибка
             var seminar = await _context.Seminars.FindAsync(seminarId);
 
             if (seminar == null)
@@ -668,7 +668,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
             }
 
             var mainUserMemberships = _context.UserMemberships.AsQueryable()
-                .Where(um => um.IsMain)
+                .Where(um => um.IsMain && um.RoleInGroup == Role.User)
                 .Include(um => um.Club)
                     .ThenInclude(c => c.Manager)
                 .Include(um => um.Group)
