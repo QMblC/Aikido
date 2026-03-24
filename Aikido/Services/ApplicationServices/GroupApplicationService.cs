@@ -17,6 +17,7 @@ namespace Aikido.Application.Services
     {
         private readonly IGroupDbService _groupDbService;
         private readonly IUserDbService _userDbService;
+        private readonly IUserMembershipDbService _userMembershipDbService;
         private readonly IClubDbService _clubDbService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ScheduleDbService _scheduleDbService;
@@ -25,6 +26,7 @@ namespace Aikido.Application.Services
         public GroupApplicationService(
             IGroupDbService groupDbService,
             IUserDbService userDbService,
+            IUserMembershipDbService userMembershipDbService,
             IClubDbService clubDbService,
             IUnitOfWork unitOfWork,
             ScheduleDbService scheduleDbService,
@@ -32,6 +34,7 @@ namespace Aikido.Application.Services
         {
             _groupDbService = groupDbService;
             _userDbService = userDbService;
+            _userMembershipDbService = userMembershipDbService;
             _clubDbService = clubDbService;
             _unitOfWork = unitOfWork;
             _scheduleDbService = scheduleDbService;
@@ -59,7 +62,7 @@ namespace Aikido.Application.Services
 
         public async Task<List<GroupDto>> GetGroupsByUserAsync(long userId)
         {
-            var userMemberships = await _userDbService.GetActiveUserMembershipsAsync(userId);
+            var userMemberships = await _userMembershipDbService.GetActiveUserMembershipsAsync(userId);
             return userMemberships.Where(ug => ug.Group != null)
                 .Select(um => new GroupDto(um.Group!))
                 .ToList();
@@ -67,7 +70,7 @@ namespace Aikido.Application.Services
         
         public async Task<List<GroupShortDto>> GetGroupsByCoach(long coachId)
         {
-            var coachGroups = await _userDbService.GetActiveUserMembershipsAsync(coachId);
+            var coachGroups = await _userMembershipDbService.GetActiveUserMembershipsAsync(coachId);
             return coachGroups.Where(ug => ug.Group != null
                 && ug.RoleInGroup == Role.Coach)
                 .Select(ug => new GroupShortDto(ug.Group))

@@ -98,6 +98,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connString));
 
 builder.Services.AddScoped<IUserDbService, UserDbService>();
+builder.Services.AddScoped<IUserMembershipDbService, UserMembershipDbService>();
 builder.Services.AddScoped<IClubDbService, ClubDbService>();
 builder.Services.AddScoped<IGroupDbService, GroupDbService>();
 builder.Services.AddScoped<ISeminarDbService, SeminarDbService>();

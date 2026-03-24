@@ -19,17 +19,20 @@ namespace Aikido.Application.Services
     public class UserApplicationService
     {
         private readonly IUserDbService _userDbService;
+        private readonly IUserMembershipDbService _userMembershipDbService;
         private readonly IClubDbService _clubDbService;
         private readonly IGroupDbService _groupDbService;
         private readonly UserMembershipApplicationService _userMembershipApplicationService;
 
         public UserApplicationService(
             IUserDbService userDbService,
+            IUserMembershipDbService userMembershipDbService,
             IClubDbService clubDbService,
             IGroupDbService groupDbService,
             UserMembershipApplicationService userMembershipApplicationService)
         {
             _userDbService = userDbService;
+            _userMembershipDbService = userMembershipDbService;
             _clubDbService = clubDbService;
             _groupDbService = groupDbService;
             _userMembershipApplicationService = userMembershipApplicationService;
@@ -38,7 +41,7 @@ namespace Aikido.Application.Services
         public async Task<UserDto> GetUserByIdAsync(long id)
         {
             var user = await _userDbService.GetByIdOrThrowException(id);
-            var userMembership = await _userDbService.GetActiveUserMembershipsAsync(user.Id);
+            var userMembership = await _userMembershipDbService.GetActiveUserMembershipsAsync(user.Id);
 
             return new UserDto(user, userMembership);
         }
@@ -70,7 +73,7 @@ namespace Aikido.Application.Services
 
             foreach (var user in users)
             {
-                var userMemberships = await _userDbService.GetActiveUserMembershipsAsync(user.Id.Value);
+                var userMemberships = await _userMembershipDbService.GetActiveUserMembershipsAsync(user.Id.Value);
                 user.UserMembershipDtos = userMemberships.Select(um => new UserMembershipDto(um)).ToList();
             }
 
@@ -113,7 +116,7 @@ namespace Aikido.Application.Services
             var user = await _userDbService.GetByIdOrThrowException(userId);
             await _userDbService.UpdateUser(userId, userData);
 
-            await _userDbService.RemoveUserMemberships(userId);//Не удалять
+            await _userMembershipDbService.RemoveUserMemberships(userId);//Не удалять
 
             if (userData.UserMembershipDtos != null && userData.UserMembershipDtos.Any())
             {
@@ -138,7 +141,7 @@ namespace Aikido.Application.Services
 
         public async Task DeleteUserAsync(long id)
         {
-            await _userDbService.RemoveUserMemberships(id);
+            await _userMembershipDbService.RemoveUserMemberships(id);
             await _userDbService.Delete(id);
         }
 
