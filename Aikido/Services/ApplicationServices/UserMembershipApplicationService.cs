@@ -167,6 +167,7 @@ namespace Aikido.Services.ApplicationServices
             await _userMembershipDbService.RemoveUserMembershipAsync(userId, groupId);
         }
 
+
         public async Task<List<UserMembershipDto>> GetUserMembershipsAsync(long userId)
         {
             var userGroups = await _userMembershipDbService.GetActiveUserMembershipsAsync(userId);
@@ -180,7 +181,7 @@ namespace Aikido.Services.ApplicationServices
 
         private async Task EnsureUserExists(long userId)
         {
-            if (!await _userDbService.Exists(userId))
+            if (!await _userDbService.ExistsActive(userId))
             {
                 throw new EntityNotFoundException($"Пользователя с Id = {userId} не существует");
             }

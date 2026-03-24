@@ -14,6 +14,7 @@ namespace Aikido.Services.DatabaseServices.User
         Task RemoveUserMemberships(long userId);
         
 
+
         Task CloseUserMembershipAsync(long userId, long groupId);
         Task RecoverUserMembershipAsync(long userId, long groupId);
 
@@ -22,5 +23,7 @@ namespace Aikido.Services.DatabaseServices.User
         Task UpdateUserMembershipAsync(long userId, UserMembershipCreationDto userMembership);
         Task<bool> UserMembershipExists(long userId, long groupId);
         Task<List<UserMembershipEntity>> GetActiveUserMembershipsAsUserAsync(long userId);
+
+        Task<List<UserEntity>> GetCoachActiveStudentByName(long coachId, string name);
     }
 }

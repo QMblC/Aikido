@@ -46,30 +46,42 @@ namespace Aikido.Application.Services
             return new UserDto(user, userMembership);
         }
 
-        public async Task<List<UserShortDto>> GetUserShortListAsync()
+        public async Task<List<UserShortDto>> GetActiveUserShortListAsync()
         {
-            return await _userDbService.GetUserIdAndNamesAsync();
-        }
+            var users = await _userDbService.GetActiveUsersAsync();
 
-        public async Task<List<UserShortDto>> GetCoachStudentsByName(long coachId, string name)
-        {
-            var users = await _userDbService.GetCoachStudentByName(coachId, name);
             return users.Select(u => new UserShortDto(u))
                 .ToList();
         }
 
-        public async Task<List<UserShortDto>> FindUsersAsync(UserFilter filter)
+        public async Task<List<UserShortDto>> GetArchivedUsersAsync()
         {
-            var result = await _userDbService.GetUserListAlphabetAscending(0, 100, filter);
+            var users = await _userDbService.GetArchivedUsersAsync();
+
+            return users.Select(u => new UserShortDto(u))
+                .ToList();
+        }
+
+        public async Task<List<UserShortDto>> GetCoachStudentsByName(long coachId, string name)
+        {
+            var users = await _userMembershipDbService.GetCoachActiveStudentByName(coachId, name);
+            return users.Select(u => new UserShortDto(u))
+                .ToList();
+        }
+
+        public async Task<List<UserShortDto>> FindActiveUsersAsync(UserFilter filter)
+        {
+            var result = await _userDbService.GetActiveUserListAlphabetAscending(0, 100, filter);
             return result.Users
                 .Select(user => new UserShortDto(user))
                 .ToList();
         }
 
-        public async Task<UsersDataDto> GetUserShortListCutDataAsync(int startIndex, int finishIndex, UserFilter filter)
+        public async Task<UsersDataDto> GetActiveUserShortListCutDataAsync(int startIndex, int finishIndex, UserFilter filter)
         {
-            var pagedResult = await _userDbService.GetUserListAlphabetAscending(startIndex, finishIndex, filter);
-            var users = pagedResult.Users;
+            var pagedResult = await _userDbService.GetActiveUserListAlphabetAscending(startIndex, finishIndex, filter);
+            var users = pagedResult.Users.Select(u => new UserDto(u))
+                .ToList();
 
             foreach (var user in users)
             {
@@ -139,6 +151,23 @@ namespace Aikido.Application.Services
             } 
         }
 
+        public async Task CloseUserAsync(long id)
+        {
+            var user = await _userDbService.GetByIdOrThrowException(id);
+
+            if (user.UserMemberships.Count() > 0)
+            {
+                throw new InvalidOperationException("Человек является участником одной или нескольких групп");
+            }
+
+            await _userDbService.CloseAsync(id);
+        }
+
+        public async Task RecoverUserAsync(long id)
+        {
+            await _userDbService.RecoverAsync(id);
+        }
+
         public async Task DeleteUserAsync(long id)
         {
             await _userMembershipDbService.RemoveUserMemberships(id);
@@ -160,7 +189,7 @@ namespace Aikido.Application.Services
 
         private async Task EnsureUserExists(long userId)
         {
-            if (!await _userDbService.Exists(userId))
+            if (!await _userDbService.ExistsActive(userId))
             {
                 throw new EntityNotFoundException($"Пользователя с Id = {userId} не существует");
             }

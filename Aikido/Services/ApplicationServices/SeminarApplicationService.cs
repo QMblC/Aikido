@@ -392,7 +392,7 @@ namespace Aikido.Application.Services
 
         public async Task<List<ManagerRequest>> GetManagerRequestList(long seminarId)
         {
-            var managers = await _userDbService.GetManagers();
+            var managers = await _userDbService.GetActiveManagers();
             var managerRequestList = new List<ManagerRequest>();
 
             foreach(var manager in managers)

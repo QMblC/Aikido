@@ -54,12 +54,30 @@ namespace Aikido.Controllers
         {
             try
             {
-                var users = await _userApplicationService.GetUserShortListAsync();
+                var users = await _userApplicationService.GetActiveUserShortListAsync();
                 return Ok(users);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, "Ошибка при получении списка пользователей.");
+            }
+        }
+
+        /// <summary>
+        /// Получение заархивированных пользователей
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("get/archived-users")]
+        public async Task<ActionResult<List<UserShortDto>>> GetArchivedUsers()
+        {
+            try
+            {
+                var users = await _userApplicationService.GetArchivedUsersAsync();
+                return Ok(users);
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при получении списка пользователей.", Details = ex.Message});
             }
         }
 
@@ -69,7 +87,7 @@ namespace Aikido.Controllers
         {
             try
             {
-                var shortUsers = await _userApplicationService.FindUsersAsync(filter);
+                var shortUsers = await _userApplicationService.FindActiveUsersAsync(filter);
                 return Ok(shortUsers);
             }
             catch (Exception ex)
@@ -100,7 +118,7 @@ namespace Aikido.Controllers
         {
             try
             {
-                var result = await _userApplicationService.GetUserShortListCutDataAsync(startIndex, finishIndex, filter);
+                var result = await _userApplicationService.GetActiveUserShortListCutDataAsync(startIndex, finishIndex, filter);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -193,6 +211,48 @@ namespace Aikido.Controllers
             catch (ArgumentException ex)
             {
                 return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Мягкое удаление пользователя
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpPatch("close/{id}")]
+        public async Task<IActionResult> CloseUserAsync(long id)
+        {
+            try
+            {
+                await _userApplicationService.CloseUserAsync(id);
+                return NoContent();
+            }
+            catch(InvalidOperationException ex)
+            {
+                return StatusCode(409, new { Messsage = "Невозможная операция", Details = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+        
+        /// <summary>
+        /// Восстановление пользователя
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpPatch("recover/{id}")]
+        public async Task<IActionResult> RecoverUserAsync(long id)
+        {
+            try
+            {
+                await _userApplicationService.RecoverUserAsync(id);
+                return NoContent();
             }
             catch (Exception ex)
             {

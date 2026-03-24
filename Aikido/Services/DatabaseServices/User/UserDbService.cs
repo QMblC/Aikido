@@ -35,28 +35,42 @@ namespace Aikido.Services.DatabaseServices.User
             return user;
         }
 
-        public async Task<bool> Exists(long id)
+        public async Task<bool> ExistsActive(long id)
         {
-            return await _context.Users.AnyAsync(u => u.Id == id);
+            return await _context.Users.AnyAsync(u => u.Id == id && u.ClosedAt == null);
         }
 
-        public async Task<List<UserShortDto>> GetUserIdAndNamesAsync()
+        public async Task<List<UserEntity>> GetActiveUsersAsync()
         {
             var users = await _context.Users
-            .Include(u => u.UserMemberships)
-                .ThenInclude(um => um.Club)
-            .Include(u => u.UserMemberships)
-                .ThenInclude(um => um.Group)
-            .Select(u => new UserShortDto(u))
-            .ToListAsync();
+                .Where(u => u.ClosedAt == null)
+                .Include(u => u.UserMemberships)
+                    .ThenInclude(um => um.Club)
+                .Include(u => u.UserMemberships)
+                    .ThenInclude(um => um.Group)
+                .ToListAsync();
 
             return users;
         }
 
-        public async Task<List<UserEntity>> GetManagers()
+        public async Task<List<UserEntity>> GetArchivedUsersAsync()
+        {
+            var users = await _context.Users
+                .Where(u => u.ClosedAt != null)
+                .Include(u => u.UserMemberships)
+                    .ThenInclude(um => um.Club)
+                .Include(u => u.UserMemberships)
+                    .ThenInclude(um => um.Group)
+                .ToListAsync();
+
+            return users;
+        }
+
+        public async Task<List<UserEntity>> GetActiveManagers()
         {
             var managers = await _context.Users.AsQueryable()
-                .Where(u => u.Role == Role.Manager)
+                .Where(u => u.Role == Role.Manager
+                    && u.ClosedAt == null)
                 .Include(u => u.UserMemberships)
                     .ThenInclude(um => um.Club)
                 .Include(u => u.UserMemberships)
@@ -66,30 +80,10 @@ namespace Aikido.Services.DatabaseServices.User
             return managers;
         }
 
-        public async Task<List<UserEntity>> GetCoachStudentByName(long coachId, string name)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-                return new List<UserEntity>();
-
-            name = name.ToLower();
-
-            var members = await _context.UserMemberships
-                .Where(um => um.Group.UserMemberships.Any(um2 => um2.UserId == coachId))
-                .Select(um => um.User)
-                .Where(u => u.Id != coachId)
-                .Where(u =>
-                    (u.LastName != null && u.LastName.ToLower().Contains(name)) ||
-                    (u.FirstName != null && u.FirstName.ToLower().Contains(name)) ||
-                    (u.MiddleName != null && u.MiddleName.ToLower().Contains(name)))
-                .Distinct()
-                .ToListAsync();
-
-            return members;
-        }
-
-        public async Task<(List<UserDto> Users, int TotalCount)> GetUserListAlphabetAscending(int startIndex, int finishIndex, UserFilter filter)
+        public async Task<(List<UserEntity> Users, int TotalCount)> GetActiveUserListAlphabetAscending(int startIndex, int finishIndex, UserFilter filter)
         {
             var query = _context.Users
+                .Where(u => u.ClosedAt == null)
                 .Include(u => u.UserMemberships)
                     .ThenInclude(uc => uc.Club)
                 .Include(u => u.UserMemberships)
@@ -144,9 +138,7 @@ namespace Aikido.Services.DatabaseServices.User
                 .Take(finishIndex - startIndex)
                 .ToListAsync();
 
-            var userDtos = users.Select(u => new UserDto(u, u.UserMemberships.ToList())).ToList();
-
-            return (userDtos, totalCount);
+            return (users, totalCount);
         }
 
         public async Task<long> CreateUser(UserCreationDto userData)
@@ -191,6 +183,27 @@ namespace Aikido.Services.DatabaseServices.User
             await _context.SaveChangesAsync();
         }
 
+        public async Task CloseAsync(long id)
+        {
+            await SetStatus(id, false);
+        }
+
+        public async Task RecoverAsync(long id)
+        {
+            await SetStatus(id, true);
+        }
+
+        private async Task SetStatus(long id, bool isActiveStatus)
+        {
+            var user = await GetByIdOrThrowException(id);
+            if (user == null)
+            {
+                throw new EntityNotFoundException(nameof(GroupEntity));
+            }
+            user.ClosedAt = isActiveStatus ? null : DateTime.UtcNow;
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+        }
         public async Task Delete(long id)
         {
             var user = await GetByIdOrThrowException(id);

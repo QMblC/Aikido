@@ -10,18 +10,20 @@ namespace Aikido.Services.DatabaseServices.User
     public interface IUserDbService
     {
         Task<UserEntity> GetByIdOrThrowException(long id);
-        Task<bool> Exists(long id);
-        Task<List<UserShortDto>> GetUserIdAndNamesAsync();
-        Task<List<UserEntity>> GetCoachStudentByName(long coachId, string name);
-        Task<(List<UserDto> Users, int TotalCount)> GetUserListAlphabetAscending(int startIndex, int finishIndex, UserFilter filter);
+        Task<bool> ExistsActive(long id);
+        Task<List<UserEntity>> GetActiveUsersAsync();
+        Task<List<UserEntity>> GetArchivedUsersAsync();
+        Task<(List<UserEntity> Users, int TotalCount)> GetActiveUserListAlphabetAscending(int startIndex, int finishIndex, UserFilter filter);
         Task<long> CreateUser(UserCreationDto userData);
         Task<List<long>> CreateUsers(List<UserCreationDto> users);
         Task UpdateUser(UserEntity user);
         Task UpdateUser(long id, UserCreationDto userData);
         Task UpdateUsers(List<UserDto> users);
+        Task CloseAsync(long id);
+        Task RecoverAsync(long id);
         Task Delete(long id);
 
-        Task<List<UserEntity>> GetManagers();
+        Task<List<UserEntity>> GetActiveManagers();
 
         Task UpdateUserGrade(long userId, Grade grade);
         Task UpdateUserBudoPassport(long userId, bool value);

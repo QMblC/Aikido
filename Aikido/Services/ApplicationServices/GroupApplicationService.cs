@@ -153,7 +153,7 @@ namespace Aikido.Application.Services
 
         private async Task EnsureUserExists(long userId)
         {
-            if (!await _userDbService.Exists(userId))
+            if (!await _userDbService.ExistsActive(userId))
             {
                 throw new EntityNotFoundException($"Пользователя с Id = {userId} не существует");
             }

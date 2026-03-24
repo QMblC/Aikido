@@ -1,6 +1,7 @@
 ﻿using Aikido.AdditionalData.Enums;
 using Aikido.Data;
 using Aikido.Dto.Users.Creation;
+using Aikido.Entities;
 using Aikido.Entities.Users;
 using Aikido.Exceptions;
 using Microsoft.EntityFrameworkCore;
@@ -187,6 +188,28 @@ namespace Aikido.Services.DatabaseServices.User
             user.MainUserMembershipAsUserId = null;
 
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<UserEntity>> GetCoachActiveStudentByName(long coachId, string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return new List<UserEntity>();
+
+            name = name.ToLower();
+
+            var members = await _context.UserMemberships
+                .Where(um => um.Group.UserMemberships.Any(um2 => um2.UserId == coachId)
+                    && um.ClosedAt == null)
+                .Select(um => um.User)
+                .Where(u => u.Id != coachId)
+                .Where(u =>
+                    (u.LastName != null && u.LastName.ToLower().Contains(name)) ||
+                    (u.FirstName != null && u.FirstName.ToLower().Contains(name)) ||
+                    (u.MiddleName != null && u.MiddleName.ToLower().Contains(name)))
+                .Distinct()
+                .ToListAsync();
+
+            return members;
         }
     }
 }
