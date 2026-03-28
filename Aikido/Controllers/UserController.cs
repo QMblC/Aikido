@@ -376,7 +376,11 @@ namespace Aikido.Controllers
             }
         }
 
-
+        /// <summary>
+        /// История семинаров пользователя
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Admin,Manager,Coach,User")]
         [HttpGet("get/{id}/seminar-history")]
         public async Task<ActionResult<List<UserSeminarHistoryItemDto>>> GetUserSeminarHistoryById(long id)
@@ -400,6 +404,11 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// История аттестаций пользователя
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Admin,Manager,Coach,User")]
         [HttpGet("get/{id}/certification-history")]
         public async Task<ActionResult<List<UserSeminarHistoryItemDto>>> GetUserCertificationHistoryById(long id)
