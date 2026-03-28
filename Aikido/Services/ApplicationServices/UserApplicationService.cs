@@ -12,6 +12,7 @@ using Aikido.Services.DatabaseServices.Club;
 using Aikido.Services.DatabaseServices.Group;
 using Aikido.Services.DatabaseServices.Seminar;
 using Aikido.Services.DatabaseServices.User;
+using Aikido.Services.UnitOfWork;
 using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace Aikido.Application.Services
@@ -23,19 +24,22 @@ namespace Aikido.Application.Services
         private readonly IClubDbService _clubDbService;
         private readonly IGroupDbService _groupDbService;
         private readonly UserMembershipApplicationService _userMembershipApplicationService;
+        private readonly IUnitOfWork _unitOfWork;
 
         public UserApplicationService(
             IUserDbService userDbService,
             IUserMembershipDbService userMembershipDbService,
             IClubDbService clubDbService,
             IGroupDbService groupDbService,
-            UserMembershipApplicationService userMembershipApplicationService)
+            UserMembershipApplicationService userMembershipApplicationService,
+            IUnitOfWork unitOfWork)
         {
             _userDbService = userDbService;
             _userMembershipDbService = userMembershipDbService;
             _clubDbService = clubDbService;
             _groupDbService = groupDbService;
             _userMembershipApplicationService = userMembershipApplicationService;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<UserDto> GetUserByIdAsync(long id)
@@ -96,59 +100,80 @@ namespace Aikido.Application.Services
             };
         }
 
-        public async Task<long> CreateUserAsync(UserCreationDto userData)//Здесь нужно подключить UnitOfWork
+        public async Task<long> CreateUserAsync(UserCreationDto userData)
         {
-            var userId = await _userDbService.CreateUser(userData);
+            UserEntity user = null;
+            await EnsureUserCreateable(userData);
 
-            if (userData.UserMembershipDtos != null && userData.UserMembershipDtos.Any())
+            await _unitOfWork.ExecuteInTransactionAsync(async () =>
             {
-                foreach (var userMembership in userData.UserMembershipDtos)
+                
+
+                user = await _userDbService.CreateUser(userData);
+
+                await _unitOfWork.SaveChangesAsync();
+
+                if (userData.UserMembershipDtos != null && userData.UserMembershipDtos.Any())
                 {
-                    var clubId = userMembership.ClubId.Value;
-                    var groupId = userMembership.GroupId.Value;
-
-                    if (!await _clubDbService.Exists(clubId))
+                    foreach (var userMembership in userData.UserMembershipDtos)
                     {
-                        throw new EntityNotFoundException($"Клуба с Id = {clubId} не существует");
-                    }
-                    if (!await _groupDbService.ExistsActive(groupId))
-                    {
-                        throw new EntityNotFoundException($"Группы с Id = {groupId} не существует");
-                    }
+                        var clubId = userMembership.ClubId.Value;
+                        var groupId = userMembership.GroupId.Value;
 
-                    await _userMembershipApplicationService.AddUserMembershipAsync(userId, userMembership);
+                        if (!await _clubDbService.Exists(clubId))
+                        {
+                            throw new EntityNotFoundException($"Клуба с Id = {clubId} не существует");
+                        }
+
+                        if (!await _groupDbService.ExistsActive(groupId))
+                        {
+                            throw new EntityNotFoundException($"Группы с Id = {groupId} не существует");
+                        }
+
+                        await _userMembershipApplicationService
+                            .AddUserMembershipAsync(user.Id, userMembership);
+                    }
                 }
-            }
 
-            return userId;
+                if (user == null)
+                {
+                    throw new InvalidOperationException("Ошибка создания пользователя");
+                }
+            });
+
+            return user.Id;
         }
 
-        public async Task UpdateUserAsync(long userId, UserCreationDto userData)//Здесь нужно подключить UnitOfWork
-        {//Переделать
-            var user = await _userDbService.GetByIdOrThrowException(userId);
-            await _userDbService.UpdateUser(userId, userData);
-
-            await _userMembershipDbService.RemoveUserMemberships(userId);//Не удалять
-
-            if (userData.UserMembershipDtos != null && userData.UserMembershipDtos.Any())
+        public async Task UpdateUserAsync(long userId, UserCreationDto userData)
+        {
+            await EnsureUserCreateable(userData);
+            await _unitOfWork.ExecuteInTransactionAsync(async () =>
             {
-                foreach (var userMembership in userData.UserMembershipDtos)
+                var user = await _userDbService.GetByIdOrThrowException(userId);
+                await _userDbService.UpdateUser(userId, userData);
+
+                await _userMembershipApplicationService.CloseExcessUserMemberships(userId, userData.UserMembershipDtos);
+
+                if (userData.UserMembershipDtos != null && userData.UserMembershipDtos.Any())
                 {
-                    var clubId = userMembership.ClubId.Value;
-                    var groupId = userMembership.GroupId.Value;
-
-                    if (!await _clubDbService.Exists(clubId))
+                    foreach (var userMembership in userData.UserMembershipDtos)
                     {
-                        throw new EntityNotFoundException($"Клуба с Id = {clubId} не существует");
-                    }
-                    if (!await _groupDbService.ExistsActive(groupId))
-                    {
-                        throw new EntityNotFoundException($"Группы с Id = {groupId} не существует");
-                    }
+                        var clubId = userMembership.ClubId.Value;
+                        var groupId = userMembership.GroupId.Value;
 
-                    await _userMembershipApplicationService.AddUserMembershipAsync(userId, userMembership);
+                        if (!await _clubDbService.Exists(clubId))
+                        {
+                            throw new EntityNotFoundException($"Клуба с Id = {clubId} не существует");
+                        }
+                        if (!await _groupDbService.ExistsActive(groupId))
+                        {
+                            throw new EntityNotFoundException($"Группы с Id = {groupId} не существует");
+                        }
+
+                        await _userMembershipApplicationService.AddUserMembershipAsync(userId, userMembership);
+                    }
                 }
-            } 
+            });
         }
 
         public async Task CloseUserAsync(long id)
@@ -160,18 +185,31 @@ namespace Aikido.Application.Services
                 throw new InvalidOperationException("Человек является участником одной или нескольких групп");
             }
 
-            await _userDbService.CloseAsync(id);
+            await _unitOfWork.ExecuteInTransactionAsync(async () =>
+            {
+                await _userDbService.CloseAsync(id);
+            });     
         }
 
         public async Task RecoverUserAsync(long id)
         {
-            await _userDbService.RecoverAsync(id);
+            await _unitOfWork.ExecuteInTransactionAsync(async () =>
+            {
+                await _userDbService.RecoverAsync(id);
+            });
+            
         }
 
         public async Task DeleteUserAsync(long id)
         {
-            await _userMembershipDbService.RemoveUserMemberships(id);
-            await _userDbService.Delete(id);
+            await _unitOfWork.ExecuteInTransactionAsync(async () =>
+            {
+                await _userMembershipDbService.RemoveUserMemberships(id);
+
+                await _unitOfWork.SaveChangesAsync(); 
+
+                await _userDbService.Delete(id);
+            });
         }
 
         public async Task<List<long>> CreateUsersAsync(List<UserCreationDto> users)
@@ -185,6 +223,34 @@ namespace Aikido.Application.Services
             }
 
             return createdIds;
+        }
+
+        public async Task<List<UserSeminarHistoryItemDto>> GetUserSeminarHistory(long userId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<List<UserSeminarHistoryItemDto>> GetUserCertificationHistory(long userId)
+        {
+            throw new NotImplementedException();
+        }
+
+        private async Task EnsureUserCreateable(UserCreationDto user)
+        {
+            var passwordMinLength = 1;
+
+            if (await _userDbService.LoginExists(user.Login))
+            {
+                throw new InvalidOperationException("Логин занят");
+            }
+            if (user.Password.Length < passwordMinLength)
+            {
+                throw new InvalidOperationException($"Пароль должен содержать минимум {passwordMinLength} символов");
+            }
+            if (user.FirstName == "" || user.LastName == "")
+            {
+                throw new InvalidOperationException("Не указано фамилия или имя");
+            }
         }
 
         private async Task EnsureUserExists(long userId)

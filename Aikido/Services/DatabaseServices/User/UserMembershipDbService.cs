@@ -94,13 +94,12 @@ namespace Aikido.Services.DatabaseServices.User
             return userMembership != null;
         }
 
-        public async Task<long> CreateUserMembershipAsync(long userId, UserMembershipCreationDto userMembership)
+        public async Task<UserMembershipEntity> CreateUserMembershipAsync(long userId, UserMembershipCreationDto userMembership)
         {
             var userMembershipEntity = new UserMembershipEntity(userId, userMembership);
             await _context.UserMemberships.AddAsync(userMembershipEntity);
-            await _context.SaveChangesAsync();
 
-            return userMembershipEntity.Id;
+            return userMembershipEntity;
         }
 
         public async Task UpdateUserMembershipAsync(long userId, UserMembershipCreationDto userMembership)
@@ -117,13 +116,11 @@ namespace Aikido.Services.DatabaseServices.User
             existingMembership.IsMain = userMembership.IsMain;
 
             _context.Update(existingMembership);
-            await _context.SaveChangesAsync();
         }
 
         public async Task UpdateUserMembershipAsync(UserMembershipEntity userMembership)
         {
             _context.UserMemberships.Update(userMembership);
-            await _context.SaveChangesAsync();
         }
 
         public async Task CloseUserMembershipAsync(long userId, long groupId)
@@ -142,7 +139,22 @@ namespace Aikido.Services.DatabaseServices.User
             userMembership.ClosedAt = DateTime.UtcNow;
 
             _context.UserMemberships.Update(userMembership);
-            await _context.SaveChangesAsync();
+        }
+
+        public async Task CloseUserMembershipsAsync(List<long> userMembershipIds)
+        {
+            var userMemberships = await _context.UserMemberships.Where(um => 
+                userMembershipIds.Any(id => um.Id == id)
+                && um.ClosedAt == null)
+                .ToListAsync();
+
+            foreach (var userMembership in userMemberships)
+            {
+                userMembership.ClosedAt = DateTime.UtcNow;
+                userMembership.IsMain = false;
+            }
+
+            _context.UserMemberships.UpdateRange(userMemberships);
         }
 
         public async Task RecoverUserMembershipAsync(long userId, long groupId)
@@ -160,7 +172,6 @@ namespace Aikido.Services.DatabaseServices.User
             userMembership.ClosedAt = null;
 
             _context.UserMemberships.Update(userMembership);
-            await _context.SaveChangesAsync();
         }
 
         public async Task RemoveUserMembershipAsync(long userId, long groupId)
@@ -168,8 +179,7 @@ namespace Aikido.Services.DatabaseServices.User
             var userMembership = await _context.UserMemberships
                 .FirstOrDefaultAsync(um => um.UserId == userId && um.GroupId == groupId);
 
-            _context.Remove(userMembership);
-            await _context.SaveChangesAsync();
+            _context.UserMemberships.Remove(userMembership);
         }
 
         public async Task RemoveUserMemberships(long userId)
@@ -184,10 +194,8 @@ namespace Aikido.Services.DatabaseServices.User
                 _context.Remove(userMembership);
             }
 
-            var user = await _context.Users.FindAsync(userId);
+            var user = await _context.Users.FindAsync(userId); 
             user.MainUserMembershipAsUserId = null;
-
-            await _context.SaveChangesAsync();
         }
 
         public async Task<List<UserEntity>> GetCoachActiveStudentByName(long coachId, string name)

@@ -1,4 +1,5 @@
 ﻿using Aikido.AdditionalData;
+using Aikido.AdditionalData.Enums;
 using Aikido.Application.Services;
 using Aikido.Dto.Users;
 using Aikido.Dto.Users.Creation;
@@ -7,9 +8,11 @@ using Aikido.Exceptions;
 using Aikido.Requests;
 using Aikido.Services;
 using Aikido.Services.ApplicationServices;
+using Aikido.Services.UnitOfWork;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Aikido.Controllers
 {
@@ -19,21 +22,27 @@ namespace Aikido.Controllers
     {
         private readonly UserApplicationService _userApplicationService;
         private readonly UserMembershipApplicationService _userMembershipApplicationService;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly TableService _tableService;
 
         public UserController(
             UserApplicationService userApplicationService,
             TableService tableService,
-            UserMembershipApplicationService userMembershipApplicationService)
+            UserMembershipApplicationService userMembershipApplicationService,
+            IUnitOfWork unitOfWork)
         {
             _userApplicationService = userApplicationService;
             _tableService = tableService;
             _userMembershipApplicationService = userMembershipApplicationService;
+            _unitOfWork = unitOfWork;
         }
 
+        [Authorize(Roles = "Admin,Manager,Coach,User")]
         [HttpGet("get/{id}")]
         public async Task<ActionResult<UserDto>> GetUserDataById(long id)
         {
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
             try
             {
                 var user = await _userApplicationService.GetUserByIdAsync(id);
@@ -154,7 +163,11 @@ namespace Aikido.Controllers
         {
             try
             {
-                await _userMembershipApplicationService.AddUserMembershipAsync(userId, userMembership);
+                await _unitOfWork.ExecuteInTransactionAsync(async () =>
+                {
+                    await _userMembershipApplicationService.AddUserMembershipAsync(userId, userMembership);       
+                });
+
                 return Ok(new { Message = "Пользователь успешно добавлен в группу" });
             }
             catch (ArgumentException ex)
@@ -178,7 +191,11 @@ namespace Aikido.Controllers
         {
             try
             {
-                await _userMembershipApplicationService.CloseUserMembershipAsync(userId, groupId);
+                await _unitOfWork.ExecuteInTransactionAsync(async () =>
+                {
+                    await _userMembershipApplicationService.CloseUserMembershipAsync(userId, groupId);
+                });
+                
                 return Ok(new { Message = "Пользователь успешно удален из группы" });
             }
             catch (EntityNotFoundException ex)
@@ -358,5 +375,30 @@ namespace Aikido.Controllers
                 return StatusCode(500, new { Message = "Ошибка при создании пользователей.", Details = ex.Message });
             }
         }
+
+
+        [Authorize(Roles = "Admin,Manager,Coach,User")]
+        [HttpGet("get/{id}/seminar-history")]
+        public async Task<ActionResult<UserDto>> GetUserSeminarHistoryById(long id)
+        {
+            try
+            {
+                var user = await _userApplicationService.GetUserByIdAsync(id);
+                return Ok(user);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
     }
 }

@@ -35,6 +35,13 @@ namespace Aikido.Services.DatabaseServices.User
             return user;
         }
 
+        public async Task<bool> LoginExists(string login)
+        {
+            var userCount = await _context.Users.Where(u => u.Login == login).CountAsync();
+
+            return userCount != 0;
+        }
+
         public async Task<bool> ExistsActive(long id)
         {
             return await _context.Users.AnyAsync(u => u.Id == id && u.ClosedAt == null);
@@ -141,33 +148,29 @@ namespace Aikido.Services.DatabaseServices.User
             return (users, totalCount);
         }
 
-        public async Task<long> CreateUser(UserCreationDto userData)
+        public async Task<UserEntity> CreateUser(UserCreationDto userData)
         {
             var user = new UserEntity(userData);
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-            return user.Id;
+            await _context.Users.AddAsync(user);
+            return user;
         }
 
-        public async Task<List<long>> CreateUsers(List<UserCreationDto> users)
+        public async Task<List<UserEntity>> CreateUsers(List<UserCreationDto> users)
         {
             var entities = users.Select(u => new UserEntity(u)).ToList();
-            _context.Users.AddRange(entities);
-            await _context.SaveChangesAsync();
-            return entities.Select(e => e.Id).ToList();
+            await _context.Users.AddRangeAsync(entities);
+            return entities;
         }
 
         public async Task UpdateUser(long id, UserCreationDto userData)
         {
             var user = await GetByIdOrThrowException(id);
             user.Update(userData);
-            await _context.SaveChangesAsync();
         }
 
         public async Task UpdateUser(UserEntity user)
         {
             _context.Users.Update(user);
-            await _context.SaveChangesAsync();
         }
 
         public async Task UpdateUsers(List<UserDto> users)
@@ -180,7 +183,6 @@ namespace Aikido.Services.DatabaseServices.User
                     user.Update(userData);
                 }
             }
-            await _context.SaveChangesAsync();
         }
 
         public async Task CloseAsync(long id)
@@ -202,17 +204,15 @@ namespace Aikido.Services.DatabaseServices.User
             }
             user.ClosedAt = isActiveStatus ? null : DateTime.UtcNow;
             _context.Users.Update(user);
-            await _context.SaveChangesAsync();
         }
+
         public async Task Delete(long id)
         {
             var user = await GetByIdOrThrowException(id);
             _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
         }
 
-
-        public async Task UpdateUserGrade(long userId, Grade grade)
+        public async Task UpdateUserGrade(long userId, Grade grade)//Delete save
         {
             var user = await _context.Users.FindAsync(userId);
 

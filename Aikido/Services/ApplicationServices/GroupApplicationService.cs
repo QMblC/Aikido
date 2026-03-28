@@ -135,7 +135,10 @@ namespace Aikido.Application.Services
 
         public async Task RemoveUserFromGroupAsync(long groupId, long userId)
         {
-            await _userMembershipApplicationService.CloseUserMembershipAsync(userId, groupId);
+            await _unitOfWork.ExecuteInTransactionAsync(async () => 
+            { 
+                await _userMembershipApplicationService.CloseUserMembershipAsync(userId, groupId); 
+            });
         }
 
         public async Task<bool> GroupExistsAsync(long id)

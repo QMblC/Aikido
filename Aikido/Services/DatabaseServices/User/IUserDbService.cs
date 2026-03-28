@@ -10,12 +10,13 @@ namespace Aikido.Services.DatabaseServices.User
     public interface IUserDbService
     {
         Task<UserEntity> GetByIdOrThrowException(long id);
+        Task<bool> LoginExists(string login);
         Task<bool> ExistsActive(long id);
         Task<List<UserEntity>> GetActiveUsersAsync();
         Task<List<UserEntity>> GetArchivedUsersAsync();
         Task<(List<UserEntity> Users, int TotalCount)> GetActiveUserListAlphabetAscending(int startIndex, int finishIndex, UserFilter filter);
-        Task<long> CreateUser(UserCreationDto userData);
-        Task<List<long>> CreateUsers(List<UserCreationDto> users);
+        Task<UserEntity> CreateUser(UserCreationDto userData);
+        Task<List<UserEntity>> CreateUsers(List<UserCreationDto> users);
         Task UpdateUser(UserEntity user);
         Task UpdateUser(long id, UserCreationDto userData);
         Task UpdateUsers(List<UserDto> users);

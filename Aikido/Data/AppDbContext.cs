@@ -62,7 +62,8 @@ namespace Aikido.Data
 
                 entity.HasOne(e => e.MainUserMembershipAsUser)
                     .WithMany()
-                    .HasForeignKey(e => e.MainUserMembershipAsUserId);
+                    .HasForeignKey(e => e.MainUserMembershipAsUserId)
+                    .OnDelete(DeleteBehavior.SetNull);
 
                 entity.HasIndex(e => e.Login).IsUnique();
                 entity.HasIndex(e => e.PhoneNumber);

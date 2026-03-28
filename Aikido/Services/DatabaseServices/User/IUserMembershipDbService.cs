@@ -14,11 +14,11 @@ namespace Aikido.Services.DatabaseServices.User
         Task RemoveUserMemberships(long userId);
         
 
-
         Task CloseUserMembershipAsync(long userId, long groupId);
+        Task CloseUserMembershipsAsync(List<long> userMembershipIds);
         Task RecoverUserMembershipAsync(long userId, long groupId);
 
-        Task<long> CreateUserMembershipAsync(long userId, UserMembershipCreationDto userMembership);
+        Task<UserMembershipEntity> CreateUserMembershipAsync(long userId, UserMembershipCreationDto userMembership);
         Task UpdateUserMembershipAsync(UserMembershipEntity userMembership);
         Task UpdateUserMembershipAsync(long userId, UserMembershipCreationDto userMembership);
         Task<bool> UserMembershipExists(long userId, long groupId);

@@ -795,5 +795,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
 
             await _context.SaveChangesAsync();
         }
+
+
     }
 }
