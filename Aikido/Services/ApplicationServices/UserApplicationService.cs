@@ -25,6 +25,7 @@ namespace Aikido.Application.Services
         private readonly IGroupDbService _groupDbService;
         private readonly UserMembershipApplicationService _userMembershipApplicationService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ISeminarDbService _seminarDbService;
 
         public UserApplicationService(
             IUserDbService userDbService,
@@ -32,7 +33,8 @@ namespace Aikido.Application.Services
             IClubDbService clubDbService,
             IGroupDbService groupDbService,
             UserMembershipApplicationService userMembershipApplicationService,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            ISeminarDbService seminarDbService)
         {
             _userDbService = userDbService;
             _userMembershipDbService = userMembershipDbService;
@@ -40,6 +42,7 @@ namespace Aikido.Application.Services
             _groupDbService = groupDbService;
             _userMembershipApplicationService = userMembershipApplicationService;
             _unitOfWork = unitOfWork;
+            _seminarDbService = seminarDbService;
         }
 
         public async Task<UserDto> GetUserByIdAsync(long id)
@@ -227,12 +230,17 @@ namespace Aikido.Application.Services
 
         public async Task<List<UserSeminarHistoryItemDto>> GetUserSeminarHistory(long userId)
         {
-            throw new NotImplementedException();
+            var seminars = await _seminarDbService.GetUserSeminarHistory(userId);
+
+            return seminars.Select(s => new UserSeminarHistoryItemDto(s))
+                .ToList();
         }
 
-        public async Task<List<UserSeminarHistoryItemDto>> GetUserCertificationHistory(long userId)
+        public async Task<List<UserCertificationHistoryItemDto>> GetUserCertificationHistory(long userId)
         {
-            throw new NotImplementedException();
+            var members = await _seminarDbService.GetUserCertificationHistory(userId);
+
+            return members.Select(sm => new UserCertificationHistoryItemDto(sm)).ToList();
         }
 
         private async Task EnsureUserCreateable(UserCreationDto user)

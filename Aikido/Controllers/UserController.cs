@@ -379,12 +379,12 @@ namespace Aikido.Controllers
 
         [Authorize(Roles = "Admin,Manager,Coach,User")]
         [HttpGet("get/{id}/seminar-history")]
-        public async Task<ActionResult<UserDto>> GetUserSeminarHistoryById(long id)
+        public async Task<ActionResult<List<UserSeminarHistoryItemDto>>> GetUserSeminarHistoryById(long id)
         {
             try
             {
-                var user = await _userApplicationService.GetUserByIdAsync(id);
-                return Ok(user);
+                var history = await _userApplicationService.GetUserSeminarHistory(id);
+                return Ok(history);
             }
             catch (KeyNotFoundException ex)
             {
@@ -400,5 +400,27 @@ namespace Aikido.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin,Manager,Coach,User")]
+        [HttpGet("get/{id}/certification-history")]
+        public async Task<ActionResult<List<UserSeminarHistoryItemDto>>> GetUserCertificationHistoryById(long id)
+        {
+            try
+            {
+                var history = await _userApplicationService.GetUserCertificationHistory(id);
+                return Ok(history);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
     }
 }
