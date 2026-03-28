@@ -813,6 +813,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
             var members = await _context.SeminarMembers
                 .Include(sm => sm.Seminar)
                 .Where(sm => sm.UserId == userId
+                    && sm.CertificationGrade != Grade.None
                     && sm.Seminar.IsFinalStatementApplied)
                 .ToListAsync();
 
