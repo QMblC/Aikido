@@ -5,19 +5,26 @@ using Aikido.Entities.Users;
 using Aikido.Exceptions;
 using Aikido.Services.DatabaseServices.Group;
 using Aikido.Services.DatabaseServices.User;
+using Aikido.Services.UnitOfWork;
 
 namespace Aikido.Services.ApplicationServices
 {
     public class UserMembershipApplicationService
     {
         private readonly IUserDbService _userDbService;
+        private readonly IUserMembershipDbService _userMembershipDbService;
         private readonly IGroupDbService _groupDbService;
+        private readonly IUnitOfWork _unitOfWork;
 
         public UserMembershipApplicationService(IUserDbService userDbService,
-            IGroupDbService groupDbService)
+            IUserMembershipDbService userMembershipDbService,
+            IGroupDbService groupDbService,
+            IUnitOfWork unitOfWork)
         {
             _userDbService = userDbService;
+            _userMembershipDbService = userMembershipDbService;
             _groupDbService = groupDbService;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task AddUserMembershipAsync(long userId, UserMembershipCreationDto dto)
@@ -25,14 +32,14 @@ namespace Aikido.Services.ApplicationServices
             await EnsureUserExists(userId);
             await EnsureGroupExists(dto.GroupId.Value);
 
-            var userMembershipExists = await _userDbService.UserMembershipExists(userId,
+            var userMembershipExists = await _userMembershipDbService.UserMembershipExists(userId,
                 dto.GroupId.Value);
 
             if (!userMembershipExists)
             {
                 await CreateUserMembershipAsync(userId, dto);
             }
-            else if (IsRoleChanged(_userDbService.GetActiveUserMembership(userId, dto.GroupId.Value), dto))
+            else if (IsRoleChanged(_userMembershipDbService.GetActiveUserMembership(userId, dto.GroupId.Value), dto))
             {
                 await RecreateUserMembershipAsync(userId, dto);
             }
@@ -40,33 +47,43 @@ namespace Aikido.Services.ApplicationServices
             {
                 await UpdateUserMembershipAsync(userId, dto); 
             }
+
+            var mainUserMembership = _userMembershipDbService.GetMainUserMembership(userId);
+            if (mainUserMembership == null)
+            {
+                await SetNewMainUserMembershipAsync(userId);
+            }
         }
 
         private async Task CreateUserMembershipAsync(long userId, UserMembershipCreationDto dto)
         {
             
-            var userMemberships = await _userDbService.GetActiveUserMembershipsAsUserAsync(userId);
+            var userMemberships = await _userMembershipDbService.GetActiveUserMembershipsAsUserAsync(userId);
 
             if (dto.IsMain && dto.RoleInGroup == EnumParser.ConvertEnumToString(Role.User))
             {
                 await UnsetMainUserMembershipAsync(userId);
-                await _userDbService.CreateUserMembershipAsync(userId, dto);
+                await _userMembershipDbService.CreateUserMembershipAsync(userId, dto);
+                await _unitOfWork.SaveChangesAsync();
                 await SetNewMainUserMembershipAsync(userId, dto.GroupId.Value);
             }
             else if (dto.RoleInGroup == EnumParser.ConvertEnumToString(Role.Coach))
             {
                 dto.IsMain = false;
-                await _userDbService.CreateUserMembershipAsync(userId, dto);
+                await _userMembershipDbService.CreateUserMembershipAsync(userId, dto);
+                await _unitOfWork.SaveChangesAsync();
             }
             else if (dto.IsMain == false && userMemberships.Count == 0)
             {
                 dto.IsMain = true;
-                await _userDbService.CreateUserMembershipAsync(userId, dto);
+                await _userMembershipDbService.CreateUserMembershipAsync(userId, dto);
+                await _unitOfWork.SaveChangesAsync();
                 await SetNewMainUserMembershipAsync(userId, dto.GroupId.Value);
             }
             else
             {
-                await _userDbService.CreateUserMembershipAsync(userId, dto);
+                await _userMembershipDbService.CreateUserMembershipAsync(userId, dto);
+                await _unitOfWork.SaveChangesAsync();
             }
         }
 
@@ -83,7 +100,7 @@ namespace Aikido.Services.ApplicationServices
 
         private async Task UpdateUserMembershipAsync(long userId, UserMembershipCreationDto dto)
         {
-            var existing = _userDbService.GetActiveUserMembership(userId, dto.GroupId.Value);
+            var existing = _userMembershipDbService.GetActiveUserMembership(userId, dto.GroupId.Value);
 
             if (existing.IsMain == true && dto.IsMain == false)
             {
@@ -95,33 +112,48 @@ namespace Aikido.Services.ApplicationServices
                 await UnsetMainUserMembershipAsync(userId);
                 await SetNewMainUserMembershipAsync(userId, dto.GroupId.Value);
             }
-            await _userDbService.UpdateUserMembershipAsync(userId, dto);
+            await _userMembershipDbService.UpdateUserMembershipAsync(userId, dto);
         }
 
         public async Task CloseUserMembershipAsync(long userId, long groupId)
         {
-            var userMembership = _userDbService.GetActiveUserMembership(userId, groupId);
+            var userMembership = _userMembershipDbService.GetActiveUserMembership(userId, groupId);
 
             if (userMembership.IsMain)
             {
                 await UnsetMainUserMembershipAsync(userId);
-                await _userDbService.CloseUserMembershipAsync(userId, groupId);
+                await _userMembershipDbService.CloseUserMembershipAsync(userId, groupId);
                 await SetNewMainUserMembershipAsync(userId);
             }
             else
             {
-                await _userDbService.CloseUserMembershipAsync(userId, groupId);
+                await _userMembershipDbService.CloseUserMembershipAsync(userId, groupId);
             }   
+        }
+
+        public async Task CloseExcessUserMemberships(long userId, List<UserMembershipCreationDto> newMemberships)
+        {
+            var oldUserMemberships = await _userMembershipDbService.GetActiveUserMembershipsAsync(userId);
+
+            var excessUserMemberships = oldUserMemberships.Where(um =>
+                !newMemberships.Any(newUM => um.GroupId == newUM.GroupId))
+                .ToList();
+
+            await _userMembershipDbService.CloseUserMembershipsAsync(excessUserMemberships.Select(um => um.Id).ToList());
+            if (excessUserMemberships.Any(um => um.IsMain))
+            {
+                await SetNewMainUserMembershipAsync(userId);
+            }
         }
 
         private async Task SetNewMainUserMembershipAsync(long userId)
         {
-            var userMemberships = await _userDbService.GetActiveUserMembershipsAsUserAsync(userId);
+            var userMemberships = await _userMembershipDbService.GetActiveUserMembershipsAsUserAsync(userId);
             if (userMemberships.Where(um => um.RoleInGroup == Role.User).Count() > 0)
             {
                 var newMainUserMembership = userMemberships.First(um => um.RoleInGroup == Role.User);
                 newMainUserMembership.IsMain = true;
-                await _userDbService.UpdateUserMembershipAsync(newMainUserMembership);
+                await _userMembershipDbService.UpdateUserMembershipAsync(newMainUserMembership);
 
                 if (newMainUserMembership?.User != null)
                 {
@@ -134,7 +166,7 @@ namespace Aikido.Services.ApplicationServices
 
         private async Task SetNewMainUserMembershipAsync(long userId, long groupId)
         {
-            var userMembership = _userDbService.GetActiveUserMembership(userId, groupId);
+            var userMembership = _userMembershipDbService.GetActiveUserMembership(userId, groupId);
             if (userMembership?.User != null)
             {
                 userMembership.User.MainUserMembershipAsUserId = userMembership.Id;
@@ -144,11 +176,11 @@ namespace Aikido.Services.ApplicationServices
 
         private async Task UnsetMainUserMembershipAsync(long userId)
         {
-            var mainUserMembership = _userDbService.GetMainUserMembership(userId);
+            var mainUserMembership = _userMembershipDbService.GetMainUserMembership(userId);
             if (mainUserMembership != null)
             {
                 mainUserMembership.IsMain = false;
-                await _userDbService.UpdateUserMembershipAsync(mainUserMembership);
+                await _userMembershipDbService.UpdateUserMembershipAsync(mainUserMembership);
                 mainUserMembership.User.MainUserMembershipAsUserId = null;
                 await _userDbService.UpdateUser(mainUserMembership.User);
             } 
@@ -156,17 +188,18 @@ namespace Aikido.Services.ApplicationServices
 
         public async Task RecoverUserMembershipAsync(long userId, long groupId)
         {
-            await _userDbService.RecoverUserMembershipAsync(userId, groupId);
+            await _userMembershipDbService.RecoverUserMembershipAsync(userId, groupId);
         }
 
         public async Task RemoveUserMembership(long userId, long groupId)
         {
-            await _userDbService.RemoveUserMembershipAsync(userId, groupId);
+            await _userMembershipDbService.RemoveUserMembershipAsync(userId, groupId);
         }
+
 
         public async Task<List<UserMembershipDto>> GetUserMembershipsAsync(long userId)
         {
-            var userGroups = await _userDbService.GetActiveUserMembershipsAsync(userId);
+            var userGroups = await _userMembershipDbService.GetActiveUserMembershipsAsync(userId);
             return userGroups.Select(um => new UserMembershipDto(um)).ToList();
         }
 
@@ -177,7 +210,7 @@ namespace Aikido.Services.ApplicationServices
 
         private async Task EnsureUserExists(long userId)
         {
-            if (!await _userDbService.Exists(userId))
+            if (!await _userDbService.ExistsActive(userId))
             {
                 throw new EntityNotFoundException($"Пользователя с Id = {userId} не существует");
             }

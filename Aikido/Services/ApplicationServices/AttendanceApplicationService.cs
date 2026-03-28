@@ -10,11 +10,15 @@ namespace Aikido.Application.Services
     {
         private readonly AttendanceDbService _attendanceDbService;
         private readonly IUserDbService _userDbService;
+        private readonly IUserMembershipDbService _userMembershipDbService;
 
-        public AttendanceApplicationService(AttendanceDbService attendanceService, IUserDbService userDbService)
+        public AttendanceApplicationService(AttendanceDbService attendanceService,
+            IUserDbService userDbService,
+            IUserMembershipDbService userMembershipDbService)
         {
             _attendanceDbService = attendanceService;
             _userDbService = userDbService;
+            _userMembershipDbService = userMembershipDbService;
         }
 
         public async Task<AttendanceDto> GetAttendanceByIdAsync(long id)
@@ -39,7 +43,7 @@ namespace Aikido.Application.Services
 
         public async Task<long> CreateAttendanceAsync(long groupId, AttendanceCreationDto attendanceData)
         {
-            var userMembership = _userDbService.GetActiveUserMembership(attendanceData.UserId, groupId);
+            var userMembership = _userMembershipDbService.GetActiveUserMembership(attendanceData.UserId, groupId);
             return await _attendanceDbService.CreateAttendance(userMembership, attendanceData.Date);
         }
 

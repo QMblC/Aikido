@@ -16,6 +16,11 @@ namespace Aikido.Services.UnitOfWork
             _logger = logger;
         }
 
+        public Task SaveChangesAsync()
+        {
+            return _context.SaveChangesAsync();
+        }
+
         public async Task ExecuteInTransactionAsync(Func<Task> action)
         {
             await using var transaction = await _context.Database.BeginTransactionAsync();

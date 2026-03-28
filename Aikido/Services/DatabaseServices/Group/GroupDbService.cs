@@ -188,15 +188,15 @@ namespace Aikido.Services.DatabaseServices.Group
 
         public async Task CloseAsync(long id)
         {
-            await SetGroupStatus(id, false);
+            await SetStatus(id, false);
         }
 
         public async Task RecoverAsync(long id)
         {
-            await SetGroupStatus(id, true);
+            await SetStatus(id, true);
         }
 
-        private async Task SetGroupStatus(long id, bool isActiveStatus)
+        private async Task SetStatus(long id, bool isActiveStatus)
         {
             var group = await GetGroupByIdAsync(id);
             if (group == null)

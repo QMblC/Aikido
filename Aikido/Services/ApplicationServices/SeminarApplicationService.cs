@@ -23,17 +23,20 @@ namespace Aikido.Application.Services
     {
         private readonly ISeminarDbService _seminarDbService;
         private readonly IUserDbService _userDbService;
+        private readonly IUserMembershipDbService _userMembershipDbService;
         private readonly IGroupDbService _groupDbService;
         private readonly PaymentService _paymentDbService;
 
         public SeminarApplicationService(
             ISeminarDbService seminarDbService,
             IUserDbService userDbService,
+            IUserMembershipDbService userMembershipDbService,
             IGroupDbService groupDbService,
             PaymentService paymentDbService)
         {
             _seminarDbService = seminarDbService;
             _userDbService = userDbService;
+            _userMembershipDbService = userMembershipDbService;
             _groupDbService = groupDbService;
             _paymentDbService = paymentDbService;
         }
@@ -174,7 +177,7 @@ namespace Aikido.Application.Services
         public async Task<SeminarMemberDto> GetStartMemberdata(long seminarId, long userId, long coachId)//ToDo проверять оплату AnnualFee
         {
             var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
-            var userMemberships = await _userDbService.GetActiveUserMembershipsAsync(userId);
+            var userMemberships = await _userMembershipDbService.GetActiveUserMembershipsAsync(userId);
             var userMembership = userMemberships.Where(um => um.RoleInGroup == Role.User
                 && um.Group.UserMemberships
                 .Any(um => um.UserId == coachId && um.RoleInGroup == Role.Coach))
@@ -343,7 +346,7 @@ namespace Aikido.Application.Services
         public async Task<SeminarMemberRequestDto> GetNewSeminarMemberManagerRequest(long seminarId, long userId)
         {
             var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
-            var mainUserMembership = _userDbService.GetMainUserMembership(userId);
+            var mainUserMembership = _userMembershipDbService.GetMainUserMembership(userId);
             var payments = await _paymentDbService.GetFakeSeminarMemberPayment(seminarId, userId);
 
             return new SeminarMemberRequestDto(seminar, mainUserMembership, payments);
@@ -389,7 +392,7 @@ namespace Aikido.Application.Services
 
         public async Task<List<ManagerRequest>> GetManagerRequestList(long seminarId)
         {
-            var managers = await _userDbService.GetManagers();
+            var managers = await _userDbService.GetActiveManagers();
             var managerRequestList = new List<ManagerRequest>();
 
             foreach(var manager in managers)
@@ -410,7 +413,7 @@ namespace Aikido.Application.Services
         public async Task<SeminarMemberDto> GetNewSeminarMember(long seminarId, long userId)
         {
             var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
-            var mainUserMembership = _userDbService.GetMainUserMembership(userId);
+            var mainUserMembership = _userMembershipDbService.GetMainUserMembership(userId);
             var payments = await _paymentDbService.GetFakeSeminarMemberPayment(seminarId, userId);
 
             return new SeminarMemberDto(seminar, mainUserMembership, payments);

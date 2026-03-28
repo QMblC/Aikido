@@ -1,4 +1,5 @@
 ﻿using Aikido.AdditionalData;
+using Aikido.AdditionalData.Enums;
 using Aikido.Application.Services;
 using Aikido.Dto.Users;
 using Aikido.Dto.Users.Creation;
@@ -7,9 +8,11 @@ using Aikido.Exceptions;
 using Aikido.Requests;
 using Aikido.Services;
 using Aikido.Services.ApplicationServices;
+using Aikido.Services.UnitOfWork;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Aikido.Controllers
 {
@@ -19,21 +22,27 @@ namespace Aikido.Controllers
     {
         private readonly UserApplicationService _userApplicationService;
         private readonly UserMembershipApplicationService _userMembershipApplicationService;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly TableService _tableService;
 
         public UserController(
             UserApplicationService userApplicationService,
             TableService tableService,
-            UserMembershipApplicationService userMembershipApplicationService)
+            UserMembershipApplicationService userMembershipApplicationService,
+            IUnitOfWork unitOfWork)
         {
             _userApplicationService = userApplicationService;
             _tableService = tableService;
             _userMembershipApplicationService = userMembershipApplicationService;
+            _unitOfWork = unitOfWork;
         }
 
+        [Authorize(Roles = "Admin,Manager,Coach,User")]
         [HttpGet("get/{id}")]
         public async Task<ActionResult<UserDto>> GetUserDataById(long id)
         {
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
             try
             {
                 var user = await _userApplicationService.GetUserByIdAsync(id);
@@ -54,12 +63,30 @@ namespace Aikido.Controllers
         {
             try
             {
-                var users = await _userApplicationService.GetUserShortListAsync();
+                var users = await _userApplicationService.GetActiveUserShortListAsync();
                 return Ok(users);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, "Ошибка при получении списка пользователей.");
+            }
+        }
+
+        /// <summary>
+        /// Получение заархивированных пользователей
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("get/archived-users")]
+        public async Task<ActionResult<List<UserShortDto>>> GetArchivedUsers()
+        {
+            try
+            {
+                var users = await _userApplicationService.GetArchivedUsersAsync();
+                return Ok(users);
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при получении списка пользователей.", Details = ex.Message});
             }
         }
 
@@ -69,7 +96,7 @@ namespace Aikido.Controllers
         {
             try
             {
-                var shortUsers = await _userApplicationService.FindUsersAsync(filter);
+                var shortUsers = await _userApplicationService.FindActiveUsersAsync(filter);
                 return Ok(shortUsers);
             }
             catch (Exception ex)
@@ -100,7 +127,7 @@ namespace Aikido.Controllers
         {
             try
             {
-                var result = await _userApplicationService.GetUserShortListCutDataAsync(startIndex, finishIndex, filter);
+                var result = await _userApplicationService.GetActiveUserShortListCutDataAsync(startIndex, finishIndex, filter);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -136,7 +163,11 @@ namespace Aikido.Controllers
         {
             try
             {
-                await _userMembershipApplicationService.AddUserMembershipAsync(userId, userMembership);
+                await _unitOfWork.ExecuteInTransactionAsync(async () =>
+                {
+                    await _userMembershipApplicationService.AddUserMembershipAsync(userId, userMembership);       
+                });
+
                 return Ok(new { Message = "Пользователь успешно добавлен в группу" });
             }
             catch (ArgumentException ex)
@@ -160,7 +191,11 @@ namespace Aikido.Controllers
         {
             try
             {
-                await _userMembershipApplicationService.CloseUserMembershipAsync(userId, groupId);
+                await _unitOfWork.ExecuteInTransactionAsync(async () =>
+                {
+                    await _userMembershipApplicationService.CloseUserMembershipAsync(userId, groupId);
+                });
+                
                 return Ok(new { Message = "Пользователь успешно удален из группы" });
             }
             catch (EntityNotFoundException ex)
@@ -193,6 +228,48 @@ namespace Aikido.Controllers
             catch (ArgumentException ex)
             {
                 return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Мягкое удаление пользователя
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpPatch("close/{id}")]
+        public async Task<IActionResult> CloseUserAsync(long id)
+        {
+            try
+            {
+                await _userApplicationService.CloseUserAsync(id);
+                return NoContent();
+            }
+            catch(InvalidOperationException ex)
+            {
+                return StatusCode(409, new { Messsage = "Невозможная операция", Details = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+        
+        /// <summary>
+        /// Восстановление пользователя
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpPatch("recover/{id}")]
+        public async Task<IActionResult> RecoverUserAsync(long id)
+        {
+            try
+            {
+                await _userApplicationService.RecoverUserAsync(id);
+                return NoContent();
             }
             catch (Exception ex)
             {
@@ -296,6 +373,53 @@ namespace Aikido.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Ошибка при создании пользователей.", Details = ex.Message });
+            }
+        }
+
+
+        [Authorize(Roles = "Admin,Manager,Coach,User")]
+        [HttpGet("get/{id}/seminar-history")]
+        public async Task<ActionResult<List<UserSeminarHistoryItemDto>>> GetUserSeminarHistoryById(long id)
+        {
+            try
+            {
+                var history = await _userApplicationService.GetUserSeminarHistory(id);
+                return Ok(history);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Admin,Manager,Coach,User")]
+        [HttpGet("get/{id}/certification-history")]
+        public async Task<ActionResult<List<UserSeminarHistoryItemDto>>> GetUserCertificationHistoryById(long id)
+        {
+            try
+            {
+                var history = await _userApplicationService.GetUserCertificationHistory(id);
+                return Ok(history);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
         }
     }

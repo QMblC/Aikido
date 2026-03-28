@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System.Reflection;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -49,6 +50,7 @@ builder.Services.AddAuthentication(options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
+        RoleClaimType = ClaimTypes.Role,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
         ValidateIssuer = true,
         ValidIssuer = jwtSettings.Issuer,
@@ -98,6 +100,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connString));
 
 builder.Services.AddScoped<IUserDbService, UserDbService>();
+builder.Services.AddScoped<IUserMembershipDbService, UserMembershipDbService>();
 builder.Services.AddScoped<IClubDbService, ClubDbService>();
 builder.Services.AddScoped<IGroupDbService, GroupDbService>();
 builder.Services.AddScoped<ISeminarDbService, SeminarDbService>();

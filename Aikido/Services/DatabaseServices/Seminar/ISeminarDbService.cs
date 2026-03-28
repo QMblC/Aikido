@@ -52,5 +52,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
         Task CreateSeminarMembers(long seminarId, SeminarMemberListDto memberList);
         Task<List<SeminarMemberManagerRequestEntity>> GetCoachMembersByClub(long seminarId, long clubId, long coachId);
         Task CreateSeminarCoachMembers(long seminarId, SeminarMemberCoachRequestListCreationDto memberList);
+        Task<List<SeminarEntity>> GetUserSeminarHistory(long userId);
+        Task<List<SeminarMemberEntity>> GetUserCertificationHistory(long userId);
     }
 }

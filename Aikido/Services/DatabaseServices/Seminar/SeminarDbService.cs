@@ -13,6 +13,7 @@ using DocumentFormat.OpenXml.ExtendedProperties;
 using DocumentFormat.OpenXml.InkML;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace Aikido.Services.DatabaseServices.Seminar
 {
@@ -794,6 +795,28 @@ namespace Aikido.Services.DatabaseServices.Seminar
             _context.SeminarMembersManagerRequests.RemoveRange(membersToDelete);
 
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<SeminarEntity>> GetUserSeminarHistory(long userId)
+        {
+            var seminars = await _context.SeminarMembers
+                .Where(sm => sm.UserId == userId)
+                .Select(sm => sm.Seminar)
+                .Where(s => s.IsFinalStatementApplied)
+                .ToListAsync();
+
+            return seminars ?? new();
+        }
+
+        public async Task<List<SeminarMemberEntity>> GetUserCertificationHistory(long userId)
+        {
+            var members = await _context.SeminarMembers
+                .Include(sm => sm.Seminar)
+                .Where(sm => sm.UserId == userId
+                    && sm.Seminar.IsFinalStatementApplied)
+                .ToListAsync();
+
+            return members ?? new();
         }
     }
 }
