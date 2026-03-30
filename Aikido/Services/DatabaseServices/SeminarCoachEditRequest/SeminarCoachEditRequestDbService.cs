@@ -58,7 +58,6 @@ namespace Aikido.Services.DatabaseServices.Seminar
             {
                 var user = await _context.Users.FindAsync(member.UserId);
                 var group = await _context.Groups
-                    .Include(g => g.MainCoach)
                     .Include(g => g.UserMemberships)
                         .ThenInclude(um => um.User)
                     .Include(g => g.Club)
