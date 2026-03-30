@@ -349,6 +349,11 @@ namespace Aikido.Application.Services
             var mainUserMembership = _userMembershipDbService.GetMainUserMembership(userId);
             var payments = await _paymentDbService.GetFakeSeminarMemberPayment(seminarId, userId);
 
+            if (mainUserMembership.Group?.MainCoachId == null)
+            {
+                throw new InvalidOperationException("У главной группы пользователя нет главного тренера");
+            }
+
             return new SeminarMemberRequestDto(seminar, mainUserMembership, payments);
         }
 

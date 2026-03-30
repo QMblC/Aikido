@@ -25,7 +25,8 @@ namespace Aikido.Services.DatabaseServices.Group
             var group = await _context.Groups
                 .Include(g => g.MainCoach)
                 .Include(g => g.Club)
-                .Include(g => g.UserMemberships)
+                .Include(g => g.UserMemberships
+                    .Where(um => um.ClosedAt == null))
                     .ThenInclude(ug => ug.User)
                 .Include(g => g.Schedule)
                 .Include(g => g.ExclusionDates)
