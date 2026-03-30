@@ -109,9 +109,7 @@ namespace Aikido.Application.Services
             await EnsureUserCreateable(userData);
 
             await _unitOfWork.ExecuteInTransactionAsync(async () =>
-            {
-                
-
+            {       
                 user = await _userDbService.CreateUser(userData);
 
                 await _unitOfWork.SaveChangesAsync();
@@ -123,7 +121,7 @@ namespace Aikido.Application.Services
                         var clubId = userMembership.ClubId.Value;
                         var groupId = userMembership.GroupId.Value;
 
-                        if (!await _clubDbService.Exists(clubId))
+                        if (!await _clubDbService.ExistsActive(clubId))
                         {
                             throw new EntityNotFoundException($"Клуба с Id = {clubId} не существует");
                         }
@@ -149,7 +147,6 @@ namespace Aikido.Application.Services
 
         public async Task UpdateUserAsync(long userId, UserCreationDto userData)
         {
-            await EnsureUserCreateable(userData);
             await _unitOfWork.ExecuteInTransactionAsync(async () =>
             {
                 var user = await _userDbService.GetByIdOrThrowException(userId);
@@ -164,7 +161,7 @@ namespace Aikido.Application.Services
                         var clubId = userMembership.ClubId.Value;
                         var groupId = userMembership.GroupId.Value;
 
-                        if (!await _clubDbService.Exists(clubId))
+                        if (!await _clubDbService.ExistsActive(clubId))
                         {
                             throw new EntityNotFoundException($"Клуба с Id = {clubId} не существует");
                         }

@@ -686,8 +686,8 @@ namespace Aikido.Services.DatabaseServices.Seminar
                     var clubManager = mainUserMembership.Club?.Manager
                     ?? throw new EntityNotFoundException(nameof(mainUserMembership.Club));
 
-                    var coach = mainUserMembership.Group?.UserMemberships.First(um => um.RoleInGroup == Role.Coach).User
-                        ?? throw new EntityNotFoundException(nameof(mainUserMembership.Club));//Здесь возможно стоит переделать и начать выделять главного тренера в группе
+                    var coach = mainUserMembership.Group?.UserMemberships.First(um => um.UserId == mainUserMembership.Group?.MainCoachId).User
+                        ?? throw new EntityNotFoundException(nameof(mainUserMembership.User));//Здесь возможно стоит переделать и начать выделять главного тренера в группе
 
                     request.Add(new(seminar, mainUserMembership));
                 }

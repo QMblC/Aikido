@@ -123,7 +123,7 @@ namespace Aikido.Controllers
         {
             try
             {
-                var attendanceId = await _attendanceApplicationService.CreateAttendanceAsync(groupId, attendance);
+                var attendanceId = await _attendanceApplicationService.MarkAttendanceAsync(groupId, attendance);
 
                 return Ok(attendanceId);
             }

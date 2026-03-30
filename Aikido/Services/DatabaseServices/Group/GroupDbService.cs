@@ -23,8 +23,10 @@ namespace Aikido.Services.DatabaseServices.Group
         public async Task<GroupEntity> GetByIdOrThrowException(long id)
         {
             var group = await _context.Groups
+                .Include(g => g.MainCoach)
                 .Include(g => g.Club)
-                .Include(g => g.UserMemberships)
+                .Include(g => g.UserMemberships
+                    .Where(um => um.ClosedAt == null))
                     .ThenInclude(ug => ug.User)
                 .Include(g => g.Schedule)
                 .Include(g => g.ExclusionDates)
@@ -52,10 +54,14 @@ namespace Aikido.Services.DatabaseServices.Group
         public async Task<List<GroupEntity>> GetAllActiveAsync()
         {
             return await _context.Groups
-                .Where(g => g.ClosedAt == null)
+                .Include(g => g.MainCoach)
+                .Include(g => g.UserMemberships
+                    .Where(um => um.ClosedAt == null))
+                    .ThenInclude(um => um.User)
                 .Include(g => g.Club)
                 .Include(g => g.Schedule)
                 .Include(g => g.ExclusionDates)
+                .Where(g => g.ClosedAt == null)
                 .OrderBy(g => g.Name)
                 .ToListAsync();
         }
@@ -63,6 +69,7 @@ namespace Aikido.Services.DatabaseServices.Group
         public async Task<List<GroupEntity>> GetGroupsByClub(long clubId)
         {
             return await _context.Groups
+                .Include(g => g.MainCoach)
                 .Include(g => g.Club)
                 .Include(g => g.Schedule)
                 .Include(g => g.ExclusionDates)
@@ -227,7 +234,8 @@ namespace Aikido.Services.DatabaseServices.Group
             var memberships = await _context.UserMemberships
                 .Include(um => um.User)
                 .Where(um => um.GroupId == groupId
-                    && um.RoleInGroup == role)
+                    && um.RoleInGroup == role
+                    && um.ClosedAt == null)
                 .OrderBy(um => um.User!.LastName)
                 .ThenBy(um => um.User!.FirstName)
                 .ThenBy(um => um.User!.MiddleName)
@@ -254,7 +262,8 @@ namespace Aikido.Services.DatabaseServices.Group
         {
             return await _context.UserMemberships
                 .CountAsync(um => um.GroupId == groupId 
-                && um.RoleInGroup == Role.User);
+                && um.RoleInGroup == Role.User
+                && um.ClosedAt == null);
         }
     }
 }

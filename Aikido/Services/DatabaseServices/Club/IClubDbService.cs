@@ -9,7 +9,7 @@ namespace Aikido.Services.DatabaseServices.Club
     {
         Task<ClubEntity> GetByIdOrThrowException(long id);
         Task<ClubEntity> GetClubById(long id);
-        Task<bool> Exists(long id);
+        Task<bool> ExistsActive(long id);
         Task<List<ClubEntity>> GetAllActiveAsync();
         Task<List<ClubEntity>> GetManagerClubs(long managerId);
         Task<long> CreateAsync(ClubDto clubData);
@@ -19,7 +19,7 @@ namespace Aikido.Services.DatabaseServices.Club
         Task DeleteAsync(long id);
         Task<List<UserMembershipEntity>> GetClubMembersAsync(long clubId);
         Task RemoveAllMembersFromClubAsync(long clubId);
-        Task<int> GetClubMemberCountAsync(long clubId);
+        Task<int> GetClubActiveMemberCountAsync(long clubId);
         Task<List<GroupEntity>> GetClubGroupsAsync(long clubId);
     }
 }

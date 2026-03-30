@@ -105,11 +105,13 @@ namespace Aikido.Services.ApplicationServices
             if (existing.IsMain == true && dto.IsMain == false)
             {
                 await UnsetMainUserMembershipAsync(userId);
+                await _unitOfWork.SaveChangesAsync();
                 await SetNewMainUserMembershipAsync(userId);
             }
             else if (existing.IsMain == false && dto.IsMain == true)
             {
                 await UnsetMainUserMembershipAsync(userId);
+                await _unitOfWork.SaveChangesAsync();
                 await SetNewMainUserMembershipAsync(userId, dto.GroupId.Value);
             }
             await _userMembershipDbService.UpdateUserMembershipAsync(userId, dto);
@@ -123,6 +125,7 @@ namespace Aikido.Services.ApplicationServices
             {
                 await UnsetMainUserMembershipAsync(userId);
                 await _userMembershipDbService.CloseUserMembershipAsync(userId, groupId);
+                await _unitOfWork.SaveChangesAsync();
                 await SetNewMainUserMembershipAsync(userId);
             }
             else

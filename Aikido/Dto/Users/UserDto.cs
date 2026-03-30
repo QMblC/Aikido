@@ -29,7 +29,9 @@ namespace Aikido.Dto.Users
 
         public DateTime? CreationDate { get; set; }
 
-        public long? MainUserMembershipId { get;  }
+        public long? MainUserMembershipAsUserId { get; set; }
+        public long? MainClubAsUserId { get; set; }
+        public long? MainGroupAsUserId { get; set; }
 
         public List<UserMembershipDto>? UserMembershipDtos { get; set; } = new();
 
@@ -58,7 +60,12 @@ namespace Aikido.Dto.Users
             ParentPhoneNumber = user.ParentPhoneNumber;
             RegistrationDate = user.RegistrationDate;
             CreationDate = user.CreatedAt;
-            MainUserMembershipId = user.MainUserMembershipAsUserId;
+            if (user.MainUserMembershipAsUserId != null)
+            {
+                MainUserMembershipAsUserId = user.MainUserMembershipAsUserId;
+                MainClubAsUserId = user.MainUserMembershipAsUser.ClubId;
+                MainGroupAsUserId = user.MainUserMembershipAsUser.GroupId;
+            }         
         }
 
         public UserDto(UserEntity user, List<UserMembershipEntity> userMemberships) : this(user)

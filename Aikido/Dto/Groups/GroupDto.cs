@@ -17,6 +17,7 @@ namespace Aikido.Dto.Groups
 
         public long? ClubId { get; set; }
         public string? ClubName { get; set; }
+        public long? MainCoachId { get; set; }
         public string? AgeGroup { get; set; }
         public int? MemberCount { get; set; }
         public int? MaxMembers { get; set; }
@@ -44,6 +45,7 @@ namespace Aikido.Dto.Groups
 
             ClubId = group.ClubId;
             ClubName = group.Club?.Name;
+            MainCoachId = group.MainCoachId;
             AgeGroup = group.AgeGroup.ToString();
             MemberCount = group.UserMemberships?.Count(um => um.RoleInGroup == Role.User) ?? 0;
             MaxMembers = group.MaxMembers;

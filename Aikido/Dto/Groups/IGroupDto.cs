@@ -7,6 +7,7 @@ namespace Aikido.Dto.Groups
     {
         public string Name { get; set; }
         public string? TechnicalName { get; set; }
+        public long? MainCoachId { get; set; }
         public long? ClubId { get; set; }
         public string? AgeGroup { get; set; }
     }
