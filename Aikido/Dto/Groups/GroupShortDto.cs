@@ -9,6 +9,7 @@ namespace Aikido.Dto.Groups
         public string? TechnicalName { get; set; }
         public long? ClubId { get; set; }
         public string? ClubName { get; set; }
+        public long? MainCoachId { get; set; }
         public string? AgeGroup { get; set; }
         public int MemberCount { get; set; }
 
@@ -18,6 +19,7 @@ namespace Aikido.Dto.Groups
             Name = group.Name ?? string.Empty;
             ClubId = group.ClubId;
             ClubName = group.Name;
+            MainCoachId = group.MainCoachId;
             AgeGroup = group.AgeGroup;
             MemberCount = group.MemberCount.Value;
         }
@@ -28,6 +30,7 @@ namespace Aikido.Dto.Groups
             Name = group.Name ?? string.Empty;
             ClubId = group.ClubId;
             ClubName = group.Club?.Name;
+            MainCoachId = group.MainCoachId;
             AgeGroup = EnumParser.ConvertEnumToString(group.AgeGroup);
             MemberCount = group.UserMemberships?.Count(um => um.RoleInGroup == Role.User) ?? 0;
         }

@@ -79,10 +79,8 @@ namespace Aikido.Application.Services
 
         public async Task<long> CreateGroupAsync(GroupCreationDto groupData)
         {
-            if (groupData.ClubId != null && !await _clubDbService.Exists(groupData.ClubId.Value))
-            {
-                throw new EntityNotFoundException($"Клуба с Id = {groupData.ClubId} не существует");
-            }
+            await EnsureClubExists(groupData.ClubId.Value);
+            EnsureMainCoachIsDedicated(groupData);
 
             return await _groupDbService.CreateAsync(groupData);
         }
@@ -91,6 +89,7 @@ namespace Aikido.Application.Services
         {
             await EnsureGroupExists(id);
             await EnsureClubExists(groupData.ClubId.Value);
+            EnsureMainCoachIsDedicated(groupData);
 
             await _groupDbService.UpdateAsync(id, groupData);
         }
@@ -159,6 +158,14 @@ namespace Aikido.Application.Services
             if (!await _userDbService.ExistsActive(userId))
             {
                 throw new EntityNotFoundException($"Пользователя с Id = {userId} не существует");
+            }
+        }
+
+        private void EnsureMainCoachIsDedicated(GroupCreationDto groupData)
+        {
+            if (groupData.MainCoachId == null && groupData.Coaches.Count == 0)
+            {
+                throw new InvalidOperationException("Не указан главный тренер");
             }
         }
 

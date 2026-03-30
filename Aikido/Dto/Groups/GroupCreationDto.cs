@@ -12,6 +12,7 @@ namespace Aikido.Dto.Groups
         public List<UserShortDto> Coaches { get; set; }
 
         public long? ClubId { get; set; }
+        public long? MainCoachId { get; set; }
         public string? AgeGroup { get; set; }
         public List<ScheduleCreationDto>? Schedule { get; set; }
         public List<ExclusionDateCreationDto>? ExclusionDates { get; set; }

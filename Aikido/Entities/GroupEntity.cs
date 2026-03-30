@@ -13,6 +13,9 @@ namespace Aikido.Entities
         public long? ClubId { get; set; }
         public virtual ClubEntity? Club { get; set; }
 
+        public long? MainCoachId { get; set; }
+        public virtual UserEntity? MainCoach { get; set; }
+
         public string Name { get; set; }
         public string? TechnicalName { get; set; }
         public AgeGroup AgeGroup { get; set; } = AgeGroup.Adult;
@@ -42,6 +45,8 @@ namespace Aikido.Entities
                 ClubId = (long)groupNewData.ClubId;
             if (!string.IsNullOrEmpty(groupNewData.Name))
                 Name = groupNewData.Name;
+
+            MainCoachId = groupNewData.MainCoachId;
 
             TechnicalName = groupNewData.TechnicalName;
 

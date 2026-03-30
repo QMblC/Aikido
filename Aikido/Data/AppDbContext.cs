@@ -144,10 +144,15 @@ namespace Aikido.Data
 
                 entity.HasMany(g => g.UserMemberships)
                     .WithOne(um => um.Group);
-                    
+
+                entity.HasOne(g => g.MainCoach)
+                    .WithMany()
+                    .HasForeignKey(g => g.MainCoachId)
+                    .OnDelete(DeleteBehavior.SetNull);
 
                 entity.HasIndex(e => e.Name);
                 entity.HasIndex(e => e.ClubId);
+                entity.HasIndex(e => e.MainCoachId);
             });
 
             modelBuilder.Entity<EventEntity>(entity =>
