@@ -82,8 +82,8 @@ namespace Aikido.Dto.Seminars.Members
             OldGrade = EnumParser.ConvertEnumToString(user.Grade);
             CertificationGrade = memberRequest.CertificationGrade.ToString();
 
-            CoachId = group.UserMemberships.FirstOrDefault(um => um.RoleInGroup == Role.Coach)?.User?.Id;
-            CoachName = group.UserMemberships.FirstOrDefault(um => um.RoleInGroup == Role.Coach)?.User?.FullName;
+            CoachId = group.MainCoachId;
+            CoachName = group.MainCoach?.FullName;
 
             ManagerId = group.Club?.ManagerId;
             ManagerFullName = group.Club?.Manager?.FullName;
@@ -128,8 +128,8 @@ namespace Aikido.Dto.Seminars.Members
             OldGrade = mainUserMembership.User?.Grade.ToString();
             CertificationGrade = Grade.None.ToString();
 
-            CoachId = mainUserMembership.Group?.UserMemberships.FirstOrDefault(um => um.RoleInGroup == Role.Coach)?.UserId;
-            CoachName = mainUserMembership.Group?.UserMemberships.FirstOrDefault(um => um.RoleInGroup == Role.Coach)?.User?.FullName;
+            CoachId = mainUserMembership.Group?.MainCoachId;
+            CoachName = mainUserMembership.Group?.MainCoach.FullName;
 
             ManagerId = mainUserMembership.Club?.ManagerId;
             ManagerFullName = mainUserMembership.Club?.Manager?.FullName;

@@ -79,6 +79,8 @@ namespace Aikido.Services.DatabaseServices.User
                 .Include(um => um.Group)
                     .ThenInclude(um => um.UserMemberships)
                         .ThenInclude(um => um.User)
+                .Include(um => um.Group)
+                    .ThenInclude(um => um.MainCoach)
                 .FirstOrDefault();
 
             return mainUserMembership;
