@@ -121,7 +121,7 @@ namespace Aikido.Application.Services
                         var clubId = userMembership.ClubId.Value;
                         var groupId = userMembership.GroupId.Value;
 
-                        if (!await _clubDbService.Exists(clubId))
+                        if (!await _clubDbService.ExistsActive(clubId))
                         {
                             throw new EntityNotFoundException($"Клуба с Id = {clubId} не существует");
                         }
@@ -161,7 +161,7 @@ namespace Aikido.Application.Services
                         var clubId = userMembership.ClubId.Value;
                         var groupId = userMembership.GroupId.Value;
 
-                        if (!await _clubDbService.Exists(clubId))
+                        if (!await _clubDbService.ExistsActive(clubId))
                         {
                             throw new EntityNotFoundException($"Клуба с Id = {clubId} не существует");
                         }

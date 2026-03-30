@@ -47,9 +47,10 @@ namespace Aikido.Services.DatabaseServices.Club
             return await GetByIdOrThrowException(id);
         }
 
-        public async Task<bool> Exists(long id)
+        public async Task<bool> ExistsActive(long id)
         {
-            return await _context.Clubs.AnyAsync(c => c.Id == id);
+            return await _context.Clubs.AnyAsync(c => c.Id == id
+                && c.ClosedAt == null);
         }
 
         public async Task<List<ClubEntity>> GetAllActiveAsync()
@@ -109,9 +110,9 @@ namespace Aikido.Services.DatabaseServices.Club
                 .Include(um => um.User)
                 .Include(um => um.Group)
                 .Where(um => um.ClubId == clubId 
-                && um.User != null 
-                && um.Group.ClosedAt == null
-                && um.ClosedAt == null)
+                    && um.User != null 
+                    && um.Group.ClosedAt == null
+                    && um.ClosedAt == null)
                 .OrderBy(um => um.User.LastName)
                 .ThenBy(um => um.User.FirstName)
                 .ThenBy(um => um.User.MiddleName)
@@ -132,16 +133,18 @@ namespace Aikido.Services.DatabaseServices.Club
             await _context.SaveChangesAsync();
         }
 
-        public async Task<int> GetClubMemberCountAsync(long clubId)
+        public async Task<int> GetClubActiveMemberCountAsync(long clubId)
         {
             return await _context.UserMemberships
-                .CountAsync(uc => uc.ClubId == clubId);
+                .CountAsync(um => um.ClubId == clubId
+                    && um.ClosedAt == null);
         }
 
         public async Task<List<GroupEntity>> GetClubGroupsAsync(long clubId)
         {
             return await _context.Groups
-                .Include(g => g.UserMemberships)
+                .Include(g => g.UserMemberships
+                    .Where(um => um.ClosedAt == null))
                     .ThenInclude(um => um.User)
                 .Include(g => g.Schedule)
                 .Include(g => g.ExclusionDates)

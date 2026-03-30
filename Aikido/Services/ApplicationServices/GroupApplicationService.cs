@@ -179,7 +179,7 @@ namespace Aikido.Application.Services
 
         private async Task EnsureClubExists(long clubId)
         {
-            if (!await _clubDbService.Exists(clubId))
+            if (!await _clubDbService.ExistsActive(clubId))
             {
                 throw new EntityNotFoundException($"Группы с Id = {clubId} не существует");
             }

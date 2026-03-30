@@ -80,7 +80,7 @@ namespace Aikido.Application.Services
 
         public async Task UpdateClubAsync(long id, ClubDto clubData)
         {
-            if (!await _clubDbService.Exists(id))
+            if (!await _clubDbService.ExistsActive(id))
             {
                 throw new EntityNotFoundException($"Клуб с Id = {id} не найден");
             }
@@ -109,7 +109,7 @@ namespace Aikido.Application.Services
 
         public async Task DeleteClubAsync(long id)
         {
-            if (!await _clubDbService.Exists(id))
+            if (!await _clubDbService.ExistsActive(id))
             {
                 throw new EntityNotFoundException($"Клуб с Id = {id} не найден");
             }
@@ -120,7 +120,7 @@ namespace Aikido.Application.Services
 
         public async Task<bool> ClubExistsAsync(long id)
         {
-            return await _clubDbService.Exists(id);
+            return await _clubDbService.ExistsActive(id);
         }
 
         public async Task<List<UserShortDto>> GetClubMembersAsync(long clubId, Role role = Role.User)
