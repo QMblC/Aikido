@@ -22,6 +22,7 @@ namespace Aikido.Services.DatabaseServices.User
         public async Task<UserEntity> GetByIdOrThrowException(long id)
         {
             var user = await _context.Users
+                .Include(u => u.MainUserMembershipAsUser)
                 .Include(u => u.UserMemberships)
                     .ThenInclude(uc => uc.Club)
                 .Include(u => u.UserMemberships)
@@ -51,6 +52,7 @@ namespace Aikido.Services.DatabaseServices.User
         {
             var users = await _context.Users
                 .Where(u => u.ClosedAt == null)
+                .Include(u => u.MainUserMembershipAsUser)
                 .Include(u => u.UserMemberships)
                     .ThenInclude(um => um.Club)
                 .Include(u => u.UserMemberships)
@@ -64,6 +66,7 @@ namespace Aikido.Services.DatabaseServices.User
         {
             var users = await _context.Users
                 .Where(u => u.ClosedAt != null)
+                .Include(u => u.MainUserMembershipAsUser)
                 .Include(u => u.UserMemberships)
                     .ThenInclude(um => um.Club)
                 .Include(u => u.UserMemberships)
@@ -78,6 +81,7 @@ namespace Aikido.Services.DatabaseServices.User
             var managers = await _context.Users.AsQueryable()
                 .Where(u => u.Role == Role.Manager
                     && u.ClosedAt == null)
+                .Include(u => u.MainUserMembershipAsUser)
                 .Include(u => u.UserMemberships)
                     .ThenInclude(um => um.Club)
                 .Include(u => u.UserMemberships)
@@ -91,6 +95,7 @@ namespace Aikido.Services.DatabaseServices.User
         {
             var query = _context.Users
                 .Where(u => u.ClosedAt == null)
+                .Include(u => u.MainUserMembershipAsUser)
                 .Include(u => u.UserMemberships)
                     .ThenInclude(uc => uc.Club)
                 .Include(u => u.UserMemberships)
@@ -238,6 +243,7 @@ namespace Aikido.Services.DatabaseServices.User
                 .Where(u => u.UserMemberships.Any(um => um.IsMain
                 && um.ClubId == clubId
                 && um.RoleInGroup == Role.User))
+                .Include(u => u.MainUserMembershipAsUser)
                 .Include(u => u.UserMemberships)
                     .ThenInclude(uc => uc.Club)
                 .Include(u => u.UserMemberships)
@@ -260,6 +266,7 @@ namespace Aikido.Services.DatabaseServices.User
         public async Task<List<UserEntity>> FindCoachMemberInClubByName(long clubId, long coachId, string name)
         {
             var query = _context.Users
+                .Include(u => u.MainUserMembershipAsUser)
                 .Include(u => u.UserMemberships)
                     .ThenInclude(um => um.Club)
                 .Include(u => u.UserMemberships)

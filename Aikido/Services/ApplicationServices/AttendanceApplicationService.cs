@@ -41,7 +41,7 @@ namespace Aikido.Application.Services
             return attendances.Select(a => new AttendanceDto(a)).ToList();
         }
 
-        public async Task<long> CreateAttendanceAsync(long groupId, AttendanceCreationDto attendanceData)
+        public async Task<long> MarkAttendanceAsync(long groupId, AttendanceCreationDto attendanceData)
         {
             var userMembership = _userMembershipDbService.GetActiveUserMembership(attendanceData.UserId, groupId);
             return await _attendanceDbService.CreateAttendance(userMembership, attendanceData.Date);

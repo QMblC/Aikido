@@ -109,9 +109,7 @@ namespace Aikido.Application.Services
             await EnsureUserCreateable(userData);
 
             await _unitOfWork.ExecuteInTransactionAsync(async () =>
-            {
-                
-
+            {       
                 user = await _userDbService.CreateUser(userData);
 
                 await _unitOfWork.SaveChangesAsync();
@@ -149,7 +147,6 @@ namespace Aikido.Application.Services
 
         public async Task UpdateUserAsync(long userId, UserCreationDto userData)
         {
-            await EnsureUserCreateable(userData);
             await _unitOfWork.ExecuteInTransactionAsync(async () =>
             {
                 var user = await _userDbService.GetByIdOrThrowException(userId);
