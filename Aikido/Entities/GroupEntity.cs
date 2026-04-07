@@ -53,21 +53,5 @@ namespace Aikido.Entities
             if (!string.IsNullOrEmpty(groupNewData.AgeGroup))
                 AgeGroup = EnumParser.ConvertStringToEnum<AgeGroup>(groupNewData.AgeGroup);        
         }
-
-        public void UpdateSchedule(GroupCreationDto groupData)
-        {
-            Schedule = groupData.Schedule?
-                .Select(s => new ScheduleEntity(Id, s))
-                .ToList() ?? new();
-
-            ExclusionDates = groupData.ExclusionDates?
-                .Select(s => new ExclusionDateEntity(Id, s))
-                .ToList() ?? new();
-        }
-
-        public bool ContainsCoach(long coachId)
-        {
-            return UserMemberships.Any(um => um.UserId == coachId);
-        }
     }
 }

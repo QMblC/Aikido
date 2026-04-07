@@ -79,9 +79,9 @@ namespace Aikido.Entities.Seminar
             RegistrationDeadline = seminarData.RegistrationDeadline;
             CreatorId = seminarData.CreatorId.Value;
 
-            ContactInfo = seminarData.ContactInfo != null? seminarData.ContactInfo.Select(ci => new SeminarContactInfoEntity(Id, ci)).ToList() : null;
-            Schedule = seminarData.Schedule != null ? seminarData.Schedule.Select(s => new SeminarScheduleEntity(Id, s)).ToList() : null;
+            ContactInfo = seminarData.ContactInfo != null? seminarData.ContactInfo.Select(ci => new SeminarContactInfoEntity(Id, ci)).ToList() : null;            
             Groups = seminarData.Groups != null? seminarData.Groups.Select(s => new SeminarGroupEntity(Id, s)).ToList() : null;
+            Schedule = seminarData.Schedule != null ? seminarData.Schedule.Select(s => new SeminarScheduleEntity(Id, Groups.First(g => g.Name == s.GroupName).Id, s)).ToList() : null;
         }
     }
 }

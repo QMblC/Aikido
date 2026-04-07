@@ -9,7 +9,7 @@ namespace Aikido.Dto.Groups
         public string Name { get; set; }
         public string? TechnicalName { get; set; }
 
-        public List<UserShortDto> Coaches { get; set; }
+        public List<long> Coaches { get; set; }
 
         public long? ClubId { get; set; }
         public long? MainCoachId { get; set; }

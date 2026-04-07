@@ -11,15 +11,27 @@ namespace Aikido.Entities.Seminar
         public long SeminarId { get; set; }
         public SeminarEntity? Seminar { get; set; }
 
-        public TimeSpan StartTime { get; set; }
+        public long SeminarGroupId { get; set; }
+        public SeminarGroupEntity SeminarGroup { get; set; }
+
+        public DateTime StartTime { get; set; }
         public string Description { get; set; } = "";
 
         public SeminarScheduleEntity() { }
 
-        public SeminarScheduleEntity(long seminarId, SeminarScheduleDto schedule)
+        public SeminarScheduleEntity(long seminarId, long seminarGroupId, SeminarScheduleDto schedule)
         {
             SeminarId = seminarId;
-            StartTime = schedule.StartTime;
+
+            SeminarGroupId = seminarGroupId;
+            StartTime = new DateTime(
+                schedule.Date.Year,
+                schedule.Date.Month,
+                schedule.Date.Day,
+                schedule.StartTime.Hours,
+                schedule.StartTime.Minutes,
+                0,
+                DateTimeKind.Utc);
             Description = schedule.Description;
         }
     }

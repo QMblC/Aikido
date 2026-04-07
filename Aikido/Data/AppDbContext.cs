@@ -378,14 +378,14 @@ namespace Aikido.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Description).IsRequired().HasMaxLength(200);
-                entity.Property(e => e.Value).IsRequired().HasMaxLength(500);
+                entity.Property(e => e.FirstContact).IsRequired().HasMaxLength(500);
 
                 entity.HasOne(sci => sci.Seminar)
                     .WithMany(s => s.ContactInfo)
                     .HasForeignKey(sci => sci.SeminarId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasIndex(e => new { e.SeminarId, e.Description, e.Value }).IsUnique();
+                entity.HasIndex(e => new { e.SeminarId, e.Description, e.FirstContact }).IsUnique();
             });
         }
 
