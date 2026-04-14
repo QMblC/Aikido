@@ -12,7 +12,7 @@ namespace Aikido.Services.DatabaseServices.Group
         Task<bool> ExistsActive(long id);
         Task<List<GroupEntity>> GetAllActiveAsync();
         Task<List<GroupEntity>> GetGroupsByClub(long clubId);
-        Task<long> CreateAsync(GroupCreationDto groupData);
+        Task<GroupEntity> CreateAsync(GroupCreationDto groupData);
         Task UpdateAsync(long id, GroupCreationDto groupData);
 
         Task CloseAsync(long id);

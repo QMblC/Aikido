@@ -2,7 +2,7 @@
 
 namespace Aikido.Dto.Seminars
 {
-    public class SeminarGroupDto : DtoBase
+    public class SeminarGroupDto : DtoBase, ISeminarGroupDto
     {
         public long? Id { get; set; }
 

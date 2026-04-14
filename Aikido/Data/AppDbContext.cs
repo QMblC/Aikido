@@ -31,6 +31,7 @@ namespace Aikido.Data
         public DbSet<SeminarStatementEntity> SeminarStatements { get; set; }
         public DbSet<SeminarCoachStatementEntity> SeminarCoachStatements { get; set; }
         public DbSet<SeminarScheduleEntity> SeminarSchedule { get; set; }
+        public DbSet<SeminarPriceEntity> SeminarPrices { get; set; }
 
         public DbSet<UserChangeRequestEntity> UserChangeRequests { get; set; }
         public DbSet<RefreshTokenEntity> RefreshTokens { get; set; }
@@ -198,6 +199,7 @@ namespace Aikido.Data
             ConfigureSeminarStatementEntity(modelBuilder);
             ConfigureSeminarCoachStatementEntity(modelBuilder);
             ConfigureSeminarScheduleEntity(modelBuilder);
+            ConfigureSeminarPriceEntity(modelBuilder);
 
             ConfigureAttendanceEntity(modelBuilder);
             ConfigurePaymentEntity(modelBuilder);
@@ -237,6 +239,11 @@ namespace Aikido.Data
                 entity.HasMany(s => s.ManagerRequestMembers)
                     .WithOne(m => m.Seminar)
                     .HasForeignKey(m => m.SeminarId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasMany(s => s.Prices)
+                    .WithOne(p => p.Seminar)
+                    .HasForeignKey(p => p.SeminarId)
                     .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasMany(s => s.Payments)
@@ -305,6 +312,21 @@ namespace Aikido.Data
                     .WithMany(s => s.Members)
                     .HasForeignKey(sm => sm.SeminarId)
                     .OnDelete(DeleteBehavior.Cascade);
+
+                modelBuilder.Entity<SeminarMemberEntity>()
+                    .HasOne(x => x.User)
+                    .WithMany(x => x.Certifications)
+                    .HasForeignKey(x => x.UserId);
+
+                modelBuilder.Entity<SeminarMemberEntity>()
+                    .HasOne(x => x.Coach)
+                    .WithMany()
+                    .HasForeignKey(x => x.CoachId);
+
+                modelBuilder.Entity<SeminarMemberEntity>()
+                    .HasOne(x => x.Manager)
+                    .WithMany()
+                    .HasForeignKey(x => x.ManagerId);
 
                 entity.HasOne(sm => sm.User)
                     .WithMany()
@@ -377,15 +399,13 @@ namespace Aikido.Data
             modelBuilder.Entity<SeminarContactInfoEntity>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Description).IsRequired().HasMaxLength(200);
-                entity.Property(e => e.Value).IsRequired().HasMaxLength(500);
 
                 entity.HasOne(sci => sci.Seminar)
                     .WithMany(s => s.ContactInfo)
                     .HasForeignKey(sci => sci.SeminarId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasIndex(e => new { e.SeminarId, e.Description, e.Value }).IsUnique();
+                entity.HasIndex(e => new { e.SeminarId, e.Description, e.FirstContact }).IsUnique();
             });
         }
 
@@ -426,6 +446,8 @@ namespace Aikido.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Description).HasMaxLength(500);
+                entity.Property(e => e.StartTime)
+                    .HasColumnType("timestamp without time zone");
 
                 entity.HasOne(ss => ss.Seminar)
                     .WithMany(s => s.Schedule)
@@ -433,6 +455,21 @@ namespace Aikido.Data
                     .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasIndex(e => new { e.SeminarId, e.StartTime });
+            });
+        }
+
+        private void ConfigureSeminarPriceEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<SeminarPriceEntity>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.HasOne(s => s.Seminar)
+                    .WithMany(s => s.Prices)
+                    .HasForeignKey(p => p.SeminarId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(e => new { e.SeminarId, e.CertificationPaymentType, e.Amount, e.PaymentType });
             });
         }
 

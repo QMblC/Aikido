@@ -5,6 +5,7 @@ using Aikido.Dto.Seminars.Members;
 using Aikido.Dto.Users;
 using Aikido.Entities;
 using Aikido.Entities.Seminar;
+using Aikido.Entities.Seminar.SeminarFilters;
 using Aikido.Entities.Seminar.SeminarMemberRequest;
 using Aikido.Entities.Users;
 using Aikido.Exceptions;
@@ -12,6 +13,7 @@ using Aikido.Services;
 using Aikido.Services.DatabaseServices.Group;
 using Aikido.Services.DatabaseServices.Seminar;
 using Aikido.Services.DatabaseServices.User;
+using Aikido.Services.UnitOfWork;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -26,19 +28,22 @@ namespace Aikido.Application.Services
         private readonly IUserMembershipDbService _userMembershipDbService;
         private readonly IGroupDbService _groupDbService;
         private readonly PaymentService _paymentDbService;
+        private readonly IUnitOfWork _unitOfWork;
 
         public SeminarApplicationService(
             ISeminarDbService seminarDbService,
             IUserDbService userDbService,
             IUserMembershipDbService userMembershipDbService,
             IGroupDbService groupDbService,
-            PaymentService paymentDbService)
+            PaymentService paymentDbService,
+            IUnitOfWork unitOfWork)
         {
             _seminarDbService = seminarDbService;
             _userDbService = userDbService;
             _userMembershipDbService = userMembershipDbService;
             _groupDbService = groupDbService;
             _paymentDbService = paymentDbService;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<SeminarDto> GetSeminarByIdAsync(long id)
@@ -47,30 +52,43 @@ namespace Aikido.Application.Services
             return new SeminarDto(seminar);
         }
 
-        public async Task<List<SeminarDto>> GetAllSeminarsAsync()
+        public async Task<List<SeminarShortDto>> GetAllSeminarsAsync(SeminarFilter filter)
         {
-            var seminars = await _seminarDbService.GetAllAsync();
-            return seminars.Select(s => new SeminarDto(s)).ToList();
+            var seminars = await _seminarDbService.GetAllAsync(filter);
+            return seminars.Select(s => new SeminarShortDto(s)).ToList();
         }
 
-        public async Task<long> CreateSeminarAsync(SeminarDto seminarData)
+        public async Task<long> CreateSeminarAsync(SeminarCreationDto seminarData)
         {
 
-            var seminarId = await _seminarDbService.CreateAsync(seminarData);
-            await _seminarDbService.UpdateEditorList(seminarId, seminarData.Editors);
-            await _seminarDbService.InitializeSeminar(seminarId);
-            await _paymentDbService.CreateSeminarPayments(seminarId);
+            SeminarEntity seminar = null;
+            await _unitOfWork.ExecuteInTransactionAsync(async () =>
+            {
+                seminar = await _seminarDbService.CreateAsync(seminarData);
+                await _unitOfWork.SaveChangesAsync();
+                await _seminarDbService.CreateSeminarSchedule(seminar, seminarData.Schedule);
+                await _seminarDbService.UpdateEditorList(seminar.Id, seminarData.Editors);
+                await _seminarDbService.InitializeSeminar(seminar.Id);
+                await _paymentDbService.CreateSeminarPayments(seminar.Id);
+            });
 
-            return seminarId;
+            return seminar.Id;
         }
 
-        public async Task UpdateSeminarAsync(long id, SeminarDto seminarData)
+        public async Task UpdateSeminarAsync(long id, SeminarCreationDto seminarData)
         {
             if (!await _seminarDbService.Exists(id))
                 throw new EntityNotFoundException($"Семинар с Id = {id} не найден");
 
-            await _seminarDbService.UpdateAsync(id, seminarData);
-            await _seminarDbService.UpdateEditorList(id, seminarData.Editors);
+            var seminar = await _seminarDbService.GetByIdOrThrowException(id);
+
+            await _unitOfWork.ExecuteInTransactionAsync(async () =>
+            {
+                await _seminarDbService.UpdateAsync(id, seminarData);
+                await _unitOfWork.SaveChangesAsync();
+                await _seminarDbService.UpdateSeminarSchedule(seminar, seminarData.Schedule);
+                await _seminarDbService.UpdateEditorList(id, seminarData.Editors);
+            }); 
         }
 
         public async Task DeleteSeminarAsync(long id)
@@ -348,6 +366,11 @@ namespace Aikido.Application.Services
             var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
             var mainUserMembership = _userMembershipDbService.GetMainUserMembership(userId);
             var payments = await _paymentDbService.GetFakeSeminarMemberPayment(seminarId, userId);
+
+            if (mainUserMembership == null)
+            {
+                throw new InvalidOperationException("Пользователь должен находится в группе и иметь 1 главную группу");
+            }
 
             if (mainUserMembership.Group?.MainCoachId == null)
             {

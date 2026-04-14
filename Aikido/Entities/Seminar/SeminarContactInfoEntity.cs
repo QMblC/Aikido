@@ -11,26 +11,20 @@ namespace Aikido.Entities.Seminar
         public long SeminarId { get; set; }
         public virtual SeminarEntity? Seminar { get; set; }
 
+        public string Name { get; set; }
+        public string? FirstContact { get; set; }
+        public string? SecondContact { get; set; }
         public string Description { get; set; }
-        public string Value { get; set; }
 
-        public SeminarContactInfoEntity(long seminarId, SeminarContactInfoDto seminarContactInfoDto)
+        public SeminarContactInfoEntity() { }
+
+        public SeminarContactInfoEntity(long seminarId, ISeminarContactInfoDto seminarContactInfoDto)
         {
             SeminarId = seminarId;
+            Name = seminarContactInfoDto.Name;
+            FirstContact = seminarContactInfoDto.FirstContact;
+            SecondContact = seminarContactInfoDto.SecondContact;
             Description = seminarContactInfoDto.Description;
-            Value = seminarContactInfoDto.Value;
-        }
-
-        public SeminarContactInfoEntity(long seminarId, string description, string value)
-        {
-            UpdateFromJson(seminarId, description, value);
-        }
-
-        public void UpdateFromJson(long seminarId, string description, string value)
-        {
-            SeminarId = seminarId;
-            Description = description;
-            Value = value;
         }
     }
 }

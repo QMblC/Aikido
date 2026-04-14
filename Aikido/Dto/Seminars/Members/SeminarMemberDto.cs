@@ -72,9 +72,10 @@ namespace Aikido.Dto.Seminars.Members
 
             OldGrade = EnumParser.ConvertEnumToString(membership.User.Grade);
 
-            SeminarPriceInRubles = seminar.SeminarPriceInRubles;
-            BudoPassportPriceInRubles = membership.User.HasBudoPassport ? null : seminar.BudoPassportPriceInRubles;
-            AnnualFeePriceInRubles = isAnnualFeePayed ? null : seminar.AnnualFeePriceInRubles;
+            SeminarPriceInRubles = seminar.Prices.First(p => p.PaymentType == PaymentType.Seminar).Amount; 
+            BudoPassportPriceInRubles = membership.User.HasBudoPassport ?
+                null : seminar.Prices.First(p => p.PaymentType == PaymentType.BudoPassport).Amount;
+            AnnualFeePriceInRubles = isAnnualFeePayed ? null : seminar.Prices.First(p => p.PaymentType == PaymentType.AnnualFee).Amount;
         }
 
         public SeminarMemberDto(SeminarMemberEntity seminarMember)

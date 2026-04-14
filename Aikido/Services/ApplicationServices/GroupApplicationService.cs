@@ -2,6 +2,7 @@
 using Aikido.Dto.Groups;
 using Aikido.Dto.Users;
 using Aikido.Dto.Users.Creation;
+using Aikido.Entities;
 using Aikido.Exceptions;
 using Aikido.Services;
 using Aikido.Services.ApplicationServices;
@@ -82,7 +83,18 @@ namespace Aikido.Application.Services
             await EnsureClubExists(groupData.ClubId.Value);
             EnsureMainCoachIsDedicated(groupData);
 
-            return await _groupDbService.CreateAsync(groupData);
+            GroupEntity group = null;
+
+            await _unitOfWork.ExecuteInTransactionAsync(async () =>
+            {
+                group = await _groupDbService.CreateAsync(groupData);
+
+                await _unitOfWork.SaveChangesAsync();
+
+                await CreateCoaches(group, groupData.Coaches);
+            });
+
+            return group.Id;
         }
 
         public async Task UpdateGroupAsync(long id, GroupCreationDto groupData)
@@ -91,14 +103,62 @@ namespace Aikido.Application.Services
             await EnsureClubExists(groupData.ClubId.Value);
             EnsureMainCoachIsDedicated(groupData);
 
-            await _groupDbService.UpdateAsync(id, groupData);
+            await _unitOfWork.ExecuteInTransactionAsync(async () =>
+            {
+                await _groupDbService.UpdateAsync(id, groupData);
+
+                await _unitOfWork.SaveChangesAsync();
+
+                var group = await _groupDbService.GetGroupByIdAsync(id);
+
+                await RemoveExcessCoaches(group, groupData.Coaches);
+                await CreateCoaches(group, groupData.Coaches);
+            });        
+        }
+
+        private async Task RemoveExcessCoaches(GroupEntity group, List<long> newCoachIds)
+        {
+            var oldCoaches = group.UserMemberships
+                .Where(um => um.RoleInGroup == Role.Coach && !newCoachIds.Contains(um.UserId))
+                .ToList();
+
+            if (oldCoaches.Any())
+            {
+                foreach (var coach in oldCoaches)
+                {
+                    await _userMembershipApplicationService.CloseUserMembershipAsync(coach.UserId, group.Id);
+                }
+            }
+        }
+
+        private async Task CreateCoaches(GroupEntity group, List<long> coaches)
+        {
+            foreach (var coachId in coaches)
+            {
+                await _userMembershipApplicationService.AddUserMembershipAsync(coachId, new UserMembershipCreationDto(group, false, true));
+            }
         }
 
         public async Task CloseGroupAsync(long id)
         {
-            await _scheduleDbService.CloseGroupSchedules(id);
+            var group = await _groupDbService.GetGroupByIdAsync(id);
 
-            await _groupDbService.CloseAsync(id);
+            if (group.UserMemberships.Count(um => um.RoleInGroup == Role.User) > 0)
+            {
+                throw new InvalidOperationException("Необходимо удалить участников группы");
+            }
+
+            await _unitOfWork.ExecuteInTransactionAsync(async () =>
+            {
+                await _scheduleDbService.CloseGroupSchedules(id);
+
+                foreach(var userMembership in group.UserMemberships)
+                {
+                    await _userMembershipApplicationService.CloseUserMembershipAsync(userMembership.UserId, id);
+                }
+
+                await _groupDbService.CloseAsync(id);
+            });    
         }
 
         public async Task RecoverGroupAsync(long id)
@@ -149,8 +209,8 @@ namespace Aikido.Application.Services
         {
             var members = await _groupDbService.GetGroupMembersAsync(groupId);
             return members.Where(m => m.User != null)
-                         .Select(m => new UserShortDto(m.User!))
-                         .ToList();
+                .Select(m => new UserShortDto(m.User!))
+                .ToList();
         }
 
         private async Task EnsureUserExists(long userId)
@@ -163,7 +223,7 @@ namespace Aikido.Application.Services
 
         private void EnsureMainCoachIsDedicated(GroupCreationDto groupData)
         {
-            if (groupData.MainCoachId == null && groupData.Coaches.Count == 0)
+            if (groupData.MainCoachId == null && groupData.Coaches.Count != 0)
             {
                 throw new InvalidOperationException("Не указан главный тренер");
             }

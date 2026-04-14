@@ -12,10 +12,11 @@ namespace Aikido.Entities.Seminar
         public SeminarEntity Seminar { get; set; }
 
         public string Name { get; set; }
+        public List<SeminarScheduleEntity> Schedule { get; set; }
 
         public SeminarGroupEntity() { }
 
-        public SeminarGroupEntity(long seminarId, SeminarGroupDto seminarGroup)
+        public SeminarGroupEntity(long seminarId, ISeminarGroupDto seminarGroup)
         {
             SeminarId = seminarId;
             Name = seminarGroup.Name;

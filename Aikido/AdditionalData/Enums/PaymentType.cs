@@ -14,6 +14,5 @@ namespace Aikido.AdditionalData.Enums
         Seminar,
         [EnumMember(Value = "Аттестация")]
         Certification,
-
     }
 }

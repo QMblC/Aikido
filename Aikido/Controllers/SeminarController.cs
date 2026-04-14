@@ -6,12 +6,14 @@ using Aikido.Dto.Seminars.Creation;
 using Aikido.Dto.Seminars.Members;
 using Aikido.Dto.Seminars.Members.Creation;
 using Aikido.Dto.Users;
+using Aikido.Entities.Seminar.SeminarFilters;
 using Aikido.Requests;
 using Aikido.Services;
 using DocumentFormat.OpenXml.Drawing.Charts;
 using DocumentFormat.OpenXml.ExtendedProperties;
 using DocumentFormat.OpenXml.Office2016.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using System.Text.Json;
@@ -51,11 +53,11 @@ namespace Aikido.Controllers
         }
 
         [HttpGet("get/all")]
-        public async Task<ActionResult<List<SeminarDto>>> GetAllSeminars()
+        public async Task<ActionResult<List<SeminarShortDto>>> GetAllSeminars([FromQuery] SeminarFilter filter)
         {
             try
             {
-                var seminars = await _seminarApplicationService.GetAllSeminarsAsync();
+                var seminars = await _seminarApplicationService.GetAllSeminarsAsync(filter);
                 return Ok(seminars);
             }
             catch (Exception ex)
@@ -122,7 +124,7 @@ namespace Aikido.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreateSeminar([FromBody] SeminarDto seminarData)
+        public async Task<IActionResult> CreateSeminar([FromBody] SeminarCreationDto seminarData)
         {
             try
             {
@@ -136,7 +138,7 @@ namespace Aikido.Controllers
         }
 
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateSeminar(long id, [FromBody] SeminarDto seminarData)
+        public async Task<IActionResult> UpdateSeminar(long id, [FromBody] SeminarCreationDto seminarData)
         {
             try
             {
@@ -267,6 +269,7 @@ namespace Aikido.Controllers
         /// </summary>
         /// <param name="seminarId"></param>
         /// <returns></returns>
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPut("{seminarId}/apply")]
         public async Task<IActionResult> ApplySeminarResult(long seminarId)
         {
@@ -286,6 +289,7 @@ namespace Aikido.Controllers
         /// </summary>
         /// <param name="seminarId"></param>
         /// <returns></returns>
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPut("{seminarId}/cancel")]
         public async Task<IActionResult> CancelSeminarResult(long seminarId)
         {
