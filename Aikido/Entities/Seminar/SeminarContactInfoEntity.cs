@@ -12,13 +12,13 @@ namespace Aikido.Entities.Seminar
         public virtual SeminarEntity? Seminar { get; set; }
 
         public string Name { get; set; }
-        public string FirstContact { get; set; }
+        public string? FirstContact { get; set; }
         public string? SecondContact { get; set; }
         public string Description { get; set; }
 
         public SeminarContactInfoEntity() { }
 
-        public SeminarContactInfoEntity(long seminarId, SeminarContactInfoDto seminarContactInfoDto)
+        public SeminarContactInfoEntity(long seminarId, ISeminarContactInfoDto seminarContactInfoDto)
         {
             SeminarId = seminarId;
             Name = seminarContactInfoDto.Name;

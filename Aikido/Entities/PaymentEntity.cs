@@ -34,15 +34,14 @@ namespace Aikido.Entities
 
         public PaymentEntity(
             ISeminarMemberData member,
-            decimal amount,
-            PaymentType type)
+            SeminarPriceEntity price)
         {
             UserId = member.UserId;
-            Type = type;
+            Type = price.PaymentType;
             EventId = member.Seminar?.Id;
             EventType = AdditionalData.Enums.EventType.Seminar;
             Date = member.Seminar.Date;
-            Amount = amount;
+            Amount = price.Amount.Value;
             Status = PaymentStatus.Pending;
         }
 
@@ -75,6 +74,21 @@ namespace Aikido.Entities
             EventType = AdditionalData.Enums.EventType.Seminar;
             Date = seminar.Date;
             Amount = amount;
+            Status = status;
+        }
+
+        public PaymentEntity(
+            SeminarEntity seminar,
+            UserEntity user,
+            SeminarPriceEntity price,
+            PaymentStatus status = PaymentStatus.Pending)
+        {
+            UserId = user.Id;
+            Type = price.PaymentType;
+            EventId = seminar.Id;
+            EventType = AdditionalData.Enums.EventType.Seminar;
+            Date = seminar.Date;
+            Amount = price.Amount.Value;
             Status = status;
         }
 

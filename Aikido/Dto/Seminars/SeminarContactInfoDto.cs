@@ -2,7 +2,7 @@
 
 namespace Aikido.Dto.Seminars
 {
-    public class SeminarContactInfoDto : DtoBase
+    public class SeminarContactInfoDto : DtoBase, ISeminarContactInfoDto
     {
         public long? Id { get; set; }
 
@@ -20,8 +20,7 @@ namespace Aikido.Dto.Seminars
             Name = seminarContactInfo.Name;
             FirstContact = seminarContactInfo.FirstContact;
             SecondContact = seminarContactInfo.SecondContact;
-            Description = seminarContactInfo.Description;
-            
+            Description = seminarContactInfo.Description;    
         }
     }
 }

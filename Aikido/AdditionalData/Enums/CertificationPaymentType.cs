@@ -2,7 +2,7 @@
 
 namespace Aikido.AdditionalData.Enums
 {
-    public enum CertificationPrice
+    public enum CertificationPaymentType
     {
         [EnumMember(Value = "Аттестация 5 Кю (детский)")]
         Certification5KyuChild,

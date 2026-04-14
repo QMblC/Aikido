@@ -1,20 +1,14 @@
-﻿using Aikido.Entities.Seminar;
+﻿using Aikido.AdditionalData.Enums;
+using Aikido.Entities.Seminar;
 
 namespace Aikido.Dto.Seminars
 {
-    public class SeminarDto : DtoBase
+    public class SeminarDto : DtoBase, ISeminarDto
     {
         public string Name { get; set; } = string.Empty;
         public DateTime Date { get; set; }
         public string? Description { get; set; }
         public string? Location { get; set; }
-
-        public decimal? PriceSeminarInRubles { get; set; }
-        public decimal? PriceAnnualFeeRubles { get; set; }
-        public decimal? PriceBudoPassportRubles { get; set; }
-        public decimal? Price5to2KyuCertificationInRubles { get; set; }
-        public decimal? Price1KyuCertificationInRubles { get; set; }
-        public decimal? PriceDanCertificationInRubles { get; set; }
 
         public bool? IsFinalStatementApplied { get; set; }
 
@@ -25,11 +19,12 @@ namespace Aikido.Dto.Seminars
 
         public bool? RegulationExists { get; set; } = false;
 
-        public DateTime? RegistrationDeadline { get; set; }
         public DateTime? CreatedTime { get; set; }
 
+        public List<SeminarPriceDto>? SeminarPrices { get; set; }
         public List<SeminarContactInfoDto>? ContactInfo { get; set; }
-        public List<SeminarScheduleDto>? Schedule { get; set; }
+        public List<SeminarScheduleDto>? TrainingSchedule { get; set; }
+        public List<SeminarScheduleDto>? CertificationSchedule { get; set; }
         public List<SeminarGroupDto>? Groups { get; set; }
 
         public SeminarDto() { }
@@ -42,13 +37,6 @@ namespace Aikido.Dto.Seminars
             Date = seminar.Date;
             Location = seminar.Location;
 
-            PriceSeminarInRubles = seminar.SeminarPriceInRubles;
-            PriceAnnualFeeRubles = seminar.AnnualFeePriceInRubles;
-            PriceBudoPassportRubles = seminar.BudoPassportPriceInRubles;
-            Price5to2KyuCertificationInRubles = seminar.Certification5to2KyuPriceInRubles;
-            Price1KyuCertificationInRubles = seminar.Certification1KyuPriceInRubles;
-            PriceDanCertificationInRubles = seminar.CertificationDanPriceInRubles;
-
             CreatorId = seminar.CreatorId;
             CreatorName = seminar.Creator?.FullName;
 
@@ -58,7 +46,6 @@ namespace Aikido.Dto.Seminars
 
             RegulationExists = seminar.RegulationId != null;
 
-            RegistrationDeadline = seminar.RegistrationDeadline;
             CreatedTime = seminar.CreatedDate;
 
             if (seminar.ContactInfo != null)
@@ -66,7 +53,12 @@ namespace Aikido.Dto.Seminars
 
             if (seminar.Schedule != null)
             {
-                Schedule = seminar.Schedule.Select(s => new SeminarScheduleDto(s)).ToList();
+                TrainingSchedule = seminar.Schedule.Where(s => s.Type == SeminarScheduleType.Training)
+                    .Select(s => new SeminarScheduleDto(s))
+                    .ToList();
+                CertificationSchedule = seminar.Schedule.Where(s => s.Type == SeminarScheduleType.Certification)
+                    .Select(s => new SeminarScheduleDto(s))
+                    .ToList();
             }
 
             if (seminar.Groups != null)

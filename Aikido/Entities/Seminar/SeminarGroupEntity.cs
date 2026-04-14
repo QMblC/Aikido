@@ -16,7 +16,7 @@ namespace Aikido.Entities.Seminar
 
         public SeminarGroupEntity() { }
 
-        public SeminarGroupEntity(long seminarId, SeminarGroupDto seminarGroup)
+        public SeminarGroupEntity(long seminarId, ISeminarGroupDto seminarGroup)
         {
             SeminarId = seminarId;
             Name = seminarGroup.Name;

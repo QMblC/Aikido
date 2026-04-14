@@ -1,10 +1,12 @@
 ﻿using Aikido.AdditionalData.Enums;
 using Aikido.Data;
 using Aikido.Dto.Seminars;
+using Aikido.Dto.Seminars.Creation;
 using Aikido.Dto.Seminars.Members;
 using Aikido.Dto.Seminars.Members.CoachEditRequest;
 using Aikido.Entities;
 using Aikido.Entities.Seminar;
+using Aikido.Entities.Seminar.SeminarFilters;
 using Aikido.Entities.Seminar.SeminarMember;
 using Aikido.Entities.Seminar.SeminarMemberRequest;
 using Aikido.Entities.Users;
@@ -48,9 +50,9 @@ namespace Aikido.Services.DatabaseServices.Seminar
             return await _context.Seminars.AnyAsync(s => s.Id == id);
         }
 
-        public async Task<List<SeminarEntity>> GetAllAsync()
+        public async Task<List<SeminarEntity>> GetAllAsync(SeminarFilter filter)
         {
-            return await _context.Seminars
+            var seminars = await _context.Seminars
                 .Include(s => s.Creator)
                 .Include(s => s.Groups)
                 .Include(s => s.ContactInfo)
@@ -58,6 +60,19 @@ namespace Aikido.Services.DatabaseServices.Seminar
                 .Include(s => s.Regulation)
                 .OrderByDescending(s => s.Date)
                 .ToListAsync();
+
+            var result = new List<SeminarEntity>();
+
+            if (filter.IsPast)
+            {
+                result.AddRange(seminars.Where(s => s.Date < DateTime.UtcNow));
+            }
+            if (filter.IsUpcoming)
+            {
+                result.AddRange(seminars.Where(s => s.Date >= DateTime.UtcNow));
+            }
+
+            return result;
         }
 
         public async Task<List<SeminarMemberEntity>> GetSeminarMembersAsync(long seminarId)
@@ -76,16 +91,46 @@ namespace Aikido.Services.DatabaseServices.Seminar
                 .ToListAsync();
         }
 
-        public async Task<long> CreateAsync(SeminarDto seminarData)
+        public async Task<SeminarEntity> CreateAsync(SeminarCreationDto seminarData)
         {
             var seminar = new SeminarEntity(seminarData);
             _context.Seminars.Add(seminar);
-            await _context.SaveChangesAsync(); 
 
-            return seminar.Id;
+            return seminar;
         }
 
-        public async Task UpdateAsync(long id, SeminarDto seminarData)
+        public async Task CreateSeminarSchedule(SeminarEntity seminar, List<SeminarScheduleCreationDto> schedule)
+        {
+            var scheduleEntity = schedule.Select(s => new SeminarScheduleEntity(
+                seminar.Id, 
+                seminar.Groups.First(g => g.Name == s.GroupName).Id, 
+                s));
+
+            await _context.SeminarSchedule.AddRangeAsync(scheduleEntity);
+        }
+
+        public async Task UpdateSeminarSchedule(SeminarEntity seminar, List<SeminarScheduleCreationDto> schedule)
+        {
+            var oldSchedules = _context.SeminarSchedule.Where(p => p.SeminarId == seminar.Id);
+            _context.RemoveRange(oldSchedules);
+            await CreateSeminarSchedule(seminar, schedule);
+        }
+
+        //public async Task CreateSeminarPrices(long seminarId, List<SeminarPriceCreationDto> prices)
+        //{
+        //    var priceEntities = prices.Select(p => new SeminarPriceEntity(seminarId, p)).ToList();
+
+        //    _context.SeminarPrices.AddRange(priceEntities);
+        //}
+
+        //public async Task UpdateSeminarPrices(long seminarId, List<SeminarPriceCreationDto> prices)
+        //{
+        //    var oldPrices = _context.SeminarPrices.Where(p => p.SeminarId == seminarId);
+        //    _context.RemoveRange(oldPrices);
+        //    await CreateSeminarPrices(seminarId, prices);
+        //}
+
+        public async Task UpdateAsync(long id, SeminarCreationDto seminarData)
         {
             var seminar = await GetByIdOrThrowException(id);
             seminar.UpdateFromJson(seminarData);

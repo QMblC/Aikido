@@ -1,4 +1,5 @@
 ﻿using Aikido.AdditionalData.Enums;
+using Aikido.Dto.Seminars.Creation;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities.Seminar
@@ -12,6 +13,25 @@ namespace Aikido.Entities.Seminar
         public virtual SeminarEntity Seminar { get; set; }
 
         public PaymentType PaymentType { get; set; }
-        public CertificationPrice? CertificationPrice { get; set; }
+        public CertificationPaymentType? CertificationPaymentType { get; set; }
+
+        public decimal? Amount { get; set; }
+
+        public SeminarPriceEntity()
+        {
+
+        }
+
+        public SeminarPriceEntity(long seminarId, SeminarPriceCreationDto price)
+        {
+            SeminarId = seminarId;
+            PaymentType = EnumParser.ConvertStringToEnum<PaymentType>(price.PaymentType);
+            Amount = price.Price;
+            if (PaymentType == PaymentType.Certification)
+            {
+                CertificationPaymentType = EnumParser.ConvertStringToEnum<CertificationPaymentType>(price.CertificationPaymentType);
+            }
+        }
+
     }
 }

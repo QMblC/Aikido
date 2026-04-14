@@ -2,6 +2,7 @@
 using Aikido.AdditionalData.Enums;
 using Aikido.Dto;
 using Aikido.Dto.Seminars;
+using Aikido.Dto.Seminars.Creation;
 using Aikido.Entities.Seminar.SeminarMember;
 using Aikido.Entities.Seminar.SeminarMemberRequest;
 using System.ComponentModel.DataAnnotations;
@@ -19,13 +20,6 @@ namespace Aikido.Entities.Seminar
 
         public string? Description { get; set; }
         public string? Location { get; set; }
-
-        public decimal? SeminarPriceInRubles { get; set; }
-        public decimal? AnnualFeePriceInRubles { get; set; }
-        public decimal? BudoPassportPriceInRubles { get; set; }
-        public decimal? Certification5to2KyuPriceInRubles { get; set; }
-        public decimal? Certification1KyuPriceInRubles { get; set; }
-        public decimal? CertificationDanPriceInRubles { get; set; }
 
         public DateTime? RegistrationDeadline { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
@@ -49,18 +43,19 @@ namespace Aikido.Entities.Seminar
         public virtual ICollection<SeminarGroupEntity>? Groups { get; set; } = new List<SeminarGroupEntity>();
         public virtual ICollection<SeminarScheduleEntity>? Schedule { get; set; } = new List<SeminarScheduleEntity>();
         public virtual ICollection<PaymentEntity> Payments { get; set; } = new List<PaymentEntity>();
+        public virtual ICollection<SeminarPriceEntity>? Prices { get; set; } = new List<SeminarPriceEntity>();
 
 
         public SeminarEntity() { }
 
-        public SeminarEntity(SeminarDto seminarData)
+        public SeminarEntity(SeminarCreationDto seminarData)
         {
             UpdateFromJson(seminarData);
             CreatedDate = DateTime.UtcNow;
         }
 
 
-        public void UpdateFromJson(SeminarDto seminarData)
+        public void UpdateFromJson(SeminarCreationDto seminarData)
         {
             if (!string.IsNullOrEmpty(seminarData.Name))
                 Name = seminarData.Name;
@@ -69,19 +64,11 @@ namespace Aikido.Entities.Seminar
             Date = seminarData.Date;
             Location = seminarData.Location;
 
-            SeminarPriceInRubles = seminarData.PriceSeminarInRubles;
-            AnnualFeePriceInRubles = seminarData.PriceAnnualFeeRubles;
-            BudoPassportPriceInRubles = seminarData.PriceBudoPassportRubles;
-            Certification5to2KyuPriceInRubles = seminarData.Price5to2KyuCertificationInRubles;
-            Certification1KyuPriceInRubles = seminarData.Price1KyuCertificationInRubles;
-            CertificationDanPriceInRubles = seminarData.PriceDanCertificationInRubles;
-
-            RegistrationDeadline = seminarData.RegistrationDeadline;
             CreatorId = seminarData.CreatorId.Value;
 
             ContactInfo = seminarData.ContactInfo != null? seminarData.ContactInfo.Select(ci => new SeminarContactInfoEntity(Id, ci)).ToList() : null;            
-            Groups = seminarData.Groups != null? seminarData.Groups.Select(s => new SeminarGroupEntity(Id, s)).ToList() : null;
-            Schedule = seminarData.Schedule != null ? seminarData.Schedule.Select(s => new SeminarScheduleEntity(Id, Groups.First(g => g.Name == s.GroupName).Id, s)).ToList() : null;
+            Groups = seminarData.Groups != null? seminarData.Groups.Select(s => new SeminarGroupEntity(Id, s)).ToList() : null;         
+            Prices = seminarData.Prices != null ? seminarData.Prices.Select(p => new SeminarPriceEntity(Id, p)).ToList() : null;
         }
     }
 }
