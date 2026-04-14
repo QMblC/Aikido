@@ -23,8 +23,6 @@ namespace Aikido.Services.DatabaseServices.Seminar
         Task CreateSeminarSchedule(SeminarEntity seminar, List<SeminarScheduleCreationDto> schedule);
         Task UpdateSeminarSchedule(SeminarEntity seminar, List<SeminarScheduleCreationDto> schedule);
 
-        //Task CreateSeminarPrices(long seminarId, List<SeminarPriceCreationDto> prices);
-        //Task UpdateSeminarPrices(long seminarId, List<SeminarPriceCreationDto> prices);
         Task<SeminarRegulationEntity> GetSeminarRegulation(long seminarId);
         Task CreateSeminarRegulationAsync(long seminarId, byte[] fileInBytes);
         Task DeleteSeminarRegulationAsync(long seminarId);
@@ -33,19 +31,8 @@ namespace Aikido.Services.DatabaseServices.Seminar
 
         Task UpdateEditorList(long seminarId, List<long> editorIds);
 
-        Task AddSeminarMembersAsync(long seminarId, SeminarMemberListDto membersDto);
-        Task SetFinalSeminarMembersAsync(long seminarId, List<FinalSeminarMemberDto> members);
-        Task RemoveMemberAsync(long seminarId, long userId);
-        Task<bool> IsMemberAsync(long seminarId, long userId);
-        Task<int> GetMemberCountAsync(long seminarId);
-
-        Task<List<SeminarEntity>> GetSeminarsByDateRangeAsync(DateTime startDate, DateTime endDate);
-
-        Task<List<SeminarGroupEntity>> GetSeminarGroups(long seminarId);
         Task ApplySeminarResult(long seminarId);
         Task CancelSeminarResult(long seminarId);
-        Task<SeminarMemberEntity> GetSeminarMemberAsync(long seminarId, long userId);
-        Task<List<SeminarMemberEntity>> GetCoachMembersAsync(long seminarId, long coachId);
 
         Task<List<SeminarMemberManagerRequestEntity>> GetManagerMembersAsync(long seminarId, long managerId);
         Task<List<SeminarMemberManagerRequestEntity>> GetManagerMembersByClubAsync(long seminarId, long clubId);
