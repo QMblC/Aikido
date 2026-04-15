@@ -52,7 +52,7 @@ namespace Aikido.Controllers
         [HttpGet("seminar/{seminarId}/coach-request/club/{clubId}/coach/{coachId}")]
         public async Task<ActionResult<List<SeminarMemberRequestDto>>> GetCoachClubRequests(long seminarId,
             long clubId,
-            long coachId
+            long coachId,
             [FromQuery] RequestResultFilter filter)
         {
             try
