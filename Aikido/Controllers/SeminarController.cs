@@ -68,7 +68,7 @@ namespace Aikido.Controllers
         /// <param name="filter"></param>
         /// <returns></returns>
         [HttpGet("get/all")]
-        public async Task<ActionResult<List<SeminarShortDto>>> GetAllSeminars([FromQuery] SeminarFilter filter)
+        public async Task<ActionResult<List<SeminarShortDto>>> GetAllSeminars([FromQuery] TimeFilter filter)
         {
             try
             {

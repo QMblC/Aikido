@@ -50,7 +50,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
             return await _context.Seminars.AnyAsync(s => s.Id == id);
         }
 
-        public async Task<List<SeminarEntity>> GetAllAsync(SeminarFilter filter)
+        public async Task<List<SeminarEntity>> GetAllAsync(TimeFilter filter)
         {
             var seminars = await _context.Seminars
                 .Include(s => s.Creator)
