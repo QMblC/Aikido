@@ -328,5 +328,19 @@ namespace Aikido.Application.Services
 
             return members.All(m => m.IsConfirmed);
         }
+
+        public async Task BlockSeminarStatements(long seminarId)
+        {
+            var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
+            seminar.AreStatementsBlocked = true;
+            await _seminarDbService.UpdateAsync(seminar);
+        }
+
+        public async Task UnblockSeminarStatements(long seminarId)
+        {
+            var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
+            seminar.AreStatementsBlocked = false;
+            await _seminarDbService.UpdateAsync(seminar);
+        }
     }
 }

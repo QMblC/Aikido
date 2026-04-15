@@ -123,6 +123,12 @@ namespace Aikido.Services.DatabaseServices.Seminar
             await _context.SaveChangesAsync();
         }
 
+        public async Task UpdateAsync(SeminarEntity seminar)
+        {
+            _context.Seminars.Update(seminar);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task DeleteAsync(long id)
         {
             var seminar = await GetByIdOrThrowException(id);

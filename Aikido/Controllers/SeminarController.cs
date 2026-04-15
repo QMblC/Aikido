@@ -7,6 +7,7 @@ using Aikido.Dto.Seminars.Members;
 using Aikido.Dto.Seminars.Members.Creation;
 using Aikido.Dto.Users;
 using Aikido.Entities.Seminar.SeminarFilters;
+using Aikido.Exceptions;
 using Aikido.Requests;
 using Aikido.Services;
 using DocumentFormat.OpenXml.Drawing.Charts;
@@ -202,46 +203,6 @@ namespace Aikido.Controllers
             {
                 await _seminarApplicationService.DeleteSeminarRegulationAsync(seminarId);
                 return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// Применяет результаты семинара
-        /// </summary>
-        /// <param name="seminarId"></param>
-        /// <returns></returns>
-        [Authorize(Roles = "Admin,Manager")]
-        [HttpPut("{seminarId}/apply")]
-        public async Task<IActionResult> ApplySeminarResult(long seminarId)
-        {
-            try
-            {
-                await _seminarApplicationService.ApplySeminarResult(seminarId);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// Отменяет результаты семинара
-        /// </summary>
-        /// <param name="seminarId"></param>
-        /// <returns></returns>
-        [Authorize(Roles = "Admin,Manager")]
-        [HttpPut("{seminarId}/cancel")]
-        public async Task<IActionResult> CancelSeminarResult(long seminarId)
-        {
-            try
-            {
-                await _seminarApplicationService.CancelSeminarResult(seminarId);
-                return Ok();
             }
             catch (Exception ex)
             {
@@ -697,5 +658,81 @@ namespace Aikido.Controllers
         }
 
         #endregion
+
+        /// <summary>
+        /// Применяет результаты семинара
+        /// </summary>
+        /// <param name="seminarId"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpPut("{seminarId}/apply")]
+        public async Task<IActionResult> ApplySeminarResult(long seminarId)
+        {
+            try
+            {
+                await _seminarApplicationService.ApplySeminarResult(seminarId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Отменяет результаты семинара
+        /// </summary>
+        /// <param name="seminarId"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpPut("{seminarId}/cancel")]
+        public async Task<IActionResult> CancelSeminarResult(long seminarId)
+        {
+            try
+            {
+                await _seminarApplicationService.CancelSeminarResult(seminarId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        [HttpPatch("{seminarId}/block")]
+        public async Task<IActionResult> BlockSeminarStatements(long seminarId)
+        {
+            try
+            {
+                await _seminarApplicationService.BlockSeminarStatements(seminarId);
+                return NoContent();
+            }
+            catch(EntityNotFoundException ex)
+            {
+                return NotFound(new {Message = "Объект не найден", Details = ex.Message});
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        [HttpPatch("{seminarId}/unblock")]
+        public async Task<IActionResult> UnblockSeminarStatements(long seminarId)
+        {
+            try
+            {
+                await _seminarApplicationService.UnblockSeminarStatements(seminarId);
+                return NoContent();
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return NotFound(new { Message = "Объект не найден", Details = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
     }
 }

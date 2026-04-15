@@ -35,6 +35,7 @@ namespace Aikido.Entities.Seminar
         public long? FinalStatementId { get; set; }
         public virtual SeminarStatementEntity? FinalStatement { get; set; }
         public bool IsFinalStatementApplied { get; set; }
+        public bool AreStatementsBlocked { get; set; } = false;
 
         public virtual ICollection<SeminarCoachStatementEntity> CoachStatements { get; set; } = new List<SeminarCoachStatementEntity>();
         public virtual ICollection<SeminarContactInfoEntity>? ContactInfo { get; set; } = new List<SeminarContactInfoEntity>();
@@ -53,7 +54,6 @@ namespace Aikido.Entities.Seminar
             UpdateFromJson(seminarData);
             CreatedDate = DateTime.UtcNow;
         }
-
 
         public void UpdateFromJson(SeminarCreationDto seminarData)
         {
