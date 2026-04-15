@@ -2,6 +2,7 @@
 using Aikido.Dto.Seminars.Members;
 using Aikido.Dto.Seminars.Members.CoachEditRequest;
 using Aikido.Dto.Seminars.Members.Creation;
+using Aikido.Entities.Seminar.SeminarFilters;
 using DocumentFormat.OpenXml.Office2016.Excel;
 using Microsoft.AspNetCore.Mvc;
 
@@ -49,11 +50,14 @@ namespace Aikido.Controllers
         /// <param name="coachId"></param>
         /// <returns></returns>
         [HttpGet("seminar/{seminarId}/coach-request/club/{clubId}/coach/{coachId}")]
-        public async Task<ActionResult<List<SeminarMemberRequestDto>>> GetCoachClubRequests(long seminarId, long clubId, long coachId)
+        public async Task<ActionResult<List<SeminarMemberRequestDto>>> GetCoachClubRequests(long seminarId,
+            long clubId,
+            long coachId
+            [FromQuery] RequestResultFilter filter)
         {
             try
             {
-                var requests = await _seminarCoachEditAppServiceAppService.GetClubCoachRequestList(seminarId, clubId, coachId);
+                var requests = await _seminarCoachEditAppServiceAppService.GetClubCoachRequestList(seminarId, clubId, coachId, filter);
                 return Ok(requests);
             }
             catch (Exception ex)
@@ -69,11 +73,14 @@ namespace Aikido.Controllers
         /// <param name="clubId"></param>
         /// <returns></returns>
         [HttpGet("seminar/{seminarId}/coach-request/club/{clubId}")]
-        public async Task<ActionResult<List<SeminarMemberCoachRequestDto>>> GetCoachRequests(long seminarId, long clubId)
+        public async Task<ActionResult<List<SeminarMemberCoachRequestDto>>> GetCoachRequests(
+            long seminarId,
+            long clubId,
+            [FromQuery] RequestResultFilter filter)
         {
             try
             {
-                var members = await _seminarCoachEditAppServiceAppService.GetCoachRequests(seminarId, clubId);
+                var members = await _seminarCoachEditAppServiceAppService.GetCoachRequests(seminarId, clubId, filter);
                 return Ok(members);
             }
             catch (Exception ex)

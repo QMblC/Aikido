@@ -52,6 +52,10 @@ namespace Aikido.Controllers
             {
                 return NotFound(new { ex.Message });
             }
+            catch (EntityNotFoundException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
@@ -64,7 +68,7 @@ namespace Aikido.Controllers
         /// <param name="filter"></param>
         /// <returns></returns>
         [HttpGet("get/all")]
-        public async Task<ActionResult<List<SeminarShortDto>>> GetAllSeminars([FromQuery] SeminarFilter filter)
+        public async Task<ActionResult<List<SeminarShortDto>>> GetAllSeminars([FromQuery] TimeFilter filter)
         {
             try
             {
@@ -699,6 +703,11 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Блокировка ведомостей семинара
+        /// </summary>
+        /// <param name="seminarId"></param>
+        /// <returns></returns>
         [HttpPatch("{seminarId}/block")]
         public async Task<IActionResult> BlockSeminarStatements(long seminarId)
         {
@@ -717,6 +726,11 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Разблокировка ведомостей семинара
+        /// </summary>
+        /// <param name="seminarId"></param>
+        /// <returns></returns>
         [HttpPatch("{seminarId}/unlock")]
         public async Task<IActionResult> UnlockSeminarStatements(long seminarId)
         {

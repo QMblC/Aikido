@@ -15,7 +15,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
     {
         Task<SeminarEntity> GetByIdOrThrowException(long id);
         Task<bool> Exists(long id);
-        Task<List<SeminarEntity>> GetAllAsync(SeminarFilter filter);
+        Task<List<SeminarEntity>> GetAllAsync(TimeFilter filter);
 
         Task<List<SeminarMemberEntity>> GetSeminarMembersAsync(long seminarId);
         Task<SeminarEntity> CreateAsync(SeminarCreationDto seminarData);

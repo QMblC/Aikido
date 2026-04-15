@@ -52,7 +52,7 @@ namespace Aikido.Application.Services
             return new SeminarDto(seminar);
         }
 
-        public async Task<List<SeminarShortDto>> GetAllSeminarsAsync(SeminarFilter filter)
+        public async Task<List<SeminarShortDto>> GetAllSeminarsAsync(TimeFilter filter)
         {
             var seminars = await _seminarDbService.GetAllAsync(filter);
             return seminars.Select(s => new SeminarShortDto(s)).ToList();
@@ -60,6 +60,11 @@ namespace Aikido.Application.Services
 
         public async Task<long> CreateSeminarAsync(SeminarCreationDto seminarData)
         {
+            if (seminarData.CreatorId == null)
+            {
+                throw new InvalidOperationException("Не указан создатель");
+            }
+
 
             SeminarEntity seminar = null;
             await _unitOfWork.ExecuteInTransactionAsync(async () =>
