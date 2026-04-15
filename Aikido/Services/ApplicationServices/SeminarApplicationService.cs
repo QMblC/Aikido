@@ -68,8 +68,6 @@ namespace Aikido.Application.Services
                 await _unitOfWork.SaveChangesAsync();
                 await _seminarDbService.CreateSeminarSchedule(seminar, seminarData.Schedule);
                 await _seminarDbService.UpdateEditorList(seminar.Id, seminarData.Editors);
-                await _seminarDbService.InitializeSeminar(seminar.Id);
-                await _paymentDbService.CreateSeminarPayments(seminar.Id);
             });
 
             return seminar.Id;

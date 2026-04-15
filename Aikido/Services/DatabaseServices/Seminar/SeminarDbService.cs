@@ -489,48 +489,6 @@ namespace Aikido.Services.DatabaseServices.Seminar
 
         #endregion
 
-        public async Task InitializeSeminar(long seminarId)
-        {//Посмотреть здесь ли ошибка
-            var seminar = await _context.Seminars.FindAsync(seminarId);
-
-            if (seminar == null)
-            {
-                throw new EntityNotFoundException(nameof(seminar));
-            }
-
-            var mainUserMemberships = _context.UserMemberships.AsQueryable()
-                .Where(um => um.IsMain && um.RoleInGroup == Role.User)
-                .Include(um => um.Club)
-                    .ThenInclude(c => c.Manager)
-                .Include(um => um.Group)
-                    .ThenInclude(g => g.UserMemberships)
-                        .ThenInclude(um => um.User)
-                .ToList();
-
-            var request = new List<SeminarMemberManagerRequestEntity>();
-
-            foreach(var mainUserMembership in mainUserMemberships)
-            {
-                try
-                {
-                    var clubManager = mainUserMembership.Club?.Manager
-                    ?? throw new EntityNotFoundException(nameof(mainUserMembership.Club));
-
-                    var coach = mainUserMembership.Group?.UserMemberships.First(um => um.UserId == mainUserMembership.Group?.MainCoachId).User
-                        ?? throw new EntityNotFoundException(nameof(mainUserMembership.User));//Здесь возможно стоит переделать и начать выделять главного тренера в группе
-
-                    request.Add(new(seminar, mainUserMembership));
-                }
-                catch(Exception ex)
-                {
-                    continue;
-                }
-            }
-
-            await _context.SeminarMembersManagerRequests.AddRangeAsync(request);
-            await _context.SaveChangesAsync();
-        }
-
         public async Task<List<SeminarMemberManagerRequestEntity>> GetCoachMembersByClub(long seminarId, long clubId, long coachId)
         {
             var members = await _context.SeminarMembersManagerRequests.AsQueryable()
