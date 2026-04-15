@@ -18,6 +18,7 @@ namespace Aikido.Dto.Seminars
         public List<long> Editors { get; set; } = new();
 
         public bool? RegulationExists { get; set; } = false;
+        public bool StatementsBlocked { get; set; }
 
         public DateTime? CreatedTime { get; set; }
 
@@ -45,6 +46,7 @@ namespace Aikido.Dto.Seminars
             IsFinalStatementApplied = seminar.IsFinalStatementApplied;
 
             RegulationExists = seminar.RegulationId != null;
+            StatementsBlocked = seminar.AreStatementsBlocked;
 
             CreatedTime = seminar.CreatedDate;
 
