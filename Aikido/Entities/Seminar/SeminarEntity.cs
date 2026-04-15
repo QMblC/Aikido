@@ -53,6 +53,7 @@ namespace Aikido.Entities.Seminar
         {
             UpdateFromJson(seminarData);
             CreatedDate = DateTime.UtcNow;
+            CreatorId = seminarData.CreatorId.Value;
         }
 
         public void UpdateFromJson(SeminarCreationDto seminarData)
@@ -62,9 +63,7 @@ namespace Aikido.Entities.Seminar
 
             Description = seminarData.Description;
             Date = seminarData.Date;
-            Location = seminarData.Location;
-
-            CreatorId = seminarData.CreatorId.Value;
+            Location = seminarData.Location;  
 
             ContactInfo = seminarData.ContactInfo != null? seminarData.ContactInfo.Select(ci => new SeminarContactInfoEntity(Id, ci)).ToList() : null;            
             Groups = seminarData.Groups != null? seminarData.Groups.Select(s => new SeminarGroupEntity(Id, s)).ToList() : null;         
