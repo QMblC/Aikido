@@ -227,6 +227,8 @@ namespace Aikido.Application.Services
 
         public async Task CreateManagerMembersByClubAsync(long seminarId, SeminarMemberManagerRequestListDto managerRequest)
         {
+            await EnsureSeminarStatementsUnlocked(seminarId);
+
             await _seminarDbService.CreateManagerMembersByClubAsync(seminarId, managerRequest);
             foreach (var member in managerRequest.Members)
             {
@@ -238,6 +240,8 @@ namespace Aikido.Application.Services
             long managerId,
             long clubId)
         {
+            await EnsureSeminarStatementsUnlocked(seminarId);
+
             await _seminarDbService.ConfirmManagerMembersByClubAsync(seminarId, managerId, clubId);
         }
 
@@ -245,6 +249,8 @@ namespace Aikido.Application.Services
             long managerId,
             long clubId)
         {
+            await EnsureSeminarStatementsUnlocked(seminarId);
+
             await _seminarDbService.CancelManagerMemberByClubAsync(seminarId, managerId, clubId);
         }
         #endregion
@@ -329,6 +335,16 @@ namespace Aikido.Application.Services
             return members.All(m => m.IsConfirmed);
         }
 
+        private async Task EnsureSeminarStatementsUnlocked(long seminarId)
+        {
+            var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
+
+            if (seminar.AreStatementsBlocked)
+            {
+                throw new InvalidOperationException("Изменение ведомостей семинара заблокировано");
+            }
+        }
+
         public async Task BlockSeminarStatements(long seminarId)
         {
             var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
@@ -336,7 +352,7 @@ namespace Aikido.Application.Services
             await _seminarDbService.UpdateAsync(seminar);
         }
 
-        public async Task UnblockSeminarStatements(long seminarId)
+        public async Task UnlockSeminarStatements(long seminarId)
         {
             var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
             seminar.AreStatementsBlocked = false;

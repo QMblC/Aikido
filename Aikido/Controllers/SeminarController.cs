@@ -717,12 +717,12 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpPatch("{seminarId}/unblock")]
-        public async Task<IActionResult> UnblockSeminarStatements(long seminarId)
+        [HttpPatch("{seminarId}/unlock")]
+        public async Task<IActionResult> UnlockSeminarStatements(long seminarId)
         {
             try
             {
-                await _seminarApplicationService.UnblockSeminarStatements(seminarId);
+                await _seminarApplicationService.UnlockSeminarStatements(seminarId);
                 return NoContent();
             }
             catch (EntityNotFoundException ex)
