@@ -480,7 +480,7 @@ namespace Aikido.Controllers
         /// <param name="seminarId"></param>
         /// <param name="userId"></param>
         /// <returns></returns>
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Roles = "Admin,Manager,Coach")]
         [HttpGet("{seminarId}/get/member/start-data")]
         public async Task<ActionResult<SeminarMemberDto>> GetSeminarMemberStartData(long seminarId, long userId)
         {

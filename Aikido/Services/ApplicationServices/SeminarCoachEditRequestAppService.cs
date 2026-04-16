@@ -104,6 +104,7 @@ namespace Aikido.Application.Services
 
         public async Task<List<SeminarMemberCoachRequestDto>> GetCoachRequests(long seminarId, long clubId, RequestResultFilter filter)
         {
+            filter = filter ?? new RequestResultFilter();
             var requests = await _requestDbService.GetCoachRequests(seminarId, clubId);
 
             var result = UseFilter(requests, filter); 
@@ -114,6 +115,8 @@ namespace Aikido.Application.Services
         private List<SeminarMemberCoachRequestEntity> UseFilter(List<SeminarMemberCoachRequestEntity> requests, RequestResultFilter filter)
         {
             var result = new List<SeminarMemberCoachRequestEntity>();
+            filter = filter ?? new RequestResultFilter();
+
 
             if (filter.IsPending)
             {

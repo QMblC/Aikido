@@ -54,6 +54,8 @@ namespace Aikido.Application.Services
 
         public async Task<List<SeminarShortDto>> GetAllSeminarsAsync(TimeFilter filter)
         {
+            filter = filter ?? new();
+
             var seminars = await _seminarDbService.GetAllAsync(filter);
             return seminars.Select(s => new SeminarShortDto(s)).ToList();
         }
