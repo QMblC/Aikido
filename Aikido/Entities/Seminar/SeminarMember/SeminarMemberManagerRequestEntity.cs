@@ -112,7 +112,9 @@ namespace Aikido.Entities.Seminar.SeminarMemberRequest
                 ? EnumParser.ConvertStringToEnum<Grade>(seminarMember.CertificationGrade) : Grade.None;
 
             CoachId = coachId;
+            ManagerId = userMembership.Club?.ManagerId;
             Note = seminarMember.Note;
+
         }
     }
 }

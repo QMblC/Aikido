@@ -2,6 +2,7 @@
 using Aikido.Dto.Seminars;
 using Aikido.Dto.Seminars.Creation;
 using Aikido.Dto.Seminars.Members;
+using Aikido.Dto.Seminars.Members.Creation;
 using Aikido.Dto.Users;
 using Aikido.Entities;
 using Aikido.Entities.Seminar;
@@ -14,6 +15,7 @@ using Aikido.Services.DatabaseServices.Group;
 using Aikido.Services.DatabaseServices.Seminar;
 using Aikido.Services.DatabaseServices.User;
 using Aikido.Services.UnitOfWork;
+using DocumentFormat.OpenXml.Office2016.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -54,6 +56,8 @@ namespace Aikido.Application.Services
 
         public async Task<List<SeminarShortDto>> GetAllSeminarsAsync(TimeFilter filter)
         {
+            filter = filter ?? new();
+
             var seminars = await _seminarDbService.GetAllAsync(filter);
             return seminars.Select(s => new SeminarShortDto(s)).ToList();
         }
@@ -213,6 +217,8 @@ namespace Aikido.Application.Services
 
         public async Task<SeminarMemberRequestDto> GetNewSeminarMemberManagerRequest(long seminarId, long userId)
         {
+            await EnsureUserNotRequested(seminarId, userId);
+
             var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
             var mainUserMembership = _userMembershipDbService.GetMainUserMembership(userId);
             var payments = await _paymentDbService.GetFakeSeminarMemberPayment(seminarId, userId);
@@ -233,6 +239,7 @@ namespace Aikido.Application.Services
         public async Task CreateManagerMembersByClubAsync(long seminarId, SeminarMemberManagerRequestListDto managerRequest)
         {
             await EnsureSeminarStatementsUnlocked(seminarId);
+            EnsureMembersUnique(managerRequest.Members);
 
             await _seminarDbService.CreateManagerMembersByClubAsync(seminarId, managerRequest);
             foreach (var member in managerRequest.Members)
@@ -305,6 +312,8 @@ namespace Aikido.Application.Services
 
         public async Task SaveSeminarMembers(long seminarId, SeminarMemberListDto request)
         {
+            EnsureMembersUnique(request.Members);
+
             await _seminarDbService.CreateSeminarMembers(seminarId, request);
             foreach (var member in request.Members)
             {
@@ -362,6 +371,28 @@ namespace Aikido.Application.Services
             var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
             seminar.AreStatementsBlocked = false;
             await _seminarDbService.UpdateAsync(seminar);
+        }
+
+        private async Task EnsureUserNotRequested(long seminarId, long userId)
+        {
+            var requestedMembers = await _seminarDbService.GetRequestedMembers(seminarId, false);
+
+            if (requestedMembers.Any(m => m.UserId == userId))
+            {
+                throw new InvalidOperationException("Пользователь уже заявлен для участия");
+            }
+        }
+
+        private void EnsureMembersUnique(IEnumerable<ISeminarMemberCreation> members)
+        {
+            var memberCount = members.Count();
+
+            var distinctMemberCount = members.Select(m => m.UserId).Distinct().Count();
+
+            if (memberCount != distinctMemberCount)
+            {
+                throw new InvalidOperationException("Пользователи повторяются");
+            }
         }
     }
 }

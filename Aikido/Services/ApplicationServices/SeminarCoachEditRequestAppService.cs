@@ -6,6 +6,7 @@ using Aikido.Entities.Seminar.SeminarMemberRequest;
 using Aikido.Entities.Users;
 using Aikido.Exceptions;
 using Aikido.Services;
+using Aikido.Services.DatabaseServices.Club;
 using Aikido.Services.DatabaseServices.Seminar;
 using DocumentFormat.OpenXml.Office2016.Excel;
 using Microsoft.AspNetCore.Mvc;
@@ -18,15 +19,19 @@ namespace Aikido.Application.Services
         private readonly SeminarCoachEditRequestDbService _requestDbService;
         private readonly ISeminarDbService _seminarDbService;
         private readonly PaymentService _paymentDbService;
+        private readonly IClubDbService _clubDbService;
 
         public SeminarCoachEditRequestAppService(
             SeminarCoachEditRequestDbService requestDbService,
             ISeminarDbService seminarDbService,
-            PaymentService paymentService)
+            PaymentService paymentService,
+            IClubDbService clubDbService
+            )
         {
             _requestDbService = requestDbService;
             _seminarDbService = seminarDbService;
             _paymentDbService = paymentService;
+            _clubDbService = clubDbService;
         }
 
         public async Task<List<SeminarMemberCoachRequestDto>> GetClubCoachRequestList(
@@ -85,6 +90,7 @@ namespace Aikido.Application.Services
 
             var list = new SeminarMemberCoachRequestListCreationDto(request);
 
+
             await _seminarDbService.CreateSeminarCoachMembers(request.SeminarId, list);
             foreach (var member in list.Members)
             {
@@ -104,6 +110,7 @@ namespace Aikido.Application.Services
 
         public async Task<List<SeminarMemberCoachRequestDto>> GetCoachRequests(long seminarId, long clubId, RequestResultFilter filter)
         {
+            filter = filter ?? new RequestResultFilter();
             var requests = await _requestDbService.GetCoachRequests(seminarId, clubId);
 
             var result = UseFilter(requests, filter); 
@@ -114,6 +121,8 @@ namespace Aikido.Application.Services
         private List<SeminarMemberCoachRequestEntity> UseFilter(List<SeminarMemberCoachRequestEntity> requests, RequestResultFilter filter)
         {
             var result = new List<SeminarMemberCoachRequestEntity>();
+            filter = filter ?? new RequestResultFilter();
+
 
             if (filter.IsPending)
             {

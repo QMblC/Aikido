@@ -416,7 +416,7 @@ namespace Aikido.Controllers
         }
 
         /// <summary>
-        /// Получения списка менеджеров и количества отправленных участников
+        /// Получение списка менеджеров и количества отправленных участников
         /// </summary>
         /// <returns></returns>
         [Authorize(Roles = "Admin,Manager")]
@@ -475,12 +475,12 @@ namespace Aikido.Controllers
         }
 
         /// <summary>
-        /// Получение стартововой информации для ведомости выбранного участника (Возможно излишне, но пока оставлю)
+        /// Получение стартововой информации для ведомости выбранного участника (Для финальной)
         /// </summary>
         /// <param name="seminarId"></param>
         /// <param name="userId"></param>
         /// <returns></returns>
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Roles = "Admin,Manager,Coach")]
         [HttpGet("{seminarId}/get/member/start-data")]
         public async Task<ActionResult<SeminarMemberDto>> GetSeminarMemberStartData(long seminarId, long userId)
         {
