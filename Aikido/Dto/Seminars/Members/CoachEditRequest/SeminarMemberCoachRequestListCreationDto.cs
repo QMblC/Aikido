@@ -20,6 +20,7 @@ namespace Aikido.Dto.Seminars.Members.CoachEditRequest
             CoachId = request.RequestedById;
             ClubId = request.ClubId;
             Members = JsonSerializer.Deserialize<List<SeminarMemberRequestCreationDto>>(request.RequestJson);
+
         }
 
     }

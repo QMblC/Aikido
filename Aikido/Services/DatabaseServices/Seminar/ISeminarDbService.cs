@@ -41,7 +41,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
         Task DeleteManagerMembersByClubAsync(long seminarId, long managerId, long clubId);
         Task ConfirmManagerMembersByClubAsync(long seminarId, long managerId, long clubId);
         Task CancelManagerMemberByClubAsync(long seminarId, long managerId, long clubId);
-        Task<List<SeminarMemberManagerRequestEntity>> GetRequestedMembers(long seminarId);
+        Task<List<SeminarMemberManagerRequestEntity>> GetRequestedMembers(long seminarId, bool isApplied = true);
         Task CreateSeminarMembersFromRequest(long seminarId);
         Task CreateSeminarMembers(long seminarId, SeminarMemberListDto memberList);
         Task<List<SeminarMemberManagerRequestEntity>> GetCoachMembersByClub(long seminarId, long clubId, long coachId);

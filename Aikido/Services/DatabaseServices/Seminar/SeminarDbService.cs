@@ -380,21 +380,39 @@ namespace Aikido.Services.DatabaseServices.Seminar
 
         #region SeminarMembers
 
-        public async Task<List<SeminarMemberManagerRequestEntity>> GetRequestedMembers(long seminarId)
+        public async Task<List<SeminarMemberManagerRequestEntity>> GetRequestedMembers(long seminarId, bool isConfirmed = true)
         {
-            var members = await _context.SeminarMembersManagerRequests.AsQueryable()
-                .Where(sm => sm.SeminarId == seminarId
-                && sm.IsConfirmed)
-                .Include(sm => sm.User)
-                .Include(sm => sm.Club)
-                .Include(sm => sm.Group)
-                .Include(sm => sm.Seminar)
-                .Include(sm => sm.SeminarGroup)
-                .Include(sm => sm.Coach)
-                .Include(sm => sm.Manager)
-                .ToListAsync();
+            if (isConfirmed)
+            {
+                var members = await _context.SeminarMembersManagerRequests.AsQueryable()
+                    .Where(sm => sm.SeminarId == seminarId
+                    && sm.IsConfirmed)
+                    .Include(sm => sm.User)
+                    .Include(sm => sm.Club)
+                    .Include(sm => sm.Group)
+                    .Include(sm => sm.Seminar)
+                    .Include(sm => sm.SeminarGroup)
+                    .Include(sm => sm.Coach)
+                    .Include(sm => sm.Manager)
+                    .ToListAsync();
 
-            return members;
+                return members;
+            }
+
+            else
+            {
+                return await _context.SeminarMembersManagerRequests.AsQueryable()
+                    .Where(sm => sm.SeminarId == seminarId)
+                    .Include(sm => sm.User)
+                    .Include(sm => sm.Club)
+                    .Include(sm => sm.Group)
+                    .Include(sm => sm.Seminar)
+                    .Include(sm => sm.SeminarGroup)
+                    .Include(sm => sm.Coach)
+                    .Include(sm => sm.Manager)
+                    .ToListAsync();
+            }
+            
         }
 
         public async Task CreateSeminarMembersFromRequest(long seminarId)
