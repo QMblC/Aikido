@@ -67,6 +67,8 @@ namespace Aikido.Dto.Seminars
             {
                 Groups = seminar.Groups.Select(s => new SeminarGroupDto(s)).ToList();
             }
+
+            SeminarPrices = seminar.Prices.Select(s => new SeminarPriceDto(s)).ToList();
         }
     }
 }

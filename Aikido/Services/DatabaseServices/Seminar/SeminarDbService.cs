@@ -37,6 +37,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
                 .Include(s => s.Schedule)
                 .Include(s => s.Regulation)
                 .Include(s => s.Payments)
+                .Include(s => s.Prices)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
             if (seminar == null)
