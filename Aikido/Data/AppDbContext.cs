@@ -469,7 +469,7 @@ namespace Aikido.Data
                     .HasForeignKey(p => p.SeminarId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasIndex(e => new { e.SeminarId, e.CertificationPaymentType, e.Amount, e.PaymentType });
+                entity.HasIndex(e => new { e.SeminarId, e.CertificationGrade, e.Amount, e.PaymentType });
             });
         }
 

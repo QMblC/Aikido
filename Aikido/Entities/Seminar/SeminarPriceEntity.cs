@@ -13,7 +13,7 @@ namespace Aikido.Entities.Seminar
         public virtual SeminarEntity Seminar { get; set; }
 
         public PaymentType PaymentType { get; set; }
-        public CertificationPaymentType? CertificationPaymentType { get; set; }
+        public Grade? CertificationGrade { get; set; }
 
         public decimal? Amount { get; set; }
 
@@ -26,10 +26,10 @@ namespace Aikido.Entities.Seminar
         {
             SeminarId = seminarId;
             PaymentType = EnumParser.ConvertStringToEnum<PaymentType>(price.PaymentType);
-            Amount = price.Price;
+            Amount = price.Amount;
             if (PaymentType == PaymentType.Certification)
             {
-                CertificationPaymentType = EnumParser.ConvertStringToEnum<CertificationPaymentType>(price.CertificationPaymentType);
+                CertificationGrade = EnumParser.ConvertStringToEnum<Grade>(price.Grade);
             }
         }
 

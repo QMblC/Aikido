@@ -7,15 +7,15 @@ namespace Aikido.Dto.Seminars
     {
         public long Id { get; set; }
         public string PaymentType { get; set; }
-        public string? CertificationPriceType { get; set; }
+        public string? CertificationGrade { get; set; }
         public decimal? Amount { get; set; }
 
         public SeminarPriceDto(SeminarPriceEntity price)
         {
             Id = price.Id;
             PaymentType = EnumParser.ConvertEnumToString(price.PaymentType);
-            CertificationPriceType = price.CertificationPaymentType == null ?
-                null : EnumParser.ConvertEnumToString(price.CertificationPaymentType.Value);
+            CertificationGrade = price.CertificationGrade == null ?
+                null : EnumParser.ConvertEnumToString(price.CertificationGrade.Value);
 
             Amount = price.Amount;
         }
