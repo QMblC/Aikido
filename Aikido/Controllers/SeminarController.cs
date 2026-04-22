@@ -554,7 +554,7 @@ namespace Aikido.Controllers
         /// <returns></returns>
         [Authorize(Roles = "Admin,Manager,Coach")]
         [HttpGet("coach/{coachId}/club/{clubId}")]
-        public async Task<ActionResult<SeminarMemberRequestDto>> FindCoachMemberByClub(long coachId,
+        public async Task<ActionResult<UserShortDto>> FindCoachMemberByClub(long coachId,
             long clubId,
             [FromQuery] string name)
         {

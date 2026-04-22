@@ -3,6 +3,7 @@ using Aikido.Dto.Groups;
 using Aikido.Dto.Users;
 using Aikido.Dto.Users.Creation;
 using Aikido.Entities;
+using Aikido.Entities.Users;
 using Aikido.Exceptions;
 using Aikido.Services;
 using Aikido.Services.ApplicationServices;
@@ -11,6 +12,7 @@ using Aikido.Services.DatabaseServices.Group;
 using Aikido.Services.DatabaseServices.User;
 using Aikido.Services.UnitOfWork;
 using DocumentFormat.OpenXml.Office2010.Excel;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Aikido.Application.Services
 {
@@ -23,6 +25,7 @@ namespace Aikido.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly ScheduleDbService _scheduleDbService;
         private readonly UserMembershipApplicationService _userMembershipApplicationService;
+        private readonly AttendanceApplicationService _attendanceApplicationService;
 
         public GroupApplicationService(
             IGroupDbService groupDbService,
@@ -31,7 +34,8 @@ namespace Aikido.Application.Services
             IClubDbService clubDbService,
             IUnitOfWork unitOfWork,
             ScheduleDbService scheduleDbService,
-            UserMembershipApplicationService userMembershipApplicationService)
+            UserMembershipApplicationService userMembershipApplicationService,
+            AttendanceApplicationService attendanceApplicationService)
         {
             _groupDbService = groupDbService;
             _userDbService = userDbService;
@@ -40,6 +44,7 @@ namespace Aikido.Application.Services
             _unitOfWork = unitOfWork;
             _scheduleDbService = scheduleDbService;
             _userMembershipApplicationService = userMembershipApplicationService;
+            _attendanceApplicationService = attendanceApplicationService;
         }
 
         public async Task<GroupDto> GetGroupByIdAsync(long id)
@@ -207,10 +212,169 @@ namespace Aikido.Application.Services
 
         public async Task<List<UserShortDto>> GetGroupMembersAsync(long groupId)
         {
-            var members = await _groupDbService.GetGroupMembersAsync(groupId);
+            var members = await _groupDbService.GetGroupActiveMembersAsync(groupId);
             return members.Where(m => m.User != null)
                 .Select(m => new UserShortDto(m.User!))
                 .ToList();
+        }
+
+        public async Task<List<UserShortDto>> GetGroupMembersAsync(long groupId, DateTime month)
+        {
+            var members = await _groupDbService.GetGroupActiveMembersAsync(groupId);
+            return members.Where(m => m.User != null
+                && m.CreateAt < month
+                && (m.ClosedAt > month || m.ClosedAt == null))//??
+                .Select(m => new UserShortDto(m.User!))
+                .ToList();
+        }
+
+        public async Task<GroupDashboardDto> GetGroupDashboard(long groupId, DateTime date)
+        {
+            var group = await _groupDbService.GetByIdOrThrowException(groupId, false);
+
+            await EnsureGroupContainsSchedule(group, date);
+
+            var firstPricticeDate = GetGroupFirstPracticeDateInMonth(group, date);
+            var lastPracticeDate = GetGroupLastPracticeDateInMonth(group, date);
+
+            var members = await _groupDbService.GetGroupMembersAsync(groupId);
+
+            var groupMembers = members
+                .GroupBy(m => m.UserId)
+                .ToDictionary(g => g.Key, g => g.ToList())
+                .Where(um => IsUserAttended(firstPricticeDate, lastPracticeDate, um.Value, date))
+                .ToDictionary();
+
+            var attendances = await _attendanceApplicationService.GetAttendanceByGroup(groupId, date);
+
+            return new GroupDashboardDto(group, groupMembers, attendances);
+        }
+
+        public async Task<GroupDashboardDto> GetUserDashboard(long groupId, long userId, DateTime date)
+        {
+            var group = await _groupDbService.GetByIdOrThrowException(groupId, false);
+            var members = await _groupDbService.GetGroupMembersAsync(groupId);
+
+            var firstPricticeDate = GetGroupFirstPracticeDateInMonth(group, date);
+            var lastPracticeDate = GetGroupLastPracticeDateInMonth(group, date);
+
+            var groupMembers = members
+                .GroupBy(m => m.UserId)
+                .ToDictionary(pair => pair.Key, g => g.ToList())
+                .Where(pair => pair.Key == userId)
+                .ToDictionary();
+
+            var attendances = await _attendanceApplicationService.GetAttendanceByGroup(groupId, date);
+
+            return new GroupDashboardDto(group, groupMembers, attendances);
+        }
+
+        private async Task EnsureGroupContainsSchedule(GroupEntity group, DateTime date)
+        {
+            var groupSchedules = await _scheduleDbService.GetSchedulesByGroup(group.Id);
+
+            var startOfMonth = new DateTime(date.Year, date.Month, 1);
+            var endOfMonth = startOfMonth.AddMonths(1).AddTicks(-1);
+
+            var hasActiveInMonth = groupSchedules.Any(s =>
+                s.CreatedAt <= endOfMonth &&
+                (s.ClosedAt == null || s.ClosedAt >= startOfMonth))
+            || group.ExclusionDates.Any(e =>
+                e.Type == ExclusiveDateType.Extra &&
+                e.Date >= startOfMonth &&
+                e.Date <= endOfMonth
+            );
+
+            if (!hasActiveInMonth)
+            {
+                throw new InvalidOperationException("У группы не было расписания в указанный период");
+            }
+        }
+
+        private DateTime? GetGroupFirstPracticeDateInMonth(GroupEntity group, DateTime date)
+        {
+            var startOfMonth = new DateTime(date.Year, date.Month, 1);
+            var endOfMonth = startOfMonth.AddMonths(1).AddTicks(-1);
+
+            var exclusions = group.ExclusionDates
+                .Where(e => e.Date >= startOfMonth && e.Date <= endOfMonth)
+                .ToList();
+
+            var extraDates = exclusions
+                .Where(e => e.Type == ExclusiveDateType.Extra)
+                .Select(e => e.Date)
+                .ToList();
+
+            var minorDates = exclusions
+                .Where(e => e.Type == ExclusiveDateType.Minor)
+                .Select(e => e.Date.Date)
+                .ToHashSet();
+
+            var scheduleDates = group.Schedule
+                .Select(s =>
+                {
+                    var daysToAdd = ((int)s.DayOfWeek - (int)startOfMonth.DayOfWeek + 7) % 7;
+                    var firstDate = startOfMonth.AddDays(daysToAdd);
+
+                    return firstDate.Date + s.StartTime;
+                })
+                .Where(d => !minorDates.Contains(d.Date));
+
+            var allDates = scheduleDates
+                .Concat(extraDates)
+                .ToList();
+
+            return allDates.Any() ? allDates.Min() : null;
+        }
+
+        private DateTime? GetGroupLastPracticeDateInMonth(GroupEntity group, DateTime date)
+        {
+            var startOfMonth = new DateTime(date.Year, date.Month, 1);
+            var endOfMonth = startOfMonth.AddMonths(1).AddTicks(-1);
+
+            var exclusions = group.ExclusionDates
+                .Where(e => e.Date >= startOfMonth && e.Date <= endOfMonth)
+                .ToList();
+
+            var extraDates = exclusions
+                .Where(e => e.Type == ExclusiveDateType.Extra)
+                .Select(e => e.Date)
+                .ToList();
+
+            var minorDates = exclusions
+                .Where(e => e.Type == ExclusiveDateType.Minor)
+                .Select(e => e.Date.Date)
+                .ToHashSet();
+
+            var scheduleDates = group.Schedule
+                .Select(s =>
+                {
+                    var daysToSubtract = ((int)endOfMonth.DayOfWeek - (int)s.DayOfWeek + 7) % 7;
+                    var lastDate = endOfMonth.AddDays(-daysToSubtract);
+
+                    return lastDate.Date + s.StartTime;
+                })
+                .Where(d => !minorDates.Contains(d.Date));
+
+            var allDates = scheduleDates
+                .Concat(extraDates)
+                .ToList();
+
+            return allDates.Any() ? allDates.Max() : null;
+        }
+
+        private bool IsUserAttended(
+            DateTime? firstPracticeDate,
+            DateTime? lastPracticeDate,
+            List<UserMembershipEntity> userMemberships,
+            DateTime date)
+        {
+            if (!firstPracticeDate.HasValue || !lastPracticeDate.HasValue)
+                return false;
+
+            return userMemberships.Any(um =>
+                um.CreateAt <= lastPracticeDate.Value &&
+                (um.ClosedAt == null || um.ClosedAt.Value >= firstPracticeDate.Value));
         }
 
         private async Task EnsureUserExists(long userId)

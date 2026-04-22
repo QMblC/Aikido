@@ -23,10 +23,18 @@ namespace Aikido.Services
             return schedule;
         }
 
-        public async Task<List<ScheduleEntity>> GetSchedulesByGroup(long groupId)
+        public async Task<List<ScheduleEntity>> GetActiveSchedulesByGroup(long groupId)
         {
             return await _context.Schedule
                 .Where(s => s.GroupId == groupId && s.ClosedAt == null)
+                .OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime)
+                .ToListAsync();
+        }
+
+        public async Task<List<ScheduleEntity>> GetSchedulesByGroup(long groupId)
+        {
+            return await _context.Schedule
+                .Where(s => s.GroupId == groupId)
                 .OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime)
                 .ToListAsync();
         }
@@ -54,7 +62,7 @@ namespace Aikido.Services
 
         public async Task CloseGroupSchedules(long groupId)
         {
-            var schedules = await GetSchedulesByGroup(groupId);
+            var schedules = await GetActiveSchedulesByGroup(groupId);
             foreach (var schedule in schedules)
             {
                 schedule.ClosedAt = DateTime.UtcNow;

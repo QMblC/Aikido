@@ -22,7 +22,7 @@ namespace Aikido.Services.DatabaseServices.Group
             _context = context;
         }
 
-        public async Task<GroupEntity> GetByIdOrThrowException(long id)
+        public async Task<GroupEntity> GetByIdOrThrowException(long id, bool isLater = true)
         {
             var group = await _context.Groups
                 .Include(g => g.MainCoach)
@@ -30,8 +30,10 @@ namespace Aikido.Services.DatabaseServices.Group
                 .Include(g => g.UserMemberships
                     .Where(um => um.ClosedAt == null))
                     .ThenInclude(ug => ug.User)
-                .Include(g => g.Schedule)
-                .Include(g => g.ExclusionDates)
+                .Include(g => g.Schedule
+                    .Where(s => s.ClosedAt == null))
+                .Include(g => g.ExclusionDates
+                    .Where(e => !isLater || e.Date > DateTime.UtcNow))
                 .FirstOrDefaultAsync(g => g.Id == id);
 
             if (group == null)
@@ -117,7 +119,7 @@ namespace Aikido.Services.DatabaseServices.Group
         {
             if (groupSchedule != null)
             {
-                foreach (var schedule in group.Schedule)
+                foreach (var schedule in group.Schedule.Where(s => s.ClosedAt == null))
                 {
                     if (!groupSchedule.Any(s => s.DayOfWeek == schedule.DayOfWeek
                     && s.StartTime == schedule.StartTime
@@ -128,7 +130,21 @@ namespace Aikido.Services.DatabaseServices.Group
 
                 }
 
+                var schedulesToCreate = new List<ScheduleEntity>();
+
+                foreach(var schedule in groupSchedule)
+                {
+                    if (!group.Schedule.Where(s => s.ClosedAt == null)
+                        .Any(s => s.DayOfWeek == schedule.DayOfWeek
+                            && s.StartTime == schedule.StartTime
+                            && s.EndTime == schedule.EndTime))
+                    {
+                        schedulesToCreate.Add(new(group.Id, schedule));
+                    }
+                }
+            
                 _context.UpdateRange(group.Schedule);
+                await _context.AddRangeAsync(schedulesToCreate);
             }
         }
 
@@ -136,10 +152,26 @@ namespace Aikido.Services.DatabaseServices.Group
         {
             if (groupExclusionDates != null)
             {
-                foreach (var exclusionDate in group.ExclusionDates)
+                foreach (var exclusionDate in group.ExclusionDates.Where(e => e.Date > DateTime.UtcNow))
                 {
                     _context.Remove(exclusionDate);
                 }
+
+                var exclusionDatesToCreate = new List<ExclusionDateEntity>();
+
+                foreach (var exclusionDate in groupExclusionDates)
+                {
+                    if (!group.ExclusionDates
+                        .Any(s => s.Date == exclusionDate.Date
+                            && s.StartTime == exclusionDate.StartTime
+                            && s.EndTime == exclusionDate.EndTime))
+                    {
+                        exclusionDatesToCreate.Add(new(group.Id, exclusionDate));
+                    }
+                }
+
+                _context.UpdateRange(group.ExclusionDates);
+                await _context.AddRangeAsync(exclusionDatesToCreate);
             }
         }
 
@@ -179,13 +211,27 @@ namespace Aikido.Services.DatabaseServices.Group
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<UserMembershipEntity>> GetGroupMembersAsync(long groupId, Role role = Role.User)
+        public async Task<List<UserMembershipEntity>> GetGroupActiveMembersAsync(long groupId, Role role = Role.User)
         {
             var memberships = await _context.UserMemberships
                 .Include(um => um.User)
                 .Where(um => um.GroupId == groupId
                     && um.RoleInGroup == role
                     && um.ClosedAt == null)
+                .OrderBy(um => um.User!.LastName)
+                .ThenBy(um => um.User!.FirstName)
+                .ThenBy(um => um.User!.MiddleName)
+                .ToListAsync();
+
+            return memberships;
+        }
+
+        public async Task<List<UserMembershipEntity>> GetGroupMembersAsync(long groupId, Role role = Role.User)
+        {
+            var memberships = await _context.UserMemberships
+                .Include(um => um.User)
+                .Where(um => um.GroupId == groupId
+                    && um.RoleInGroup == role)
                 .OrderBy(um => um.User!.LastName)
                 .ThenBy(um => um.User!.FirstName)
                 .ThenBy(um => um.User!.MiddleName)

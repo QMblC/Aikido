@@ -29,7 +29,7 @@ namespace Aikido.Entities.Seminar
             Amount = price.Amount;
             if (PaymentType == PaymentType.Certification)
             {
-                CertificationGrade = EnumParser.ConvertStringToEnum<Grade>(price.Grade);
+                CertificationGrade = EnumParser.ConvertStringToEnum<Grade>(price.CertificationGrade);
             }
         }
 

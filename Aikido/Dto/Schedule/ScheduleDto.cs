@@ -11,6 +11,9 @@ namespace Aikido.Dto.Schedule
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
 
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ClosedAt { get; set; }
+
 
         public ScheduleDto() { }
 
@@ -22,6 +25,9 @@ namespace Aikido.Dto.Schedule
             DayOfWeek = schedule.DayOfWeek;
             StartTime = schedule.StartTime;
             EndTime = schedule.EndTime;
+
+            CreatedAt = schedule.CreatedAt;
+            ClosedAt = schedule.ClosedAt;
         }
     }
 }
