@@ -22,7 +22,7 @@ namespace Aikido.Application.Services
 
         public async Task<List<ScheduleDto>> GetSchedulesByGroupAsync(long groupId)
         {
-            var schedules = await _scheduleService.GetSchedulesByGroup(groupId);
+            var schedules = await _scheduleService.GetActiveSchedulesByGroup(groupId);
             return schedules.Select(s => new ScheduleDto(s)).ToList();
         }
 

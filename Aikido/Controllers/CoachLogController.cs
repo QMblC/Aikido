@@ -65,11 +65,9 @@ namespace Aikido.Controllers
         {
             try
             {
-                var group = await _groupApplicationService.GetGroupByIdAsync(groupId);
-                var groupMembers = await _groupApplicationService.GetGroupMembersAsync(groupId);
-                var attendances = await _attendanceApplicationService.GetAttendanceByGroup(groupId, month);
+                var dashboard = await _groupApplicationService.GetGroupDashboard(groupId, month);
 
-                return Ok(new GroupDashboardDto(group, groupMembers, attendances));
+                return Ok(dashboard);
             }
             catch(Exception ex)
             {
@@ -83,11 +81,9 @@ namespace Aikido.Controllers
         {
             try
             {
-                var group = await _groupApplicationService.GetGroupByIdAsync(groupId);
-                var groupMembers = await _groupApplicationService.GetGroupMembersAsync(groupId);
-                var attendances = await _attendanceApplicationService.GetAttendanceByGroup(groupId, month);
+                var dashboard = await _groupApplicationService.GetGroupDashboard(groupId, month);
 
-                var tableStream = _tableService.GetAttendanceTable(new GroupDashboardDto(group, groupMembers, attendances), month.Year, month.Month);
+                var tableStream = _tableService.GetAttendanceTable(dashboard, month.Year, month.Month);
 
                 return File(tableStream,
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -101,20 +97,17 @@ namespace Aikido.Controllers
 
         [Authorize]
         [HttpGet("get/{groupId}/user/{userId}/monthly-attendance")]
-        public async Task<ActionResult<List<AttendanceDto>>> GetUserAttendance(long groupId, long userId, [FromQuery] DateTime month)
+        public async Task<ActionResult<List<GroupDashboardDto>>> GetUserAttendance(long groupId, long userId, [FromQuery] DateTime month)
         {
             try
             {
-                var user = await _userApplicationService.GetUserByIdAsync(userId);
-                var attendances = await _attendanceApplicationService.GetAttendanceByGroup(groupId, month);
+                var userDashboard = await _groupApplicationService.GetUserDashboard(groupId, userId, month);
 
-                return Ok(attendances
-                    .Where(a => a.UserId == userId)
-                    .ToList());
+                return Ok(userDashboard);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = "Ошибка при получении панели тренера", Details = ex.Message });
+                return StatusCode(500, new { Message = "Ошибка при получении панели пользователя", Details = ex.Message });
             }
         }
 

@@ -22,7 +22,10 @@ namespace Aikido.Dto.Groups
         public int? MemberCount { get; set; }
         public int? MaxMembers { get; set; }
         public bool? IsActive { get; set; } = true;
-        public DateTime? CreatedDate { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ClosedAt { get; set; }
+
         public string? Description { get; set; }
         public string? MinGrade { get; set; }
         public string? MaxGrade { get; set; }
@@ -50,7 +53,8 @@ namespace Aikido.Dto.Groups
             MemberCount = group.UserMemberships?.Count(um => um.RoleInGroup == Role.User) ?? 0;
             MaxMembers = group.MaxMembers;
             IsActive = group.ClosedAt == null;
-            CreatedDate = group.CreatedAt;
+            CreatedAt = group.CreatedAt;
+            ClosedAt = group.ClosedAt;
             Description = group.Description;
             MinGrade = group.MinGrade.ToString();
             MaxGrade = group.MaxGrade.ToString();
@@ -60,6 +64,8 @@ namespace Aikido.Dto.Groups
             ExclusionDates = group.ExclusionDates
                 .Select(e => new ExclusionDateDto(e))
                 .ToList();
+
+
         }
     }
 }

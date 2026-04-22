@@ -13,6 +13,9 @@ namespace Aikido.Dto.Groups
         public string? AgeGroup { get; set; }
         public int MemberCount { get; set; }
 
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ClosedAt { get; set; }
+
         public GroupShortDto(GroupDto group)
         {
             Id = group.Id;
@@ -22,6 +25,9 @@ namespace Aikido.Dto.Groups
             MainCoachId = group.MainCoachId;
             AgeGroup = group.AgeGroup;
             MemberCount = group.MemberCount.Value;
+
+            CreatedAt = group.CreatedAt;
+            ClosedAt = group.ClosedAt;
         }
 
         public GroupShortDto(GroupEntity group)
@@ -33,6 +39,9 @@ namespace Aikido.Dto.Groups
             MainCoachId = group.MainCoachId;
             AgeGroup = EnumParser.ConvertEnumToString(group.AgeGroup);
             MemberCount = group.UserMemberships?.Count(um => um.RoleInGroup == Role.User) ?? 0;
+
+            CreatedAt = group.CreatedAt;
+            ClosedAt = group.ClosedAt;
         }
     }
 }

@@ -524,9 +524,9 @@ namespace Aikido.Data
                 entity.Property(e => e.Description).HasMaxLength(500);
 
                 entity.HasOne(ed => ed.Group)
-                    .WithMany()
+                    .WithMany(g => g.ExclusionDates)
                     .HasForeignKey(ed => ed.GroupId)
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasIndex(e => e.Date);
                 entity.HasIndex(e => e.GroupId);

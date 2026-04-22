@@ -7,7 +7,7 @@ namespace Aikido.Services.DatabaseServices.Group
 {
     public interface IGroupDbService
     {
-        Task<GroupEntity> GetByIdOrThrowException(long id);
+        Task<GroupEntity> GetByIdOrThrowException(long id, bool IsLater = true);
         Task<GroupEntity> GetGroupByIdAsync(long id);
         Task<bool> ExistsActive(long id);
         Task<List<GroupEntity>> GetAllActiveAsync();
@@ -18,6 +18,7 @@ namespace Aikido.Services.DatabaseServices.Group
         Task CloseAsync(long id);
         Task RecoverAsync(long id);
         Task DeleteAsync(long id);
+        Task<List<UserMembershipEntity>> GetGroupActiveMembersAsync(long groupId, Role role = Role.User);
         Task<List<UserMembershipEntity>> GetGroupMembersAsync(long groupId, Role role = Role.User);
         Task RemoveAllMembersFromGroupAsync(long groupId);
         Task<int> GetGroupMemberCountAsync(long groupId);

@@ -43,6 +43,11 @@ namespace Aikido.Application.Services
 
         public async Task<long> MarkAttendanceAsync(long groupId, AttendanceCreationDto attendanceData)
         {
+            if (attendanceData.Date > DateTime.UtcNow)
+            {
+                throw new InvalidOperationException("Невозможно поставить отметку за в будущую дату");
+            }
+
             var userMembership = _userMembershipDbService.GetActiveUserMembership(attendanceData.UserId, groupId);
             return await _attendanceDbService.CreateAttendance(userMembership, attendanceData.Date);
         }
