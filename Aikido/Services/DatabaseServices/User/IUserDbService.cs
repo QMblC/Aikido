@@ -12,6 +12,7 @@ namespace Aikido.Services.DatabaseServices.User
         Task<UserEntity> GetByIdOrThrowException(long id);
         Task<bool> LoginExists(string login);
         Task<bool> ExistsActive(long id);
+        Task<List<UserEntity>> GetUsersAsync(List<long> ids);
         Task<List<UserEntity>> GetActiveUsersAsync();
         Task<List<UserEntity>> GetArchivedUsersAsync();
         Task<(List<UserEntity> Users, int TotalCount)> GetActiveUserListAlphabetAscending(int startIndex, int finishIndex, UserFilter filter);

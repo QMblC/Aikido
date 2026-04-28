@@ -6,6 +6,7 @@ using Aikido.Entities.Users;
 using DocumentFormat.OpenXml.Bibliography;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Aikido.Services.DatabaseServices.StatisticService
 {
@@ -393,7 +394,71 @@ namespace Aikido.Services.DatabaseServices.StatisticService
             return result;
         }
 
-        #endregion 
+        #endregion
+
+        #region Seminars
+
+        public async Task<int> GetActiveMembersCountAt(DateTime date)
+        {
+            var activeMembersCount = (await _context.UserMemberships
+                .Where(um => um.CreateAt <= date && (um.ClosedAt > date || um.ClosedAt == null)
+                    && um.RoleInGroup == Role.User)
+                .GroupBy(um => um.UserId)
+                .ToDictionaryAsync(u => u.Key, u => u.ToList()))
+                .Count;
+                
+
+            return activeMembersCount;    
+        }
+
+        public async Task<Dictionary<long, int>> GetSeminarMemberCount(List<long> seminarIds)
+        {
+            return await _context.SeminarMembers
+                .Where(s => seminarIds.Contains(s.SeminarId))
+                .GroupBy(s => s.SeminarId)
+                .Select(g => new
+                {
+                    SeminarId = g.Key,
+                    Count = g.Count()
+                })
+                .ToDictionaryAsync(x => x.SeminarId, x => x.Count);
+        }
+
+        public int GetSeminarMemberCount(long seminarId)
+        {
+            return _context.SeminarMembers
+                .Where(s => s.SeminarId == seminarId)
+                .Count();
+        }
+
+        public async Task<Dictionary<long, int>> GetSeminarCertificatedMembers(List<long> seminarIds)
+        {
+            return await _context.SeminarMembers
+                .Where(s => seminarIds.Contains(s.SeminarId) && s.CertificationGrade != null && s.CertificationGrade > 0)
+                .GroupBy(s => s.SeminarId)
+                .Select(g => new
+                {
+                    SeminarId = g.Key,
+                    Count = g.Count()
+                })
+                .ToDictionaryAsync(x => x.SeminarId, x => x.Count);
+        }
+
+        public async Task<Dictionary<long, decimal>> GetSeminarMoneyIncome(List<long> seminarIds)
+        {
+            return await _context.Payments.Where(p => 
+                p.EventType == EventType.Seminar && seminarIds.Contains(p.EventId.Value)
+                && p.Status == PaymentStatus.Completed)
+                .GroupBy(s => s.EventId)
+                .Select(g => new
+                {
+                    SeminarId = g.Key.Value,
+                    Income = g.Sum(p => p.Amount)
+                })
+                .ToDictionaryAsync(x => x.SeminarId, x => x.Income);
+        }
+
+        #endregion
 
         private static IQueryable<AttendanceEntity> FilterStat(IQueryable<AttendanceEntity> query, StatAttendanceFilter filter)
         {

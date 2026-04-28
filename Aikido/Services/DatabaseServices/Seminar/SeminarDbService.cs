@@ -46,6 +46,16 @@ namespace Aikido.Services.DatabaseServices.Seminar
             return seminar;
         }
 
+        public async Task<SeminarEntity?> GetPreviousSeminar(long seminarId)
+        {
+            var seminar = await GetByIdOrThrowException(seminarId);
+            var previous = _context.Seminars.Where(s => s.Date < seminar.Date)
+                .OrderByDescending(s => s.Date)
+                .FirstOrDefault();
+
+            return previous;
+        }
+
         public async Task<bool> Exists(long id)
         {
             return await _context.Seminars.AnyAsync(s => s.Id == id);

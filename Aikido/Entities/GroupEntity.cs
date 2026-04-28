@@ -1,5 +1,6 @@
 ﻿using Aikido.AdditionalData.Enums;
 using Aikido.Dto.Groups;
+using Aikido.Entities.Clubs;
 using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;
 

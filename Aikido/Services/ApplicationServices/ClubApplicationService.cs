@@ -19,17 +19,20 @@ namespace Aikido.Application.Services
         private readonly IGroupDbService _groupDbService;
         private readonly IUserDbService _userDbService;
         private readonly ScheduleDbService _scheduleDbService;
+        private readonly IClubStaffDbService _clubStaffDbService;
 
         public ClubApplicationService(
             IClubDbService clubDbService,
             IGroupDbService groupDbService,
             IUserDbService userDbService,
-            ScheduleDbService scheduleDbService)
+            ScheduleDbService scheduleDbService,
+            IClubStaffDbService clubStaffDbService)
         {
             _clubDbService = clubDbService;
             _groupDbService = groupDbService;
             _userDbService = userDbService;
             _scheduleDbService = scheduleDbService;
+            _clubStaffDbService = clubStaffDbService;
         }
 
         public async Task<ClubDto> GetClubByIdAsync(long id)
@@ -98,8 +101,7 @@ namespace Aikido.Application.Services
             else
             {
                 throw new InvalidOperationException("Невозможно закрыть клуб, пока в нём есть активные группы");
-            }
-            
+            } 
         }
 
         public async Task RecoverClubAsync(long id)
@@ -129,6 +131,28 @@ namespace Aikido.Application.Services
             return members.Where(m => m.User != null && m.RoleInGroup == role)
                          .Select(m => new UserShortDto(m.User!))
                          .ToList();
+        }
+
+        public async Task<List<UserShortDto>> GetClubStaff(long clubId)
+        {
+            var staff = await _clubStaffDbService.GetClubStaffByClub(clubId);
+
+            return staff.Select(cs => new UserShortDto(cs.User))
+                .ToList();
+        }
+
+        public async Task UpdateClubStaff(long clubId, List<long> newStaff)
+        {
+            var oldStaff = await _clubStaffDbService.GetClubStaffByClub(clubId);
+            var staffToCreate = newStaff.Where(id => !oldStaff.Any(cs => cs.UserId == id))
+                .ToList();
+            var staffToDelete = oldStaff.Where(cs => !newStaff.Any(id =>  cs.UserId == id))
+                .Select(cs => cs.UserId)
+                .ToList();
+
+            await _clubStaffDbService.DeleteRangeAsync(clubId, staffToDelete);
+            await _clubStaffDbService.CreateRangeAsync(clubId, staffToCreate);
+            
         }
     }
 }

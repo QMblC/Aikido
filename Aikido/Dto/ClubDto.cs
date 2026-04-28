@@ -1,4 +1,4 @@
-﻿using Aikido.Entities;
+﻿using Aikido.Entities.Clubs;
 using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Dto

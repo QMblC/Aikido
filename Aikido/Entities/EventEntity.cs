@@ -1,5 +1,6 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.Dto;
+using Aikido.Entities.Clubs;
 using DocumentFormat.OpenXml.Features;
 using System.ComponentModel.DataAnnotations;
 

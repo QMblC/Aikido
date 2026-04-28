@@ -1,4 +1,5 @@
 ﻿using Aikido.Entities;
+using Aikido.Entities.Clubs;
 using Aikido.Entities.Seminar;
 using Aikido.Entities.Seminar.SeminarMember;
 using Aikido.Entities.Seminar.SeminarMemberRequest;
@@ -21,6 +22,7 @@ namespace Aikido.Data
         public DbSet<PaymentEntity> Payments { get; set; }
         public DbSet<StatementEntity> Statements { get; set; }
         public DbSet<UserMembershipEntity> UserMemberships { get; set; }
+        public DbSet<ClubStaffEntity> ClubStaff { get; set; }
 
         public DbSet<SeminarEntity> Seminars { get; set; }
         public DbSet<SeminarMemberManagerRequestEntity> SeminarMembersManagerRequests { get; set; }
@@ -110,6 +112,21 @@ namespace Aikido.Data
                 entity.HasMany(m => m.Attendances)
                     .WithOne(a => a.UserMembership)
                     .HasForeignKey(a => a.UserMembershipId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<ClubStaffEntity>(entity =>
+            {
+                entity.HasKey(m => m.Id);
+
+                entity.HasOne(cs => cs.User)
+                    .WithMany(u => u.UserAsStaff)
+                    .HasForeignKey(cs => cs.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(m => m.Club)
+                    .WithMany(c => c.Staff)
+                    .HasForeignKey(m => m.ClubId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
 

@@ -161,40 +161,58 @@ namespace Aikido.Controllers
             return Ok(metric);
         }
 
+        /// <summary>
+        /// Средний процент участия в семинарах
+        /// </summary>
+        /// <param name="seminarIds"></param>
+        /// <returns></returns>
         [HttpGet("seminar-activity-percent/average")]
-        public async Task<ActionResult<StatisticMetricDto>> GetAverageSeminarActivityPercent(List<long> seminarIds)
+        public async Task<ActionResult<StatisticMetricDto>> GetAverageSeminarActivityPercent([FromQuery] List<long> seminarIds)
         {
-            throw new NotImplementedException();
+            var metric = await _statisticApplicationService.GetAverageSeminarParticipationPercent(seminarIds);
+            return Ok(metric);
         }
 
+        /// <summary>
+        /// Процент участия по семинарам
+        /// </summary>
+        /// <param name="seminarIds"></param>
+        /// <returns></returns>
         [HttpGet("seminar-activity-percent")]
-        public async Task<ActionResult<List<StatisticMetricDto>>> GetSeminarActivityPercent(List<long> seminarIds)
+        public async Task<ActionResult<List<SeminarStatisticMetricDto>>> GetSeminarActivityPercent([FromQuery] List<long> seminarIds)
         {
-            throw new NotImplementedException();
+            var metric = await _statisticApplicationService.GetSeminarParticipationPercent(seminarIds);
+            return Ok(metric);
         }
 
         [HttpGet("seminar-certification-percent/average")]
-        public async Task<ActionResult<StatisticMetricDto>> GetAverageSeminarCertificationPercent(List<long> seminarIds)
+        public async Task<ActionResult<StatisticMetricDto>> GetAverageSeminarCertificationPercent([FromQuery] List<long> seminarIds)
         {
-            throw new NotImplementedException();
+            var result = await _statisticApplicationService.GetAverageSeminarCertificationPercent(seminarIds);
+            return Ok(result);
         }
 
         [HttpGet("seminar-certification-percent")]
-        public async Task<ActionResult<List<StatisticMetricDto>>> GetSeminarCertificationPercent(List<long> seminarIds)
+        public async Task<ActionResult<List<StatisticMetricDto>>> GetSeminarCertificationPercent([FromQuery] List<long> seminarIds)
         {
-            throw new NotImplementedException();
+            var result = await _statisticApplicationService.GetSeminarCertificationPercent(seminarIds);
+
+            return Ok(result);
         }
 
         [HttpGet("seminar-money-income/average")]
-        public async Task<ActionResult<StatisticMetricDto>> GetAverageSeminarMoneyIncome(List<long> seminarIds)
+        public async Task<ActionResult<StatisticMetricDto>> GetAverageSeminarMoneyIncome([FromQuery] List<long> seminarIds)
         {
-            throw new NotImplementedException();
+            var result = await _statisticApplicationService.GetAverageSeminarMoneyIncome(seminarIds);
+            return Ok(result);
         }
 
         [HttpGet("seminar-money-income")]
-        public async Task<ActionResult<List<StatisticMetricDto>>> GetSeminarMoneyIncome(List<long> seminarIds)
+        public async Task<ActionResult<List<StatisticMetricDto>>> GetSeminarMoneyIncome([FromQuery] List<long> seminarIds)
         {
-            throw new NotImplementedException();
+            var result = await _statisticApplicationService.GetSeminarMoneyIncome(seminarIds);
+
+            return Ok(result);
         }
     }
 }

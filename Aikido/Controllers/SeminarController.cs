@@ -661,6 +661,85 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Загрузка итоговой ведомости
+        /// </summary>
+        /// <param name="seminarId"></param>
+        /// <returns></returns>
+        [HttpGet("{seminarId}/final-statement/table")]
+        public async Task<IActionResult> GetFinalStatementTable(long seminarId)
+        {
+            try
+            {
+                var members = await _seminarApplicationService.GetSeminarMembersAsync(seminarId);
+
+                if (members.Count == 0)
+                {
+                    return StatusCode(404, new { Message = "Не удалось найти участников" });
+                }
+
+                var stream = _tableService.CreateSeminarMembersTable(members.Cast<ISeminarMemberDataDto>().ToList());
+                return File(stream,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    $"Members.xlsx");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Загрузка списка финальной ведомости
+        /// </summary>
+        /// <param name="seminarId"></param>
+        /// <param name="tableFile"></param>
+        /// <returns></returns>
+        [HttpPost("{seminarId}/final-statement/table")]
+        public async Task<IActionResult> SetFinalStatement(long seminarId, [FromForm] TableFileRequest tableFile)
+        {
+            try
+            {
+                var file = tableFile.Table;
+
+                if (file == null || file.Length == 0)
+                    return BadRequest("Файл Excel не найден или пустой!");
+
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    var partialMembers = _tableService.ParseSeminarMembersTable(stream);
+
+                    var fullCreationDataTasks = partialMembers.Select(async m =>
+                    {
+                        //var creationMember = new FinalSeminarMemberDto()
+                        //{
+                        //    UserId = m.UserId,
+                        //    Status = m.CertificationGrade != null
+                        //    ? EnumParser.ConvertEnumToString(SeminarMemberStatus.Certified)
+                        //    : EnumParser.ConvertEnumToString(SeminarMemberStatus.Training),
+                        //    CertificationGrade = m.CertificationGrade,
+                        //    SeminarPriceInRubles = m.SeminarPriceInRubles,
+                        //    BudoPassportPriceInRubles = m.BudoPassportPriceInRubles,
+                        //    AnnualFeePriceInRubles = m.AnnualFeePriceInRubles,
+                        //    CertificationPriceInRubles = m.CertificationPriceInRubles
+
+                        //};
+                        //return creationMember;
+                    });
+
+                    //var members = await Task.WhenAll(fullCreationDataTasks);
+                    //await _seminarApplicationService.SaveSeminarMembers(seminarId, members.ToList());
+                }
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+
         #endregion
 
         /// <summary>

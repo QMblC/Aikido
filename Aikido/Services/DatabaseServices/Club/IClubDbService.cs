@@ -1,5 +1,6 @@
 ﻿using Aikido.Dto;
 using Aikido.Entities;
+using Aikido.Entities.Clubs;
 using Aikido.Entities.Users;
 using Aikido.Services.DatabaseServices.Base;
 

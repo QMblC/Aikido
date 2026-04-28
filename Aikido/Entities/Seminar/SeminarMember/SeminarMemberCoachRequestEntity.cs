@@ -1,6 +1,7 @@
 ﻿using Aikido.AdditionalData.Enums;
 using Aikido.Dto.Seminars.Members.CoachEditRequest;
 using Aikido.Dto.Seminars.Members.Creation;
+using Aikido.Entities.Clubs;
 using Aikido.Entities.Seminar.SeminarMember;
 using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;

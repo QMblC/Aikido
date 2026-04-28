@@ -48,6 +48,20 @@ namespace Aikido.Services.DatabaseServices.User
             return await _context.Users.AnyAsync(u => u.Id == id && u.ClosedAt == null);
         }
 
+        public async Task<List<UserEntity>> GetUsersAsync(List<long> ids)
+        {
+            var users = await _context.Users
+                .Where(u => ids.Contains(u.Id))
+                .Include(u => u.MainUserMembershipAsUser)
+                .Include(u => u.UserMemberships)
+                    .ThenInclude(um => um.Club)
+                .Include(u => u.UserMemberships)
+                    .ThenInclude(um => um.Group)
+                .ToListAsync();
+
+            return users;
+        }
+
         public async Task<List<UserEntity>> GetActiveUsersAsync()
         {
             var users = await _context.Users
@@ -146,11 +160,9 @@ namespace Aikido.Services.DatabaseServices.User
                 .OrderBy(u => u.LastName)
                 .ThenBy(u => u.FirstName)
                 .ThenBy(u => u.MiddleName)
-                .Skip(startIndex)
-                .Take(finishIndex - startIndex)
                 .ToListAsync();
 
-            return (users, totalCount);
+            return (users, users.Count);
         }
 
         public async Task<UserEntity> CreateUser(UserCreationDto userData)

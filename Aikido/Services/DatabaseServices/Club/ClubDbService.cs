@@ -1,6 +1,7 @@
 ﻿using Aikido.Data;
 using Aikido.Dto;
 using Aikido.Entities;
+using Aikido.Entities.Clubs;
 using Aikido.Entities.Users;
 using Aikido.Exceptions;
 using Microsoft.EntityFrameworkCore;
