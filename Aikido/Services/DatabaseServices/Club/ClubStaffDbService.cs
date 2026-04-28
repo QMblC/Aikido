@@ -49,6 +49,20 @@ namespace Aikido.Services.DatabaseServices.Club
             return clubStaff ?? new();
         }
 
+        public async Task CreateAsync(long clubId, long userId, bool isMain = false)
+        {
+            var staff = new ClubStaffEntity(clubId, userId, isMain);
+            await _context.ClubStaff.AddAsync(staff);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(long clubId, long userId)
+        {
+            var staff = await GetClubStaff(clubId, userId);
+            _context.ClubStaff.Remove(staff);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task CreateRangeAsync(long clubId, List<long> userIds)
         {
             var staffToCreate = new List<ClubStaffEntity>();

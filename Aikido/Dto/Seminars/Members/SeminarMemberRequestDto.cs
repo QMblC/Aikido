@@ -80,7 +80,7 @@ namespace Aikido.Dto.Seminars.Members
             SeminarGroupName = seminarGroup?.Name;
 
             OldGrade = EnumParser.ConvertEnumToString(user.Grade);
-            CertificationGrade = memberRequest.CertificationGrade.ToString();
+            CertificationGrade = memberRequest.CertificationGrade ?? "None";
 
             CoachId = group.MainCoachId;
             CoachName = group.MainCoach.FullName;

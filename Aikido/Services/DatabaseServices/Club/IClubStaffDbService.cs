@@ -4,10 +4,12 @@ namespace Aikido.Services.DatabaseServices.Club
 {
     public interface IClubStaffDbService
     {
-        public Task<List<ClubStaffEntity>> GetClubStaffByUser(long userId);
-        public Task<List<ClubStaffEntity>> GetClubStaffByClub(long clubId);
-        public Task<ClubStaffEntity> GetClubStaff(long clubId, long userId);
-        public Task CreateRangeAsync(long clubId, List<long> userIds);
-        public Task DeleteRangeAsync(long clubId, List<long> userIds);
+        Task<List<ClubStaffEntity>> GetClubStaffByUser(long userId);
+        Task<List<ClubStaffEntity>> GetClubStaffByClub(long clubId);
+        Task<ClubStaffEntity> GetClubStaff(long clubId, long userId);
+        Task CreateRangeAsync(long clubId, List<long> userIds);
+        Task DeleteRangeAsync(long clubId, List<long> userIds);
+        Task CreateAsync(long clubId, long userId, bool isMain = false);
+        Task DeleteAsync(long clubId, long userId);
     }
 }
