@@ -9,6 +9,7 @@ using Aikido.Services;
 using Aikido.Services.DatabaseServices.Club;
 using Aikido.Services.DatabaseServices.Group;
 using Aikido.Services.DatabaseServices.User;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace Aikido.Application.Services
@@ -78,13 +79,10 @@ namespace Aikido.Application.Services
 
         public async Task<long> CreateClubAsync(ClubDto clubData)
         {
-            var club = await _clubDbService.CreateAsync(clubData);
-            if (clubData.ManagerId != null)
-            {
-                await _clubStaffDbService.CreateAsync(club, clubData.ManagerId.Value, true);
-            }
+            var clubId = await _clubDbService.CreateAsync(clubData);
+            await UpdateClubManager(clubId, clubData.ManagerId);
             
-            return club;
+            return clubId;
         }
 
         public async Task UpdateClubAsync(long id, ClubDto clubData)
@@ -94,20 +92,27 @@ namespace Aikido.Application.Services
                 throw new EntityNotFoundException($"Клуб с Id = {id} не найден");
             }
             await _clubDbService.UpdateAsync(id, clubData);
-            var club = await _clubDbService.GetClubById(id);
+            await UpdateClubManager(id, clubData.ManagerId);
+        }
 
-            if (club.ManagerId != clubData.ManagerId)
+        public async Task UpdateClubManager(long clubId, long? newManagerId)
+        {
+            var club = await _clubDbService.GetClubById(clubId);
+
+            if (club.ManagerId != newManagerId)
             {
                 if (club.ManagerId != null)
                 {
-                    await _clubStaffDbService.CreateAsync(id, club.ManagerId.Value, true);
+                    await _clubStaffDbService.DeleteAsync(clubId, club.ManagerId.Value);
                 }
-                if (clubData.ManagerId != null)
+                if (newManagerId != null)
                 {
-                    await _clubStaffDbService.DeleteAsync(id, clubData.ManagerId.Value);
-                }        
+                    await _clubStaffDbService.CreateAsync(clubId, newManagerId.Value, Role.Manager);
+                }
             }
 
+            club.ManagerId = newManagerId;
+            await _clubDbService.UpdateAsync(club);
         }
 
         public async Task CloseClubAsync(long id)
@@ -172,7 +177,7 @@ namespace Aikido.Application.Services
             var oldStaff = await _clubStaffDbService.GetClubStaffByClub(clubId);
             var staffToCreate = newStaff.Where(id => !oldStaff.Any(cs => cs.UserId == id))
                 .ToList();
-            var staffToDelete = oldStaff.Where(cs => !newStaff.Any(id =>  cs.UserId == id))
+            var staffToDelete = oldStaff.Where(cs => !newStaff.Any(id =>  cs.UserId == id) && cs.RoleInClub == Role.Coach)
                 .Select(cs => cs.UserId)
                 .ToList();
 

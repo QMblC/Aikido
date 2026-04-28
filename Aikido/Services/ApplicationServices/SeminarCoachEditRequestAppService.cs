@@ -86,16 +86,15 @@ namespace Aikido.Application.Services
             await EnsureRequestPending(requestId);
             await EnsureSeminarStatementsUnlocked(request.SeminarId);
 
-            await _requestDbService.ApplyRequest(requestId, reviewerId);
-
             var list = new SeminarMemberCoachRequestListCreationDto(request);
-
 
             await _seminarDbService.CreateSeminarCoachMembers(request.SeminarId, list);
             foreach (var member in list.Members)
             {
                 await _paymentDbService.CreateOrUpdateMemberPayments(request.SeminarId, member);
             }
+
+            await _requestDbService.ApplyRequest(requestId, reviewerId);
         }
 
         public async Task RejectRequest(long requestId, long reviewerId, string comment)

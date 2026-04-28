@@ -1,4 +1,5 @@
-﻿using Aikido.Entities.Clubs;
+﻿using Aikido.AdditionalData.Enums;
+using Aikido.Entities.Clubs;
 
 namespace Aikido.Services.DatabaseServices.Club
 {
@@ -9,7 +10,7 @@ namespace Aikido.Services.DatabaseServices.Club
         Task<ClubStaffEntity> GetClubStaff(long clubId, long userId);
         Task CreateRangeAsync(long clubId, List<long> userIds);
         Task DeleteRangeAsync(long clubId, List<long> userIds);
-        Task CreateAsync(long clubId, long userId, bool isMain = false);
+        Task CreateAsync(long clubId, long userId, Role roleInClub = Role.Coach);
         Task DeleteAsync(long clubId, long userId);
     }
 }

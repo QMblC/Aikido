@@ -228,6 +228,28 @@ namespace Aikido.Controllers
         }
 
         /// <summary>
+        /// Обновление руководителя клуба(Админ)
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="managerId"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("update{id}/manager")]
+        public async Task<IActionResult> UpdateClubManager(long id, [FromBody] long? managerId)
+        {
+            try
+            {
+                await _clubApplicationService.UpdateClubManager(id, managerId);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+
+        /// <summary>
         /// Мягкое удаление клуба
         /// </summary>
         /// <param name="id"></param>
