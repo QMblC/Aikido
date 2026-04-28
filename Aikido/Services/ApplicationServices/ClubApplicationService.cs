@@ -164,11 +164,11 @@ namespace Aikido.Application.Services
                          .ToList();
         }
 
-        public async Task<List<UserShortDto>> GetClubStaff(long clubId)
+        public async Task<List<ClubStaffDto>> GetClubStaff(long clubId)
         {
             var staff = await _clubStaffDbService.GetClubStaffByClub(clubId);
 
-            return staff.Select(cs => new UserShortDto(cs.User))
+            return staff.Select(cs => new ClubStaffDto(cs.User, cs.RoleInClub))
                 .ToList();
         }
 
