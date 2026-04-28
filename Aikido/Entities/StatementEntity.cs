@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Aikido.Entities.Clubs;
+using System.ComponentModel.DataAnnotations;
 
 namespace Aikido.Entities
 {

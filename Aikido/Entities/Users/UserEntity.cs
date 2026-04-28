@@ -1,6 +1,7 @@
 ﻿using Aikido.AdditionalData.Enums;
 using Aikido.Dto.Users;
 using Aikido.Dto.Users.Creation;
+using Aikido.Entities.Clubs;
 using Aikido.Entities.Seminar.SeminarMember;
 using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;
@@ -48,6 +49,7 @@ namespace Aikido.Entities
         public virtual ICollection<SeminarMemberEntity> Certifications { get; set; } = new List<SeminarMemberEntity>();
         public virtual ICollection<PaymentEntity> Payments { get; set; } = new List<PaymentEntity>();
         public virtual ICollection<UserMembershipEntity> UserMemberships { get; set; } = new List<UserMembershipEntity>();
+        public virtual ICollection<ClubStaffEntity> UserAsStaff { get; set; } = new List<ClubStaffEntity>();
         public virtual ICollection<RefreshTokenEntity> RefreshTokens { get; set; } = new List<RefreshTokenEntity>();
 
 

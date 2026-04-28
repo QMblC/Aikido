@@ -130,6 +130,7 @@ builder.Services.AddScoped<SeminarCoachEditRequestAppService>();
 builder.Services.AddScoped<IStatisticDbService, StatisticDbService>();
 builder.Services.AddScoped<StatisticApplicationService>();
 builder.Services.AddScoped<UserMembershipApplicationService>();
+builder.Services.AddScoped<IClubStaffDbService, ClubStaffDbService>();
 
 
 

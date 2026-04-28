@@ -1,6 +1,7 @@
 ﻿using Aikido.Dto.Groups;
 using Aikido.Dto.Users;
 using Aikido.Entities;
+using Aikido.Entities.Clubs;
 using Aikido.Entities.Users;
 
 namespace Aikido.Dto

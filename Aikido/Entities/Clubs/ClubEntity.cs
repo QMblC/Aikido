@@ -2,7 +2,7 @@
 using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;
 
-namespace Aikido.Entities
+namespace Aikido.Entities.Clubs
 {
     public class ClubEntity : IDbEntity
     {
@@ -21,6 +21,7 @@ namespace Aikido.Entities
 
         public virtual ICollection<GroupEntity> Groups { get; set; } = new List<GroupEntity>();
         public virtual ICollection<UserMembershipEntity> UserMemberships { get; set; } = new List<UserMembershipEntity>();
+        public virtual ICollection<ClubStaffEntity> Staff { get; set; } = new List<ClubStaffEntity>();
 
         public DateTime? CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? ClosedAt { get; set; }

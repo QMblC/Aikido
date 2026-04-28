@@ -1,4 +1,5 @@
-﻿using Aikido.Entities.Filters;
+﻿using Aikido.AdditionalData.Enums;
+using Aikido.Entities.Filters;
 using DocumentFormat.OpenXml.Bibliography;
 
 namespace Aikido.Services.DatabaseServices.StatisticService
@@ -19,5 +20,11 @@ namespace Aikido.Services.DatabaseServices.StatisticService
 
         Task<Dictionary<DateTime, int>> GetPupilLeft(int year, StatAttendanceFilter filter);
         Task<Dictionary<DateTime, int>> GetMonthlyDanAmount(int year, StatAttendanceFilter filter);
+
+        Task<int> GetActiveMembersCountAt(DateTime date);
+        Task<Dictionary<long, int>> GetSeminarMemberCount(List<long> seminarIds);
+        int GetSeminarMemberCount(long seminarId);
+        Task<Dictionary<long, int>> GetSeminarCertificatedMembers(List<long> seminarIds);
+        Task<Dictionary<long, decimal>> GetSeminarMoneyIncome(List<long> seminarIds);
     }
 }

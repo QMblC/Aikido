@@ -58,6 +58,26 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Получение указанного списка пользователей
+        /// </summary>
+        /// <param name="ids"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "Admin,Manager,Coach")]
+        [HttpGet("get/users")]
+        public async Task<ActionResult<List<UserShortDto>>> GetUsersShortList([FromQuery]List<long> ids)
+        {
+            try
+            {
+                var users = await _userApplicationService.GetUsers(ids);
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Ошибка при получении списка пользователей.");
+            }
+        }
+
         [HttpGet("get/short-list")]
         public async Task<ActionResult<List<UserShortDto>>> GetUserShortList()
         {
@@ -119,15 +139,28 @@ namespace Aikido.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin,Manager,Coach")]
         [HttpGet("get/short-list-cut-data/{startIndex}/{finishIndex}")]
         public async Task<ActionResult<UsersDataDto>> GetUserShortListCutData(
             int startIndex,
             int finishIndex,
             [FromQuery] UserFilter filter)
         {
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+            var requestedById = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
             try
             {
-                var result = await _userApplicationService.GetActiveUserShortListCutDataAsync(startIndex, finishIndex, filter);
+                UsersDataDto? result;
+                if (role == EnumParser.ConvertEnumToString(Role.Admin))
+                {
+                    result = await _userApplicationService.GetActiveUserShortListCutDataAsync(startIndex, finishIndex, filter);
+                }
+                else
+                {
+                    result = await _userApplicationService.GetActiveUserShortListCutDataAsync(startIndex, finishIndex, filter, requestedById);
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)

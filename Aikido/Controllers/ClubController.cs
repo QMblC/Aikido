@@ -3,7 +3,9 @@ using Aikido.Application.Services;
 using Aikido.Dto;
 using Aikido.Dto.Groups;
 using Aikido.Dto.Users;
+using Aikido.Exceptions;
 using Aikido.Requests;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Aikido.Controllers
@@ -69,14 +71,59 @@ namespace Aikido.Controllers
             }
         }
 
+        //[HttpGet("get/{clubId}/staff")]
+        //public async Task<ActionResult<List<UserShortDto>>> GetClubStaff(long clubId)
+        //{
+        //    try
+        //    {
+        //        var members = await _clubApplicationService.GetClubMembersAsync(clubId, Role.Coach);
+        //        return Ok(members);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new { Message = "Ошибка при получении участников клуба", Details = ex.Message });
+        //    }
+        //}
 
+        [Authorize(Roles = "Admin,Manager")]
         [HttpGet("get/{clubId}/staff")]
         public async Task<ActionResult<List<UserShortDto>>> GetClubStaff(long clubId)
         {
             try
             {
-                var members = await _clubApplicationService.GetClubMembersAsync(clubId, Role.Coach);
-                return Ok(members);
+                var staff = await _clubApplicationService.GetClubStaff(clubId);
+                return Ok(staff);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return NotFound(new { Message = "Сущность не найдена", Details = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(422, new { Message = "Операция невозможна", Details = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при получении участников клуба", Details = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpPut("update/{clubId}/staff")]
+        public async Task<IActionResult> UpdateClubStaff(long clubId, [FromBody] List<long> userIds)
+        {
+            try
+            {
+                await _clubApplicationService.UpdateClubStaff(clubId, userIds);
+                return NoContent();
+            }
+            catch(EntityNotFoundException ex)
+            {
+                return NotFound(new { Message = "Сущность не найдена", Details = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(422, new { Message = "Операция невозможна", Details = ex.Message });
             }
             catch (Exception ex)
             {

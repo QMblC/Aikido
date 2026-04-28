@@ -1,5 +1,7 @@
 ﻿using Aikido.Dto.Statistic;
 using Aikido.Entities.Filters;
+using Aikido.Entities.Seminar;
+using Aikido.Services.DatabaseServices.Seminar;
 using Aikido.Services.DatabaseServices.StatisticService;
 using DocumentFormat.OpenXml.Bibliography;
 using Microsoft.AspNetCore.Mvc;
@@ -10,12 +12,15 @@ namespace Aikido.Services.ApplicationServices
     public class StatisticApplicationService
     {
         private readonly IStatisticDbService _statisticService;
+        private readonly ISeminarDbService _seminarDbService;
 
         #region Attendance
 
-        public StatisticApplicationService(IStatisticDbService statisticService)
+        public StatisticApplicationService(IStatisticDbService statisticService,
+            ISeminarDbService seminarDbService)
         {
             _statisticService = statisticService;
+            _seminarDbService = seminarDbService;
         }
 
         public async Task<StatisticMetricDto> GetYearlyAttendances(int year, StatAttendanceFilter filter)
@@ -109,18 +114,18 @@ namespace Aikido.Services.ApplicationServices
 
         public async Task<StatisticMetricDto> GetPupilRetention(int year, StatAttendanceFilter filter)
         {
-            var currentRetention = await CalculateYearRetention(year, filter);
+            var currentRetention = await CalculateYearRetention(year, filter) ?? 0;
             var previousRetention = await CalculateYearRetention(year - 1, filter);
 
 
             double? diff = null;
 
             if (previousRetention != null)
-                diff = Math.Round(currentRetention.Value - previousRetention.Value, 2);
+                diff = Math.Round(currentRetention - previousRetention.Value, 2);
 
-            return new StatisticMetricDto(
-                Math.Round(currentRetention.Value, 2),
-                diff);
+                return new StatisticMetricDto(
+                    Math.Round(currentRetention, 2),
+                    diff);
         }
 
         public async Task<List<StatisticMetricDto>> GetMonthlyPupilRetention(int year, StatAttendanceFilter filter)
@@ -233,6 +238,203 @@ namespace Aikido.Services.ApplicationServices
         {
             var danAmount = await _statisticService.GetMonthlyDanAmount(year, filter);
             return GetStatByMonthes(year, danAmount);
+        }
+
+        #endregion
+
+        #region Seminars
+
+        public async Task<StatisticMetricDto> GetAverageSeminarParticipationPercent(List<long> ids)
+        {
+            var avg = (await GetSeminarParticipationPercent(ids)).Average(s => s.Value);
+            return new StatisticMetricDto(avg);
+        }
+
+        public async Task<List<SeminarStatisticMetricDto>> GetSeminarParticipationPercent(List<long> ids)
+        {
+            var result = new List<SeminarStatisticMetricDto>();
+
+            var seminarStat = await _statisticService.GetSeminarMemberCount(ids);
+
+            foreach (var pair in seminarStat)
+            {
+                var seminar = await _seminarDbService.GetByIdOrThrowException(pair.Key);
+
+                var (currentPercent, totalCount) =
+                    await CalculateSeminarPercent(seminar, pair.Value);
+
+                var previousSeminar = await _seminarDbService.GetPreviousSeminar(seminar.Id);
+
+                var previousPercent = await GetPreviousPercent(previousSeminar, seminarStat);
+
+                var dynamic = previousPercent.HasValue
+                    ? currentPercent - previousPercent
+                    : null;
+
+                result.Add(new SeminarStatisticMetricDto(
+                    seminar,
+                    new StatisticMetricDto(currentPercent, dynamic),
+                    pair.Value,
+                    totalCount
+                ));
+            }
+
+            return result;
+        }
+
+        public async Task<StatisticMetricDto> GetAverageSeminarCertificationPercent(List<long> ids)
+        {
+            var data = await GetSeminarCertificationPercent(ids);
+            var avg = data.Average(x => x.Value);
+
+            return new StatisticMetricDto(avg);
+        }
+
+        public async Task<List<SeminarStatisticMetricDto>> GetSeminarCertificationPercent(List<long> ids)
+        {
+            var result = new List<SeminarStatisticMetricDto>();
+
+            var totalStat = await _statisticService.GetSeminarMemberCount(ids);
+            var certifiedStat = await _statisticService.GetSeminarCertificatedMembers(ids);
+
+            foreach (var pair in totalStat)
+            {
+                var seminar = await _seminarDbService.GetByIdOrThrowException(pair.Key);
+
+                var totalCount = pair.Value;
+
+                var certifiedCount = certifiedStat.ContainsKey(pair.Key)
+                    ? certifiedStat[pair.Key]
+                    : 0;
+
+                var percent = CalculatePercent(certifiedCount, totalCount);
+
+                var previousSeminar = await _seminarDbService.GetPreviousSeminar(seminar.Id);
+
+                double? previousPercent = null;
+
+                if (previousSeminar != null)
+                {
+                    var prevTotal = totalStat.ContainsKey(previousSeminar.Id)
+                        ? totalStat[previousSeminar.Id]
+                        : _statisticService.GetSeminarMemberCount(previousSeminar.Id);
+
+                    var prevCertified = certifiedStat.ContainsKey(previousSeminar.Id)
+                        ? certifiedStat[previousSeminar.Id]
+                        : 0;
+
+                    previousPercent = CalculatePercent(prevCertified, prevTotal);
+                }
+
+                double? dynamic = previousPercent.HasValue
+                    ? percent - previousPercent.Value
+                    : null;
+
+                result.Add(new SeminarStatisticMetricDto(
+                    seminar,
+                    new StatisticMetricDto(percent, dynamic),
+                    certifiedCount,
+                    totalCount
+                ));
+            }
+
+            return result;
+        }
+
+        public async Task<StatisticMetricDto> GetAverageSeminarMoneyIncome(List<long> ids)
+        {
+            var data = await GetSeminarMoneyIncome(ids);
+            var avg = data.Average(x => x.Value);
+
+            return new StatisticMetricDto(avg);
+        }
+
+        public async Task<List<SeminarStatisticMetricDto>> GetSeminarMoneyIncome(List<long> ids)
+        {
+            var result = new List<SeminarStatisticMetricDto>();
+
+            var incomeStat = await _statisticService.GetSeminarMoneyIncome(ids);
+
+            foreach (var pair in incomeStat)
+            {
+                var seminar = await _seminarDbService.GetByIdOrThrowException(pair.Key);
+
+                decimal income = pair.Value;
+
+                var previousSeminar = await _seminarDbService.GetPreviousSeminar(seminar.Id);
+
+                decimal? previousIncome = null;
+
+                if (previousSeminar != null)
+                {
+                    if (incomeStat.ContainsKey(previousSeminar.Id))
+                    {
+                        previousIncome = incomeStat[previousSeminar.Id];
+                    }
+                    else
+                    {
+                        var prevDict = await _statisticService.GetSeminarMoneyIncome(
+                            new List<long> { previousSeminar.Id });
+
+                        previousIncome = prevDict.ContainsKey(previousSeminar.Id)
+                            ? prevDict[previousSeminar.Id]
+                            : 0;
+                    }
+                }
+
+                double? dynamic = previousIncome.HasValue
+                    ? (double)(income - previousIncome.Value)
+                    : null;
+
+                result.Add(new SeminarStatisticMetricDto(
+                    seminar,
+                    new StatisticMetricDto((double)income, dynamic),
+                    0,
+                    0
+                ));
+            }
+
+            return result;
+        }
+
+        private async Task<(double percent, int totalCount)> CalculateSeminarPercent(
+            SeminarEntity seminar,
+            int count)
+        {
+            var total = await _statisticService.GetActiveMembersCountAt(seminar.Date);
+            var percent = CalculatePercent(count, total);
+
+            return (percent, total);
+        }
+
+        private async Task<double?> GetPreviousPercent(
+            SeminarEntity? previousSeminar,
+            Dictionary<long, int> cache)
+        {
+            if (previousSeminar == null)
+                return null;
+
+            var count = GetSeminarCount(previousSeminar.Id, cache);
+            var total = await _statisticService.GetActiveMembersCountAt(previousSeminar.Date);
+
+            return CalculatePercent(count, total);
+        }
+
+        private int GetSeminarCount(long seminarId, Dictionary<long, int> cache)
+        {
+            if (cache.TryGetValue(seminarId, out var count))
+                return count;
+
+            return _statisticService.GetSeminarMemberCount(seminarId);
+        }
+
+        private double CalculatePercent(int count, int total)
+        {
+            if (total == 0)
+            {
+                return 0;
+            }
+            return Math.Round((double)count / total, 4) * 100;
         }
 
         #endregion

@@ -26,6 +26,7 @@ namespace Aikido.Application.Services
         private readonly UserMembershipApplicationService _userMembershipApplicationService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ISeminarDbService _seminarDbService;
+        private readonly IClubStaffDbService _clubStaffDbService;
 
         public UserApplicationService(
             IUserDbService userDbService,
@@ -34,7 +35,8 @@ namespace Aikido.Application.Services
             IGroupDbService groupDbService,
             UserMembershipApplicationService userMembershipApplicationService,
             IUnitOfWork unitOfWork,
-            ISeminarDbService seminarDbService)
+            ISeminarDbService seminarDbService,
+            IClubStaffDbService clubStaffDbService)
         {
             _userDbService = userDbService;
             _userMembershipDbService = userMembershipDbService;
@@ -43,6 +45,7 @@ namespace Aikido.Application.Services
             _userMembershipApplicationService = userMembershipApplicationService;
             _unitOfWork = unitOfWork;
             _seminarDbService = seminarDbService;
+            _clubStaffDbService = clubStaffDbService;
         }
 
         public async Task<UserDto> GetUserByIdAsync(long id)
@@ -51,6 +54,14 @@ namespace Aikido.Application.Services
             var userMembership = await _userMembershipDbService.GetActiveUserMembershipsAsync(user.Id);
 
             return new UserDto(user, userMembership);
+        }
+
+        public async Task<List<UserShortDto>> GetUsers(List<long> ids)
+        {
+            var users = await _userDbService.GetUsersAsync(ids);
+
+            return users.Select(u => new UserShortDto(u))
+                .ToList();
         }
 
         public async Task<List<UserShortDto>> GetActiveUserShortListAsync()
@@ -81,24 +92,51 @@ namespace Aikido.Application.Services
             var result = await _userDbService.GetActiveUserListAlphabetAscending(0, 100, filter);
             return result.Users
                 .Select(user => new UserShortDto(user))
+                .Take(100)
                 .ToList();
         }
 
-        public async Task<UsersDataDto> GetActiveUserShortListCutDataAsync(int startIndex, int finishIndex, UserFilter filter)
+        public async Task<UsersDataDto> GetActiveUserShortListCutDataAsync(
+            int startIndex, 
+            int finishIndex, 
+            UserFilter filter,
+            long? requestedById = null)
         {
             var pagedResult = await _userDbService.GetActiveUserListAlphabetAscending(startIndex, finishIndex, filter);
-            var users = pagedResult.Users.Select(u => new UserDto(u))
-                .ToList();
+
+            var userEntities = pagedResult.Users;
+
+            if (requestedById != null)
+            {
+                var visibleClubs = (await _clubStaffDbService.GetClubStaffByUser(requestedById.Value))
+                    .Select(c => c.ClubId)
+                    .ToList();
+
+                userEntities = userEntities.Where(u => 
+                    u.UserMemberships.Any(um => visibleClubs.Contains(um.ClubId))
+                    || u.UserAsStaff.Any(um => visibleClubs.Contains(um.ClubId))
+                    || (u.UserMemberships.Count == 0 && (u.Role == Role.User || u.Role == Role.Coach)))
+                    .ToList();
+            }
+
+            var users = userEntities.Select(u => new UserDto(u))
+            .ToList();
 
             foreach (var user in users)
             {
                 var userMemberships = await _userMembershipDbService.GetActiveUserMembershipsAsync(user.Id.Value);
                 user.UserMembershipDtos = userMemberships.Select(um => new UserMembershipDto(um)).ToList();
-            }
+            }        
+
+            var userCount = users.Count;
+
+            users = users.Skip(startIndex)
+                .Take(finishIndex - startIndex)
+                .ToList();
 
             return new UsersDataDto
             {
-                TotalCount = pagedResult.TotalCount,
+                TotalCount = userCount,
                 Users = users
             };
         }
