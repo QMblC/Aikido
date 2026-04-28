@@ -78,6 +78,12 @@ namespace Aikido.Services.DatabaseServices.Club
             await _context.SaveChangesAsync();
         }
 
+        public async Task UpdateAsync(ClubEntity club)
+        {
+            _context.Clubs.Update(club);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task CloseAsync(long id)
         {
             var club = await GetByIdOrThrowException(id);

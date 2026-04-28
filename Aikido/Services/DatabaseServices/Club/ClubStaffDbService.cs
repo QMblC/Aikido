@@ -1,4 +1,5 @@
 ﻿
+using Aikido.AdditionalData.Enums;
 using Aikido.Data;
 using Aikido.Entities.Clubs;
 using Aikido.Exceptions;
@@ -49,9 +50,9 @@ namespace Aikido.Services.DatabaseServices.Club
             return clubStaff ?? new();
         }
 
-        public async Task CreateAsync(long clubId, long userId, bool isMain = false)
+        public async Task CreateAsync(long clubId, long userId, Role role = Role.Coach)
         {
-            var staff = new ClubStaffEntity(clubId, userId, isMain);
+            var staff = new ClubStaffEntity(clubId, userId, role);
             await _context.ClubStaff.AddAsync(staff);
             await _context.SaveChangesAsync();
         }

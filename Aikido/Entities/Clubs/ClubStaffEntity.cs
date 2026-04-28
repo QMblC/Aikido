@@ -14,13 +14,13 @@ namespace Aikido.Entities.Clubs
         public long ClubId { get; set; }
         public virtual ClubEntity? Club { get; set; }
 
-        public bool IsFalse { get; set; }
+        public Role RoleInClub { get; set; }
 
-        public ClubStaffEntity(long clubId, long userId, bool isFalse = false)
+        public ClubStaffEntity(long clubId, long userId, Role roleInClub = Role.Coach)
         {
             ClubId = clubId;
             UserId = userId;
-            IsFalse = isFalse;
+            RoleInClub = roleInClub;
         }
     }
 }

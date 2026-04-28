@@ -43,7 +43,6 @@ namespace Aikido.Entities.Clubs
             Email = clubData.Email;
             Website = clubData.Website;
             Description = clubData.Description;
-            ManagerId = clubData.ManagerId;
             FoundedDate = clubData.FoundedDate;
         }
     }
