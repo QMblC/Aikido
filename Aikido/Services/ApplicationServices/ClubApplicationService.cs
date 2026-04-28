@@ -78,7 +78,13 @@ namespace Aikido.Application.Services
 
         public async Task<long> CreateClubAsync(ClubDto clubData)
         {
-            return await _clubDbService.CreateAsync(clubData);
+            var club = await _clubDbService.CreateAsync(clubData);
+            if (clubData.ManagerId != null)
+            {
+                await _clubStaffDbService.CreateAsync(club, clubData.ManagerId.Value, true);
+            }
+            
+            return club;
         }
 
         public async Task UpdateClubAsync(long id, ClubDto clubData)
@@ -88,6 +94,20 @@ namespace Aikido.Application.Services
                 throw new EntityNotFoundException($"Клуб с Id = {id} не найден");
             }
             await _clubDbService.UpdateAsync(id, clubData);
+            var club = await _clubDbService.GetClubById(id);
+
+            if (club.ManagerId != clubData.ManagerId)
+            {
+                if (club.ManagerId != null)
+                {
+                    await _clubStaffDbService.CreateAsync(id, club.ManagerId.Value, true);
+                }
+                if (clubData.ManagerId != null)
+                {
+                    await _clubStaffDbService.DeleteAsync(id, clubData.ManagerId.Value);
+                }        
+            }
+
         }
 
         public async Task CloseClubAsync(long id)
@@ -117,6 +137,12 @@ namespace Aikido.Application.Services
             }
 
             await _clubDbService.RemoveAllMembersFromClubAsync(id);
+            var club = await _clubDbService.GetClubById(id);
+            if (club.ManagerId != null)
+            {
+                await _clubStaffDbService.DeleteAsync(id, club.ManagerId.Value);
+            }
+            
             await _clubDbService.DeleteAsync(id);
         }
 
@@ -152,7 +178,6 @@ namespace Aikido.Application.Services
 
             await _clubStaffDbService.DeleteRangeAsync(clubId, staffToDelete);
             await _clubStaffDbService.CreateRangeAsync(clubId, staffToCreate);
-            
         }
     }
 }
