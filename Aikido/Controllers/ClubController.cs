@@ -87,7 +87,7 @@ namespace Aikido.Controllers
 
         [Authorize(Roles = "Admin,Manager")]
         [HttpGet("get/{clubId}/staff")]
-        public async Task<ActionResult<List<UserShortDto>>> GetClubStaff(long clubId)
+        public async Task<ActionResult<List<ClubStaffDto>>> GetClubStaff(long clubId)
         {
             try
             {
