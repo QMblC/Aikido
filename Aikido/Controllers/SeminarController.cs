@@ -338,7 +338,7 @@ namespace Aikido.Controllers
         {
             try
             {
-                var isConfirmed = await IsClubSeminarMembersManagerRequestConfirmed(seminarId, clubId);
+                var isConfirmed = await _seminarApplicationService.IsClubSeminarMembersManagerRequestConfirmed(seminarId, clubId);
                 return Ok(isConfirmed);
             }
             catch (Exception ex)

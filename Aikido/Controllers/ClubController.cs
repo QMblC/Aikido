@@ -71,20 +71,6 @@ namespace Aikido.Controllers
             }
         }
 
-        //[HttpGet("get/{clubId}/staff")]
-        //public async Task<ActionResult<List<UserShortDto>>> GetClubStaff(long clubId)
-        //{
-        //    try
-        //    {
-        //        var members = await _clubApplicationService.GetClubMembersAsync(clubId, Role.Coach);
-        //        return Ok(members);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, new { Message = "Ошибка при получении участников клуба", Details = ex.Message });
-        //    }
-        //}
-
         [Authorize(Roles = "Admin,Manager")]
         [HttpGet("get/{clubId}/staff")]
         public async Task<ActionResult<List<ClubStaffDto>>> GetClubStaff(long clubId)
@@ -234,7 +220,7 @@ namespace Aikido.Controllers
         /// <param name="managerId"></param>
         /// <returns></returns>
         [Authorize(Roles = "Admin")]
-        [HttpPatch("update{id}/manager")]
+        [HttpPatch("update/{id}/manager")]
         public async Task<IActionResult> UpdateClubManager(long id, [FromBody] long? managerId)
         {
             try

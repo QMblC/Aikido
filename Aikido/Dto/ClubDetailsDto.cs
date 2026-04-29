@@ -1,4 +1,5 @@
-﻿using Aikido.Dto.Groups;
+﻿using Aikido.AdditionalData.Enums;
+using Aikido.Dto.Groups;
 using Aikido.Dto.Users;
 using Aikido.Entities;
 using Aikido.Entities.Clubs;
@@ -45,7 +46,7 @@ namespace Aikido.Dto
         public ClubDetailsDto(ClubEntity club, List<GroupEntity> groups, List<UserMembershipEntity> members) : this(club)
         {
             Groups = groups.Where(g => g.ClosedAt == null).Select(g => new GroupDto(g)).ToList();
-            Members = members.Where(m => m.User != null)
+            Members = members.Where(m => m.User != null && m.RoleInGroup == Role.User && m.ClosedAt == null)
                             .Select(m => new UserShortDto(m.User!))
                             .ToList();
             TotalMembers = Members.Count;
