@@ -76,9 +76,10 @@ namespace Aikido.Services.DatabaseServices.Group
                 .Include(g => g.MainCoach)
                 .Include(g => g.Club)
                 .Include(g => g.Schedule)
+                .Include(g => g.UserMemberships.Where(um => um.ClosedAt == null))
                 .Include(g => g.ExclusionDates)
                 .Where(g => g.ClubId == clubId 
-                && g.ClosedAt == null)
+                    && g.ClosedAt == null)
                 .OrderBy(g => g.Name)
                 .ToListAsync();
         }

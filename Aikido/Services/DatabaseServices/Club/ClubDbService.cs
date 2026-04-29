@@ -37,7 +37,8 @@ namespace Aikido.Services.DatabaseServices.Club
         {
             var clubs = await _context.Clubs
                 .AsQueryable()
-                .Where(c => c.ManagerId == managerId)
+                .Where(c => c.ManagerId == managerId
+                    && c.ClosedAt == null)
                 .ToListAsync();
 
             return clubs;
