@@ -253,6 +253,12 @@ namespace Aikido.Application.Services
             long clubId)
         {
             await EnsureSeminarStatementsUnlocked(seminarId);
+            var members = await _seminarDbService.GetManagerMembersByClubAsync(seminarId, clubId);
+
+            if (members.Count == 0)
+            {
+                throw new InvalidOperationException("Заявлено 0 участников");
+            }
 
             await _seminarDbService.ConfirmManagerMembersByClubAsync(seminarId, managerId, clubId);
         }
@@ -345,6 +351,11 @@ namespace Aikido.Application.Services
         public async Task<bool> IsClubSeminarMembersManagerRequestConfirmed(long seminarId, long clubId)
         {
             var members = await _seminarDbService.GetManagerMembersByClubAsync(seminarId, clubId);
+
+            if (members.Count == 0)
+            {
+                return false;
+            }    
 
             return members.All(m => m.IsConfirmed);
         }

@@ -32,6 +32,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
         {
             var seminar = await _context.Seminars
                 .Include(s => s.Creator)
+                .Include(s => s.Editors)
                 .Include(s => s.Groups)
                 .Include(s => s.ContactInfo)
                 .Include(s => s.Schedule)
@@ -149,13 +150,31 @@ namespace Aikido.Services.DatabaseServices.Seminar
 
         public async Task UpdateEditorList(long seminarId, List<long> editorIds)
         {
-            var seminar = await GetByIdOrThrowException(seminarId);
+            var seminar = await _context.Seminars
+                .Include(s => s.Editors)
+                .FirstOrDefaultAsync(s => s.Id == seminarId)
+                ?? throw new EntityNotFoundException(nameof(SeminarEntity));
 
-            seminar.Editors = editorIds.Select(id => _context.Users.Find(id)
-                ?? throw new EntityNotFoundException(nameof(UserEntity)))
+            var currentEditorIds = seminar.Editors.Select(e => e.Id).ToList();
+
+            var toRemove = seminar.Editors
+                .Where(e => !editorIds.Contains(e.Id))
                 .ToList();
 
-            _context.Update(seminar);
+            var toAddIds = editorIds
+                .Where(id => !currentEditorIds.Contains(id))
+                .ToList();
+
+            var toAdd = await _context.Users
+                .Where(u => toAddIds.Contains(u.Id))
+                .ToListAsync();
+
+            foreach (var editor in toRemove)
+                seminar.Editors.Remove(editor);
+
+            foreach (var editor in toAdd)
+                seminar.Editors.Add(editor);
+
             await _context.SaveChangesAsync();
         }
 
