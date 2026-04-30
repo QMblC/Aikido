@@ -1,4 +1,5 @@
 ﻿using Aikido.AdditionalData.Enums;
+using Aikido.Dto.Users;
 using Aikido.Entities.Seminar;
 
 namespace Aikido.Dto.Seminars
@@ -15,7 +16,7 @@ namespace Aikido.Dto.Seminars
         public long? CreatorId { get; set; }
         public string? CreatorName { get; set; }
 
-        public List<long> Editors { get; set; } = new();
+        public List<UserShortDto> Editors { get; set; } = new();
 
         public bool? RegulationExists { get; set; } = false;
         public bool StatementsBlocked { get; set; }
@@ -41,7 +42,7 @@ namespace Aikido.Dto.Seminars
             CreatorId = seminar.CreatorId;
             CreatorName = seminar.Creator?.FullName;
 
-            Editors = seminar.Editors.Select(u => u.Id).ToList();
+            Editors = seminar.Editors.Select(u => new UserShortDto(u)).ToList();
 
             IsFinalStatementApplied = seminar.IsFinalStatementApplied;
 

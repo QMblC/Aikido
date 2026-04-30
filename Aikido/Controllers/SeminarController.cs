@@ -363,6 +363,10 @@ namespace Aikido.Controllers
                 await _seminarApplicationService.ConfirmManagerMembersByClubAsync(seminarId, managerId, clubId);
                 return Ok();
             }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(422, new { Message = "Невозможная операция", Details = ex.Message });
+            }
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
