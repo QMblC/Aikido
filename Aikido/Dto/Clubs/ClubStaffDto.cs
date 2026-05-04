@@ -2,7 +2,7 @@
 using Aikido.Dto.Users;
 using Aikido.Entities;
 
-namespace Aikido.Dto
+namespace Aikido.Dto.Clubs
 {
     public class ClubStaffDto : UserShortDto
     {

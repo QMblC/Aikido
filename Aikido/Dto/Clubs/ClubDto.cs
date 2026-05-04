@@ -1,15 +1,15 @@
 ﻿using Aikido.Entities.Clubs;
 using System.ComponentModel.DataAnnotations;
 
-namespace Aikido.Dto
+namespace Aikido.Dto.Clubs
 {
-    public class ClubDto : DtoBase
+    public class ClubDto : DtoBase, IClubDto
     {
         public long? Id { get; set; }
         [Required]
-        public string? Name { get; set; } = string.Empty;
-        public string? City { get; set; }
-        public string? Address { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string City { get; set; }
+        public string Address { get; set; }
         public string? PhoneNumber { get; set; }
         public string? Email { get; set; }
         public string? Website { get; set; }

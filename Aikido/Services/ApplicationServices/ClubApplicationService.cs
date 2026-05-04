@@ -1,5 +1,6 @@
 ﻿using Aikido.AdditionalData.Enums;
 using Aikido.Dto;
+using Aikido.Dto.Clubs;
 using Aikido.Dto.Groups;
 using Aikido.Dto.Users;
 using Aikido.Entities;
@@ -77,7 +78,7 @@ namespace Aikido.Application.Services
             return new ClubDetailsDto(club, groups, members);
         }
 
-        public async Task<long> CreateClubAsync(ClubDto clubData)
+        public async Task<long> CreateClubAsync(IClubDto clubData)
         {
             var clubId = await _clubDbService.CreateAsync(clubData);
             await UpdateClubManager(clubId, clubData.ManagerId);
@@ -85,7 +86,7 @@ namespace Aikido.Application.Services
             return clubId;
         }
 
-        public async Task UpdateClubAsync(long id, ClubDto clubData)
+        public async Task UpdateClubAsync(long id, IClubDto clubData)
         {
             if (!await _clubDbService.ExistsActive(id))
             {
