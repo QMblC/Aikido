@@ -227,6 +227,7 @@ namespace Aikido.Controllers
                 return StatusCode(500, new { Message = "Ошибка при получении групп клубов", Details = ex.Message });
             }
         }
+
         /// <summary>
         /// Создание клуба
         /// </summary>
