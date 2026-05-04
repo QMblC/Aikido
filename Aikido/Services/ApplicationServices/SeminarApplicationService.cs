@@ -14,7 +14,9 @@ using Aikido.Services;
 using Aikido.Services.DatabaseServices.Group;
 using Aikido.Services.DatabaseServices.Seminar;
 using Aikido.Services.DatabaseServices.User;
+using Aikido.Services.NotificationService;
 using Aikido.Services.UnitOfWork;
+using DocumentFormat.OpenXml.ExtendedProperties;
 using DocumentFormat.OpenXml.Office2016.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Mvc;
@@ -31,6 +33,7 @@ namespace Aikido.Application.Services
         private readonly IGroupDbService _groupDbService;
         private readonly PaymentService _paymentDbService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly INotificationService _notificationService;
 
         public SeminarApplicationService(
             ISeminarDbService seminarDbService,
@@ -38,7 +41,8 @@ namespace Aikido.Application.Services
             IUserMembershipDbService userMembershipDbService,
             IGroupDbService groupDbService,
             PaymentService paymentDbService,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            INotificationService notificationService)
         {
             _seminarDbService = seminarDbService;
             _userDbService = userDbService;
@@ -46,6 +50,7 @@ namespace Aikido.Application.Services
             _groupDbService = groupDbService;
             _paymentDbService = paymentDbService;
             _unitOfWork = unitOfWork;
+            _notificationService = notificationService;
         }
 
         public async Task<SeminarDto> GetSeminarByIdAsync(long id)
@@ -79,6 +84,8 @@ namespace Aikido.Application.Services
                 await _seminarDbService.UpdateEditorList(seminar.Id, seminarData.Editors);
             });
 
+            await _notificationService.SeminarDataChanged(NotificationAction.Create, seminar.Id);
+
             return seminar.Id;
         }
 
@@ -95,7 +102,9 @@ namespace Aikido.Application.Services
                 await _unitOfWork.SaveChangesAsync();
                 await _seminarDbService.UpdateSeminarSchedule(seminar, seminarData.Schedule);
                 await _seminarDbService.UpdateEditorList(id, seminarData.Editors);
-            }); 
+            });
+
+            await _notificationService.SeminarDataChanged(NotificationAction.Update, id);
         }
 
         public async Task DeleteSeminarAsync(long id)
@@ -104,6 +113,8 @@ namespace Aikido.Application.Services
                 throw new EntityNotFoundException($"Семинар с Id = {id} не найден");
 
             await _seminarDbService.DeleteAsync(id);
+
+            await _notificationService.SeminarDataChanged(NotificationAction.Delete, id);
         }
 
         public async Task<List<SeminarMemberDto>> GetSeminarMembersAsync(long seminarId)
@@ -155,6 +166,8 @@ namespace Aikido.Application.Services
             {
                 await _userDbService.UpdateUserBudoPassport(payment.UserId, true);
             }
+
+            await _notificationService.UserDataChanged(NotificationAction.Update);
         }
 
         public async Task CancelSeminarResult(long seminarId)
@@ -176,6 +189,8 @@ namespace Aikido.Application.Services
             {
                 await _userDbService.UpdateUserBudoPassport(payment.UserId, true);
             }
+
+            await _notificationService.UserDataChanged(NotificationAction.Update);
         }
 
         #region ManagerRequest
@@ -246,6 +261,8 @@ namespace Aikido.Application.Services
             {
                 await _paymentDbService.CreateOrUpdateMemberPayments(seminarId, member);
             }
+
+            await _notificationService.SeminarManagerMembersDataChanged(NotificationAction.Update, seminarId, managerRequest.ManagerId, managerRequest.ClubId);
         }
 
         public async Task ConfirmManagerMembersByClubAsync(long seminarId,
@@ -261,6 +278,7 @@ namespace Aikido.Application.Services
             }
 
             await _seminarDbService.ConfirmManagerMembersByClubAsync(seminarId, managerId, clubId);
+            await _notificationService.SeminarManagerMembersDataChanged(NotificationAction.Update, seminarId, managerId, clubId);
         }
 
         public async Task CancelManagerMemberByClubAsync(long seminarId,
@@ -270,6 +288,7 @@ namespace Aikido.Application.Services
             await EnsureSeminarStatementsUnlocked(seminarId);
 
             await _seminarDbService.CancelManagerMemberByClubAsync(seminarId, managerId, clubId);
+            await _notificationService.SeminarManagerMembersDataChanged(NotificationAction.Update, seminarId, managerId, clubId);
         }
         #endregion
 
@@ -305,6 +324,7 @@ namespace Aikido.Application.Services
         public async Task SetRequestedMembers(long seminarId)
         {
             await _seminarDbService.CreateSeminarMembersFromRequest(seminarId);
+            await _notificationService.SeminarMembersDataChanged(NotificationAction.Update, seminarId);
         }
 
         public async Task<SeminarMemberDto> GetNewSeminarMember(long seminarId, long userId)
@@ -325,6 +345,8 @@ namespace Aikido.Application.Services
             {
                 await _paymentDbService.CreateOrUpdateMemberPayments(seminarId, member);
             }
+
+            await _notificationService.SeminarMembersDataChanged(NotificationAction.Update, seminarId);
         }
 
         public async Task<List<SeminarMemberRequestDto>> GetCoachMembersByClub(long seminarId, long clubId, long coachId)
@@ -375,6 +397,8 @@ namespace Aikido.Application.Services
             var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
             seminar.AreStatementsBlocked = true;
             await _seminarDbService.UpdateAsync(seminar);
+
+            await _notificationService.SeminarDataChanged(NotificationAction.Update, seminarId);
         }
 
         public async Task UnlockSeminarStatements(long seminarId)
@@ -382,6 +406,7 @@ namespace Aikido.Application.Services
             var seminar = await _seminarDbService.GetByIdOrThrowException(seminarId);
             seminar.AreStatementsBlocked = false;
             await _seminarDbService.UpdateAsync(seminar);
+            await _notificationService.SeminarDataChanged(NotificationAction.Update, seminarId);
         }
 
         private async Task EnsureUserNotRequested(long seminarId, long userId)

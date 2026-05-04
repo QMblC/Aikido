@@ -5,6 +5,7 @@ using Aikido.Entities.Users;
 using Aikido.Exceptions;
 using Aikido.Services.DatabaseServices.Group;
 using Aikido.Services.DatabaseServices.User;
+using Aikido.Services.NotificationService;
 using Aikido.Services.UnitOfWork;
 
 namespace Aikido.Services.ApplicationServices
@@ -15,16 +16,19 @@ namespace Aikido.Services.ApplicationServices
         private readonly IUserMembershipDbService _userMembershipDbService;
         private readonly IGroupDbService _groupDbService;
         private readonly IUnitOfWork _unitOfWork;
+        //private readonly INotificationService _notificationService;
 
         public UserMembershipApplicationService(IUserDbService userDbService,
             IUserMembershipDbService userMembershipDbService,
             IGroupDbService groupDbService,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            INotificationService notificationService)
         {
             _userDbService = userDbService;
             _userMembershipDbService = userMembershipDbService;
             _groupDbService = groupDbService;
             _unitOfWork = unitOfWork;
+            //_notificationService = notificationService;
         }
 
         public async Task AddUserMembershipAsync(long userId, UserMembershipCreationDto dto)

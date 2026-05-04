@@ -10,6 +10,7 @@ using Aikido.Services;
 using Aikido.Services.DatabaseServices.Club;
 using Aikido.Services.DatabaseServices.Group;
 using Aikido.Services.DatabaseServices.User;
+using Aikido.Services.NotificationService;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 
@@ -22,19 +23,22 @@ namespace Aikido.Application.Services
         private readonly IUserDbService _userDbService;
         private readonly ScheduleDbService _scheduleDbService;
         private readonly IClubStaffDbService _clubStaffDbService;
+        private readonly INotificationService _notificationService;
 
         public ClubApplicationService(
             IClubDbService clubDbService,
             IGroupDbService groupDbService,
             IUserDbService userDbService,
             ScheduleDbService scheduleDbService,
-            IClubStaffDbService clubStaffDbService)
+            IClubStaffDbService clubStaffDbService,
+            INotificationService notificationService)
         {
             _clubDbService = clubDbService;
             _groupDbService = groupDbService;
             _userDbService = userDbService;
             _scheduleDbService = scheduleDbService;
             _clubStaffDbService = clubStaffDbService;
+            _notificationService = notificationService;
         }
 
         public async Task<ClubDto> GetClubByIdAsync(long id)
@@ -82,7 +86,9 @@ namespace Aikido.Application.Services
         {
             var clubId = await _clubDbService.CreateAsync(clubData);
             await UpdateClubManager(clubId, clubData.ManagerId);
-            
+
+            await _notificationService.ClubDataChanged(NotificationAction.Create, clubId);
+
             return clubId;
         }
 
@@ -114,6 +120,8 @@ namespace Aikido.Application.Services
 
             club.ManagerId = newManagerId;
             await _clubDbService.UpdateAsync(club);
+
+            await _notificationService.ClubDataChanged(NotificationAction.Update, clubId);
         }
 
         public async Task CloseClubAsync(long id)
@@ -127,12 +135,15 @@ namespace Aikido.Application.Services
             else
             {
                 throw new InvalidOperationException("Невозможно закрыть клуб, пока в нём есть активные группы");
-            } 
+            }
+
+            await _notificationService.ClubDataChanged(NotificationAction.Close, id);
         }
 
         public async Task RecoverClubAsync(long id)
         {
             await _clubDbService.RecoverAsync(id);
+            await _notificationService.ClubDataChanged(NotificationAction.Recover, id);
         }
 
         public async Task DeleteClubAsync(long id)
@@ -150,6 +161,7 @@ namespace Aikido.Application.Services
             }
             
             await _clubDbService.DeleteAsync(id);
+            await _notificationService.ClubDataChanged(NotificationAction.Delete, id);
         }
 
         public async Task<bool> ClubExistsAsync(long id)
@@ -184,6 +196,8 @@ namespace Aikido.Application.Services
 
             await _clubStaffDbService.DeleteRangeAsync(clubId, staffToDelete);
             await _clubStaffDbService.CreateRangeAsync(clubId, staffToCreate);
+
+            await _notificationService.ClubDataChanged(NotificationAction.Update, clubId);
         }
     }
 }

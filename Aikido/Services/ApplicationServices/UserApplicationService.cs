@@ -12,6 +12,7 @@ using Aikido.Services.DatabaseServices.Club;
 using Aikido.Services.DatabaseServices.Group;
 using Aikido.Services.DatabaseServices.Seminar;
 using Aikido.Services.DatabaseServices.User;
+using Aikido.Services.NotificationService;
 using Aikido.Services.UnitOfWork;
 using DocumentFormat.OpenXml.Spreadsheet;
 
@@ -27,6 +28,7 @@ namespace Aikido.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly ISeminarDbService _seminarDbService;
         private readonly IClubStaffDbService _clubStaffDbService;
+        private readonly INotificationService _notificationService;
 
         public UserApplicationService(
             IUserDbService userDbService,
@@ -36,7 +38,8 @@ namespace Aikido.Application.Services
             UserMembershipApplicationService userMembershipApplicationService,
             IUnitOfWork unitOfWork,
             ISeminarDbService seminarDbService,
-            IClubStaffDbService clubStaffDbService)
+            IClubStaffDbService clubStaffDbService,
+            INotificationService notificationService)
         {
             _userDbService = userDbService;
             _userMembershipDbService = userMembershipDbService;
@@ -46,6 +49,7 @@ namespace Aikido.Application.Services
             _unitOfWork = unitOfWork;
             _seminarDbService = seminarDbService;
             _clubStaffDbService = clubStaffDbService;
+            _notificationService = notificationService;
         }
 
         public async Task<UserDto> GetUserByIdAsync(long id)
@@ -180,6 +184,8 @@ namespace Aikido.Application.Services
                 }
             });
 
+            await _notificationService.UserDataChanged(NotificationAction.Create, user.Id);
+
             return user.Id;
         }
 
@@ -209,9 +215,13 @@ namespace Aikido.Application.Services
                         }
 
                         await _userMembershipApplicationService.AddUserMembershipAsync(userId, userMembership);
+
+                        await _notificationService.GroupMembersDataChanged(NotificationAction.Update, groupId);
                     }
                 }
             });
+
+            await _notificationService.UserDataChanged(NotificationAction.Update, userId);
         }
 
         public async Task CloseUserAsync(long id)
@@ -226,7 +236,9 @@ namespace Aikido.Application.Services
             await _unitOfWork.ExecuteInTransactionAsync(async () =>
             {
                 await _userDbService.CloseAsync(id);
-            });     
+            });
+
+            await _notificationService.UserDataChanged(NotificationAction.Close, id);
         }
 
         public async Task RecoverUserAsync(long id)
@@ -235,7 +247,8 @@ namespace Aikido.Application.Services
             {
                 await _userDbService.RecoverAsync(id);
             });
-            
+
+            await _notificationService.UserDataChanged(NotificationAction.Recover, id);
         }
 
         public async Task DeleteUserAsync(long id)
@@ -248,6 +261,8 @@ namespace Aikido.Application.Services
 
                 await _userDbService.Delete(id);
             });
+
+            await _notificationService.UserDataChanged(NotificationAction.Delete, id);
         }
 
         public async Task<List<long>> CreateUsersAsync(List<UserCreationDto> users)

@@ -1,9 +1,11 @@
 ﻿namespace Aikido.AdditionalData.Enums
 {
-    public enum DbAction
+    public enum NotificationAction
     {
         Create,
         Update,
         Delete,
+        Close,
+        Recover
     }
 }

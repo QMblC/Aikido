@@ -1,4 +1,5 @@
-﻿using Aikido.Dto.Seminars.Members;
+﻿using Aikido.AdditionalData.Enums;
+using Aikido.Dto.Seminars.Members;
 using Aikido.Dto.Seminars.Members.CoachEditRequest;
 using Aikido.Dto.Seminars.Members.Creation;
 using Aikido.Entities.Seminar.SeminarFilters;
@@ -8,6 +9,7 @@ using Aikido.Exceptions;
 using Aikido.Services;
 using Aikido.Services.DatabaseServices.Club;
 using Aikido.Services.DatabaseServices.Seminar;
+using Aikido.Services.NotificationService;
 using DocumentFormat.OpenXml.Office2016.Excel;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
@@ -20,18 +22,21 @@ namespace Aikido.Application.Services
         private readonly ISeminarDbService _seminarDbService;
         private readonly PaymentService _paymentDbService;
         private readonly IClubDbService _clubDbService;
+        private readonly INotificationService _notificationService;
 
         public SeminarCoachEditRequestAppService(
             SeminarCoachEditRequestDbService requestDbService,
             ISeminarDbService seminarDbService,
             PaymentService paymentService,
-            IClubDbService clubDbService
+            IClubDbService clubDbService,
+            INotificationService notificationService
             )
         {
             _requestDbService = requestDbService;
             _seminarDbService = seminarDbService;
             _paymentDbService = paymentService;
             _clubDbService = clubDbService;
+            _notificationService = notificationService;
         }
 
         public async Task<List<SeminarMemberCoachRequestDto>> GetClubCoachRequestList(
@@ -59,6 +64,10 @@ namespace Aikido.Application.Services
             await EnsureSeminarStatementsUnlocked(seminarId);
 
             await _requestDbService.CreateCoachRequest(seminarId, request);
+            await _notificationService.SeminarCoachMembersDataChanged(NotificationAction.Create,
+                seminarId,
+                request.CoachId.Value,
+                request.ClubId.Value);
         }
 
         public async Task UpdateRequestByCoach(long requestId, SeminarMemberCoachRequestListCreationDto request)
@@ -68,6 +77,10 @@ namespace Aikido.Application.Services
             await EnsureSeminarStatementsUnlocked(requestEntity.SeminarId);
 
             await _requestDbService.UpdateRequestByCoach(requestId, request);
+            await _notificationService.SeminarCoachMembersDataChanged(NotificationAction.Update,
+                requestEntity.SeminarId,
+                request.CoachId.Value,
+                request.ClubId.Value);
         }
 
         public async Task DeleteCoachRequest(long requestId)
@@ -76,6 +89,10 @@ namespace Aikido.Application.Services
             await EnsureSeminarStatementsUnlocked(requestEntity.SeminarId);
 
             await _requestDbService.DeleteRequest(requestId);
+            await _notificationService.SeminarCoachMembersDataChanged(NotificationAction.Delete,
+                requestEntity.SeminarId,
+                requestEntity.RequestedById,
+                requestEntity.ClubId);
         }
 
         public async Task ApplyRequest(long requestId, long reviewerId)
@@ -95,6 +112,10 @@ namespace Aikido.Application.Services
             }
 
             await _requestDbService.ApplyRequest(requestId, reviewerId);
+            await _notificationService.SeminarCoachMembersDataChanged(NotificationAction.Update,
+                request.SeminarId,
+                request.RequestedById,
+                request.ClubId);
         }
 
         public async Task RejectRequest(long requestId, long reviewerId, string comment)
@@ -105,6 +126,10 @@ namespace Aikido.Application.Services
             await EnsureSeminarStatementsUnlocked(request.SeminarId);
 
             await _requestDbService.RejectRequest(requestId, reviewerId, comment);
+            await _notificationService.SeminarCoachMembersDataChanged(NotificationAction.Update,
+                request.SeminarId,
+                request.RequestedById,
+                request.ClubId);
         }
 
         public async Task<List<SeminarMemberCoachRequestDto>> GetCoachRequests(long seminarId, long clubId, RequestResultFilter filter)
