@@ -10,6 +10,7 @@ using Aikido.Services.ApplicationServices;
 using Aikido.Services.DatabaseServices.Club;
 using Aikido.Services.DatabaseServices.Group;
 using Aikido.Services.DatabaseServices.User;
+using Aikido.Services.NotificationService;
 using Aikido.Services.UnitOfWork;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -26,6 +27,7 @@ namespace Aikido.Application.Services
         private readonly ScheduleDbService _scheduleDbService;
         private readonly UserMembershipApplicationService _userMembershipApplicationService;
         private readonly AttendanceApplicationService _attendanceApplicationService;
+        private readonly INotificationService _notificationService;
 
         public GroupApplicationService(
             IGroupDbService groupDbService,
@@ -35,7 +37,8 @@ namespace Aikido.Application.Services
             IUnitOfWork unitOfWork,
             ScheduleDbService scheduleDbService,
             UserMembershipApplicationService userMembershipApplicationService,
-            AttendanceApplicationService attendanceApplicationService)
+            AttendanceApplicationService attendanceApplicationService,
+            INotificationService notificationService)
         {
             _groupDbService = groupDbService;
             _userDbService = userDbService;
@@ -45,6 +48,7 @@ namespace Aikido.Application.Services
             _scheduleDbService = scheduleDbService;
             _userMembershipApplicationService = userMembershipApplicationService;
             _attendanceApplicationService = attendanceApplicationService;
+            _notificationService = notificationService;
         }
 
         public async Task<GroupDto> GetGroupByIdAsync(long id)
@@ -99,6 +103,8 @@ namespace Aikido.Application.Services
                 await CreateCoaches(group, groupData.Coaches);
             });
 
+            await _notificationService.GroupDataChanged(NotificationAction.Create, group.Id);
+
             return group.Id;
         }
 
@@ -118,7 +124,9 @@ namespace Aikido.Application.Services
 
                 await RemoveExcessCoaches(group, groupData.Coaches);
                 await CreateCoaches(group, groupData.Coaches);
-            });        
+            });
+
+            await _notificationService.GroupDataChanged(NotificationAction.Update, id);
         }
 
         private async Task RemoveExcessCoaches(GroupEntity group, List<long> newCoachIds)
@@ -163,12 +171,15 @@ namespace Aikido.Application.Services
                 }
 
                 await _groupDbService.CloseAsync(id);
-            });    
+            });
+
+            await _notificationService.GroupDataChanged(NotificationAction.Close, id);
         }
 
         public async Task RecoverGroupAsync(long id)
         {
             await _groupDbService.RecoverAsync(id);
+            await _notificationService.GroupDataChanged(NotificationAction.Recover, id);
         }
 
         public async Task DeleteGroupAsync(long id)
@@ -177,6 +188,7 @@ namespace Aikido.Application.Services
 
             await _groupDbService.RemoveAllMembersFromGroupAsync(id);
             await _groupDbService.DeleteAsync(id);
+            await _notificationService.GroupDataChanged(NotificationAction.Delete, id);
         }
 
         public async Task AddUserToGroupAsync(long userId, UserMembershipCreationShortDto dto)
@@ -195,6 +207,7 @@ namespace Aikido.Application.Services
             var userMembership = new UserMembershipCreationDto(group, dto.IsMain, dto.IsCoach);
 
             await _userMembershipApplicationService.AddUserMembershipAsync(userId, userMembership);
+            await _notificationService.GroupMembersDataChanged(NotificationAction.Create, dto.GroupId);
         }
 
         public async Task RemoveUserFromGroupAsync(long groupId, long userId)
@@ -203,6 +216,8 @@ namespace Aikido.Application.Services
             { 
                 await _userMembershipApplicationService.CloseUserMembershipAsync(userId, groupId); 
             });
+
+            await _notificationService.GroupDataChanged(NotificationAction.Delete, groupId);
         }
 
         public async Task<bool> GroupExistsAsync(long id)
@@ -218,15 +233,15 @@ namespace Aikido.Application.Services
                 .ToList();
         }
 
-        public async Task<List<UserShortDto>> GetGroupMembersAsync(long groupId, DateTime month)
-        {
-            var members = await _groupDbService.GetGroupActiveMembersAsync(groupId);
-            return members.Where(m => m.User != null
-                && m.CreateAt < month
-                && (m.ClosedAt > month || m.ClosedAt == null))//??
-                .Select(m => new UserShortDto(m.User!))
-                .ToList();
-        }
+        //public async Task<List<UserShortDto>> GetGroupMembersAsync(long groupId, DateTime month)
+        //{
+        //    var members = await _groupDbService.GetGroupActiveMembersAsync(groupId);
+        //    return members.Where(m => m.User != null
+        //        && m.CreateAt < month
+        //        && (m.ClosedAt > month || m.ClosedAt == null))//??
+        //        .Select(m => new UserShortDto(m.User!))
+        //        .ToList();
+        //}
 
         public async Task<GroupDashboardDto> GetGroupDashboard(long groupId, DateTime date)
         {

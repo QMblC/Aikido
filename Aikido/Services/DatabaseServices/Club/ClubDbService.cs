@@ -1,5 +1,5 @@
 ﻿using Aikido.Data;
-using Aikido.Dto;
+using Aikido.Dto.Clubs;
 using Aikido.Entities;
 using Aikido.Entities.Clubs;
 using Aikido.Entities.Users;
@@ -64,7 +64,7 @@ namespace Aikido.Services.DatabaseServices.Club
                 .ToListAsync();
         }
 
-        public async Task<long> CreateAsync(ClubDto clubData)
+        public async Task<long> CreateAsync(IClubDto clubData)
         {
             var club = new ClubEntity(clubData);
             _context.Clubs.Add(club);
@@ -72,7 +72,7 @@ namespace Aikido.Services.DatabaseServices.Club
             return club.Id;
         }
 
-        public async Task UpdateAsync(long id, ClubDto clubData)
+        public async Task UpdateAsync(long id, IClubDto clubData)
         {
             var club = await GetByIdOrThrowException(id);
             club.UpdateFromJson(clubData);

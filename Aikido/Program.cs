@@ -1,6 +1,7 @@
 using Aikido.Application.Services;
 using Aikido.Configuration;
 using Aikido.Data;
+using Aikido.Hubs;
 using Aikido.Middleware;
 using Aikido.Services;
 using Aikido.Services.ApplicationServices;
@@ -10,6 +11,7 @@ using Aikido.Services.DatabaseServices.Group;
 using Aikido.Services.DatabaseServices.Seminar;
 using Aikido.Services.DatabaseServices.StatisticService;
 using Aikido.Services.DatabaseServices.User;
+using Aikido.Services.NotificationService;
 using Aikido.Services.UnitOfWork;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -131,6 +133,9 @@ builder.Services.AddScoped<IStatisticDbService, StatisticDbService>();
 builder.Services.AddScoped<StatisticApplicationService>();
 builder.Services.AddScoped<UserMembershipApplicationService>();
 builder.Services.AddScoped<IClubStaffDbService, ClubStaffDbService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+
+builder.Services.AddSignalR();
 
 
 
@@ -185,6 +190,8 @@ app.MapGet("/health", async (AppDbContext context) =>
         return Results.Problem($"Database connection failed: {ex.Message}");
     }
 });
+
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.UseCors("AllowAllOriginsWithCredentials");
 app.UseCookiePolicy();

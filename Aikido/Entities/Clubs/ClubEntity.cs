@@ -1,4 +1,4 @@
-﻿using Aikido.Dto;
+﻿using Aikido.Dto.Clubs;
 using Aikido.Entities.Users;
 using System.ComponentModel.DataAnnotations;
 
@@ -28,22 +28,17 @@ namespace Aikido.Entities.Clubs
 
         public ClubEntity() { }
 
-        public ClubEntity(ClubDto clubData)
+        public ClubEntity(IClubDto clubData)
         {
             UpdateFromJson(clubData);
         }
 
-        public void UpdateFromJson(ClubDto clubData)
+        public void UpdateFromJson(IClubDto clubData)
         {
             if (!string.IsNullOrEmpty(clubData.Name))
                 Name = clubData.Name;
             City = clubData.City;
             Address = clubData.Address;
-            PhoneNumber = clubData.PhoneNumber;
-            Email = clubData.Email;
-            Website = clubData.Website;
-            Description = clubData.Description;
-            FoundedDate = clubData.FoundedDate;
         }
     }
 }

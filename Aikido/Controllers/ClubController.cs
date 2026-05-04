@@ -1,6 +1,7 @@
 ﻿using Aikido.AdditionalData.Enums;
 using Aikido.Application.Services;
 using Aikido.Dto;
+using Aikido.Dto.Clubs;
 using Aikido.Dto.Groups;
 using Aikido.Dto.Users;
 using Aikido.Exceptions;
@@ -21,6 +22,12 @@ namespace Aikido.Controllers
             _clubApplicationService = clubApplicationService;
         }
 
+
+        /// <summary>
+        /// Получение информации о конкретном клубе
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("get/{id}")]
         public async Task<ActionResult<ClubDto>> GetClubById(long id)
         {
@@ -39,6 +46,11 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Поучение детальной информации о конкретном клубе
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("get/details/{id}")]
         public async Task<ActionResult<ClubDetailsDto>> GetClubDetails(long id)
         {
@@ -57,6 +69,10 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Получение всех активных клубов
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("get/all")]
         public async Task<ActionResult<List<ClubDto>>> GetAllClubs()
         {
@@ -71,6 +87,11 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Получение персонала клуба
+        /// </summary>
+        /// <param name="clubId"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Admin,Manager")]
         [HttpGet("get/{clubId}/staff")]
         public async Task<ActionResult<List<ClubStaffDto>>> GetClubStaff(long clubId)
@@ -94,6 +115,12 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Изменение состава персонала клуба
+        /// </summary>
+        /// <param name="clubId"></param>
+        /// <param name="userIds"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Admin,Manager")]
         [HttpPut("update/{clubId}/staff")]
         public async Task<IActionResult> UpdateClubStaff(long clubId, [FromBody] List<long> userIds)
@@ -116,7 +143,11 @@ namespace Aikido.Controllers
                 return StatusCode(500, new { Message = "Ошибка при получении участников клуба", Details = ex.Message });
             }
         }
-
+        /// <summary>
+        /// Получение активных участников клуба
+        /// </summary>
+        /// <param name="clubId"></param>
+        /// <returns></returns>
         [HttpGet("get/{clubId}/members")]
         public async Task<ActionResult<List<UserShortDto>>> GetClubMembers(long clubId)
         {
@@ -131,6 +162,11 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Получение активных групп клуба
+        /// </summary>
+        /// <param name="clubId"></param>
+        /// <returns></returns>
         [HttpGet("get/{clubId}/groups")]
         public async Task<ActionResult<List<GroupDto>>> GetClubGroups(long clubId)
         {
@@ -145,6 +181,12 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Получение всех активных клубов руководителя
+        /// </summary>
+        /// <param name="managerId"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "Admin,Manager")]
         [HttpGet("get/{managerId}/clubs")]
         public async Task<ActionResult<List<ClubDto>>> GetManagerClubs(long managerId)
         {
@@ -159,6 +201,11 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Получение активных групп указанных клубов
+        /// </summary>
+        /// <param name="clubIds"></param>
+        /// <returns></returns>
         [HttpGet("get/clubs/groups")]
         public async Task<ActionResult<List<GroupShortDto>>> GetClubsAllGroups([FromQuery] List<long> clubIds)
         {
@@ -181,8 +228,14 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Создание клуба
+        /// </summary>
+        /// <param name="clubData"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPost("create")]
-        public async Task<IActionResult> CreateClub([FromBody] ClubDto clubData)
+        public async Task<IActionResult> CreateClub([FromBody] ClubCreationDto clubData)
         {
             try
             {
@@ -195,8 +248,15 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Обновление информации о клубе
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="clubData"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateClub(long id, [FromBody] ClubDto clubData)
+        public async Task<IActionResult> UpdateClub(long id, [FromBody] ClubCreationDto clubData)
         {
             try
             {

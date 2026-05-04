@@ -1,4 +1,4 @@
-﻿using Aikido.Dto;
+﻿using Aikido.Dto.Clubs;
 using Aikido.Entities;
 using Aikido.Entities.Clubs;
 using Aikido.Entities.Users;
@@ -13,8 +13,8 @@ namespace Aikido.Services.DatabaseServices.Club
         Task<bool> ExistsActive(long id);
         Task<List<ClubEntity>> GetAllActiveAsync();
         Task<List<ClubEntity>> GetManagerClubs(long managerId);
-        Task<long> CreateAsync(ClubDto clubData);
-        Task UpdateAsync(long id, ClubDto clubData);
+        Task<long> CreateAsync(IClubDto clubData);
+        Task UpdateAsync(long id, IClubDto clubData);
         Task UpdateAsync(ClubEntity club);
         Task CloseAsync(long id);
         Task RecoverAsync(long id);
