@@ -70,6 +70,24 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Получение заархивированных групп
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("get/archived")]
+        public async Task<ActionResult<List<GroupShortDto>>> GetArchived()
+        {
+            try
+            {
+                var groups = await _groupApplicationService.GetAllArchivedGroupsAsync();
+                return Ok(groups);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при получении списка групп", Details = ex.Message });
+            }
+        }
+
         [HttpGet("get/by-user/{userId}")]
         public async Task<ActionResult<List<GroupDto>>> GetGroupsByUser(long userId)
         {

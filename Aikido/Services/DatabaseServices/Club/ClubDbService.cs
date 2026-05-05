@@ -64,6 +64,15 @@ namespace Aikido.Services.DatabaseServices.Club
                 .ToListAsync();
         }
 
+        public async Task<List<ClubEntity>> GetAllArchivedAsync()
+        {
+            return await _context.Clubs
+                .Include(c => c.Manager)
+                .Where(c => c.ClosedAt != null)
+                .OrderBy(c => c.Name)
+                .ToListAsync();
+        }
+
         public async Task<long> CreateAsync(IClubDto clubData)
         {
             var club = new ClubEntity(clubData);

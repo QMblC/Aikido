@@ -67,7 +67,15 @@ namespace Aikido.Application.Services
         public async Task<List<GroupDto>> GetAllGroupsAsync()
         {
             var groups = await _groupDbService.GetAllActiveAsync();
-            return groups.Select(g => new GroupDto(g)).ToList();
+            return groups.Select(g => new GroupDto(g))
+                .ToList();
+        }
+
+        public async Task<List<GroupShortDto>> GetAllArchivedGroupsAsync()
+        {
+            var groups = await _groupDbService.GetAllArchivedAsync();
+            return groups.Select(g => new GroupShortDto(g))
+                .ToList();
         }
 
         public async Task<List<GroupDto>> GetGroupsByUserAsync(long userId)

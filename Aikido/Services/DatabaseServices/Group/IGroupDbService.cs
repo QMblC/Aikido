@@ -11,6 +11,7 @@ namespace Aikido.Services.DatabaseServices.Group
         Task<GroupEntity> GetGroupByIdAsync(long id);
         Task<bool> ExistsActive(long id);
         Task<List<GroupEntity>> GetAllActiveAsync();
+        Task<List<GroupEntity>> GetAllArchivedAsync();
         Task<List<GroupEntity>> GetGroupsByClub(long clubId);
         Task<GroupEntity> CreateAsync(GroupCreationDto groupData);
         Task UpdateAsync(long id, GroupCreationDto groupData);

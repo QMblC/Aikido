@@ -88,6 +88,24 @@ namespace Aikido.Controllers
         }
 
         /// <summary>
+        /// Получение заархивированных клубов
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("get/archived")]
+        public async Task<ActionResult<List<ClubShortDto>>> GetArchivedClubs()
+        {
+            try
+            {
+                var clubs = await _clubApplicationService.GetArchivedClubsAsync();
+                return Ok(clubs);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при получении списка клубов.", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Получение персонала клуба
         /// </summary>
         /// <param name="clubId"></param>
