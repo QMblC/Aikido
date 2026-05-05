@@ -187,7 +187,7 @@ namespace Aikido.Application.Services
             }
             foreach (var payment in seminar.Payments.Where(p => p.Type == PaymentType.BudoPassport))
             {
-                await _userDbService.UpdateUserBudoPassport(payment.UserId, true);
+                await _userDbService.UpdateUserBudoPassport(payment.UserId, false);
             }
 
             await _notificationService.UserDataChanged(NotificationAction.Update);

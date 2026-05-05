@@ -96,7 +96,7 @@ namespace Aikido.Controllers
         /// Получение заархивированных пользователей
         /// </summary>
         /// <returns></returns>
-        [HttpGet("get/archived-users")]
+        [HttpGet("get/archived")]
         public async Task<ActionResult<List<UserShortDto>>> GetArchivedUsers()
         {
             try

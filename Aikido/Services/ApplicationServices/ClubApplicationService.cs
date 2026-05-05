@@ -53,6 +53,13 @@ namespace Aikido.Application.Services
             return clubs.Select(c => new ClubDto(c)).ToList();
         }
 
+        public async Task<List<ClubShortDto>> GetArchivedClubsAsync()
+        {
+            var clubs = await _clubDbService.GetAllArchivedAsync();
+            return clubs.Select(c => new ClubShortDto(c))
+                .ToList();
+        }
+
         public async Task<List<GroupDto>> GetClubGroups(long clubId)
         {
             var groups = await _clubDbService.GetClubGroupsAsync(clubId);

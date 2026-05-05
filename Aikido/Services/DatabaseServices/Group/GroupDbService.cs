@@ -70,6 +70,18 @@ namespace Aikido.Services.DatabaseServices.Group
                 .ToListAsync();
         }
 
+        public async Task<List<GroupEntity>> GetAllArchivedAsync()
+        {
+            return await _context.Groups
+                .Include(g => g.MainCoach)
+                .Include(g => g.Club)
+                .Include(g => g.Schedule)
+                .Include(g => g.ExclusionDates)
+                .Where(g => g.ClosedAt != null)
+                .OrderBy(g => g.Name)
+                .ToListAsync();
+        }
+
         public async Task<List<GroupEntity>> GetGroupsByClub(long clubId)
         {
             return await _context.Groups

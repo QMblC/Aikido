@@ -12,6 +12,7 @@ namespace Aikido.Services.DatabaseServices.Club
         Task<ClubEntity> GetClubById(long id);
         Task<bool> ExistsActive(long id);
         Task<List<ClubEntity>> GetAllActiveAsync();
+        Task<List<ClubEntity>> GetAllArchivedAsync();
         Task<List<ClubEntity>> GetManagerClubs(long managerId);
         Task<long> CreateAsync(IClubDto clubData);
         Task UpdateAsync(long id, IClubDto clubData);
