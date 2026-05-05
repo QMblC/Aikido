@@ -210,7 +210,7 @@ namespace Aikido.Services.DatabaseServices.Seminar
         public async Task DeleteSeminarRegulationAsync(long seminarId)
         {
             var seminar = _context.Seminars.Find(seminarId);
-            var regulation = _context.SeminarRegulation.FirstOrDefaultAsync(r => r.SeminarId == seminarId);
+            var regulation = await _context.SeminarRegulation.FirstOrDefaultAsync(r => r.SeminarId == seminarId);
 
             if (seminar == null)
             {

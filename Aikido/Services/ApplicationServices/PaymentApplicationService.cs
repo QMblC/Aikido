@@ -7,9 +7,9 @@ namespace Aikido.Application.Services
 {
     public class PaymentApplicationService
     {
-        private readonly PaymentService _paymentService;
+        private readonly PaymentDbService _paymentService;
 
-        public PaymentApplicationService(PaymentService paymentService)
+        public PaymentApplicationService(PaymentDbService paymentService)
         {
             _paymentService = paymentService;
         }

@@ -31,7 +31,7 @@ namespace Aikido.Application.Services
         private readonly IUserDbService _userDbService;
         private readonly IUserMembershipDbService _userMembershipDbService;
         private readonly IGroupDbService _groupDbService;
-        private readonly PaymentService _paymentDbService;
+        private readonly PaymentDbService _paymentDbService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly INotificationService _notificationService;
 
@@ -40,7 +40,7 @@ namespace Aikido.Application.Services
             IUserDbService userDbService,
             IUserMembershipDbService userMembershipDbService,
             IGroupDbService groupDbService,
-            PaymentService paymentDbService,
+            PaymentDbService paymentDbService,
             IUnitOfWork unitOfWork,
             INotificationService notificationService)
         {

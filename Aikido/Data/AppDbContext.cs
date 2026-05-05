@@ -39,6 +39,8 @@ namespace Aikido.Data
         public DbSet<RefreshTokenEntity> RefreshTokens { get; set; }
         public DbSet<SeminarMemberCoachRequestEntity> SeminarMemberCoachRequests { get; set; }
 
+        public DbSet<FormerCertificationEntity> FormerCertifications { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -223,6 +225,8 @@ namespace Aikido.Data
             ConfigureScheduleEntity(modelBuilder);
             ConfigureExclusionDateEntity(modelBuilder);
             ConfigureStatementEntity(modelBuilder);
+
+            ConfigureFormerCertificationEntity(modelBuilder);
         }
 
 
@@ -576,6 +580,22 @@ namespace Aikido.Data
                 entity.HasIndex(e => e.CreatedDate);
                 entity.HasIndex(e => e.Status);
                 entity.HasIndex(e => e.Type);
+            });
+        }
+
+        private void ConfigureFormerCertificationEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<FormerCertificationEntity>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.HasOne(fc => fc.User)
+                    .WithMany(u => u.FormerCertifications)
+                    .HasForeignKey(fc => fc.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(e => e.UserId);
+                entity.HasIndex(e => e.Date);
             });
         }
     }

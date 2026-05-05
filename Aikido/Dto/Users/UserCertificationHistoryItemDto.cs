@@ -1,4 +1,6 @@
-﻿using Aikido.Entities.Seminar.SeminarMember;
+﻿using Aikido.Dto.FormerCertifications;
+using Aikido.Entities;
+using Aikido.Entities.Seminar.SeminarMember;
 
 namespace Aikido.Dto.Users
 {
@@ -6,7 +8,7 @@ namespace Aikido.Dto.Users
     {
         public string Grade { get; set; }
         public DateTime Date { get; set; }
-        public string SeminarName { get; set; }
+        public string? SeminarName { get; set; }
 
         public UserCertificationHistoryItemDto() { }
 
@@ -20,6 +22,12 @@ namespace Aikido.Dto.Users
             Date = member.Seminar.Date;
             SeminarName = member.Seminar.Name;
                 
+        }
+
+        public UserCertificationHistoryItemDto(FormerCertificationEntity certification)
+        {
+            Grade = EnumParser.ConvertEnumToString(certification.CertificationGrade);
+            Date = certification.Date;
         }
     }
 }

@@ -5,7 +5,9 @@ using Aikido.Services.DatabaseServices.Seminar;
 using Aikido.Services.DatabaseServices.StatisticService;
 using DocumentFormat.OpenXml.Bibliography;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Aikido.Services.ApplicationServices
 {
@@ -163,7 +165,7 @@ namespace Aikido.Services.ApplicationServices
                 metrics.Add(new StatisticMetricDto(
                     retention,
                     diff,
-                    date.ToString()
+                    date.ToString("dd.MM.yyyy H:mm:ss", CultureInfo.GetCultureInfo("ru-RU"))
                 ));
 
                 prevRetention = retention;
@@ -449,7 +451,7 @@ namespace Aikido.Services.ApplicationServices
                 stat[new DateTime(year, 1, 1, 0, 0, 0, DateTimeKind.Utc)],
                 stat[new DateTime(year, 1, 1, 0, 0, 0, DateTimeKind.Utc)]
                 - stat[new DateTime(year - 1, 12, 1, 0, 0, 0, DateTimeKind.Utc)],
-                new DateTime(year, 1, 1, 0, 0, 0, DateTimeKind.Utc).ToString()));
+                new DateTime(year, 1, 1, 0, 0, 0, DateTimeKind.Utc).ToString("dd.MM.yyyy H:mm:ss", CultureInfo.GetCultureInfo("ru-RU"))));
 
             if (endMonth < 2)
             {
@@ -462,7 +464,7 @@ namespace Aikido.Services.ApplicationServices
                     stat[new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc)],
                     stat[new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc)]
                     - stat[new DateTime(year, month - 1, 1, 0, 0, 0, DateTimeKind.Utc)],
-                    new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc).ToString()));
+                    new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc).ToString("dd.MM.yyyy H:mm:ss", CultureInfo.GetCultureInfo("ru-RU"))));
             }
 
             return metrics;

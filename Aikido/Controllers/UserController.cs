@@ -1,6 +1,7 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.AdditionalData.Enums;
 using Aikido.Application.Services;
+using Aikido.Dto.FormerCertifications;
 using Aikido.Dto.Users;
 using Aikido.Dto.Users.Creation;
 using Aikido.Entities.Filters;
@@ -37,7 +38,6 @@ namespace Aikido.Controllers
             _unitOfWork = unitOfWork;
         }
 
-        [Authorize(Roles = "Admin,Manager,Coach,User")]
         [HttpGet("get/{id}")]
         public async Task<ActionResult<UserDto>> GetUserDataById(long id)
         {
@@ -147,7 +147,7 @@ namespace Aikido.Controllers
             [FromQuery] UserFilter filter)
         {
             var role = User.FindFirst(ClaimTypes.Role)?.Value;
-            var requestedById = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var requestedById = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
 
             try
             {
@@ -444,12 +444,63 @@ namespace Aikido.Controllers
         /// <returns></returns>
         [Authorize(Roles = "Admin,Manager,Coach,User")]
         [HttpGet("get/{id}/certification-history")]
-        public async Task<ActionResult<List<UserSeminarHistoryItemDto>>> GetUserCertificationHistoryById(long id)
+        public async Task<ActionResult<List<UserCertificationHistoryItemDto>>> GetUserCertificationHistoryById(long id)
         {
             try
             {
                 var history = await _userApplicationService.GetUserCertificationHistory(id);
                 return Ok(history);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpPut("update/{id}/certification-history")]
+        public async Task<IActionResult> UpdateUserFormerCertification(long id, [FromBody] List<FormerCertificationCreationDto> certifications)
+        {
+            try
+            {
+                await _userApplicationService.UpdateUserFormerCertifications(id, certifications);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Список оплат годовых взносов
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "Admin,Manager,Coach,User")]
+        [HttpGet("get/{id}/annual-fee")]
+        public async Task<ActionResult<List<int>>> GetUserAnnualFeesById(long id)
+        {
+            try
+            {
+                var years = await _userApplicationService.GetUserAnnualFees(id);
+                return Ok(years);
             }
             catch (KeyNotFoundException ex)
             {

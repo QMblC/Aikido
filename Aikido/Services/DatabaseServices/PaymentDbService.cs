@@ -10,11 +10,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Aikido.Services
 {
-    public class PaymentService
+    public class PaymentDbService
     {
         private readonly AppDbContext _context;
 
-        public PaymentService(AppDbContext context)
+        public PaymentDbService(AppDbContext context)
         {
             _context = context;
         }

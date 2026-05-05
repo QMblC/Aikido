@@ -1,4 +1,5 @@
 ﻿using Aikido.AdditionalData.Enums;
+using Aikido.Dto.FormerCertifications;
 using Aikido.Dto.Users;
 using Aikido.Dto.Users.Creation;
 using Aikido.Entities;
@@ -31,5 +32,9 @@ namespace Aikido.Services.DatabaseServices.User
         Task UpdateUserBudoPassport(long userId, bool value);
         Task<List<UserEntity>> FindClubMemberByName(long clubId, string name);
         Task<List<UserEntity>> FindCoachMemberInClubByName(long clubId, long coachId, string name);
+
+        Task<List<FormerCertificationEntity>> GetUserFormerCertifications(long userId);
+        Task CreateFormerCertification(long userId, List<FormerCertificationCreationDto> certifications);
+        Task DeleteFormerCertification(long userId);
     }
 }

@@ -45,7 +45,7 @@ namespace Aikido.Entities
         public DateTime CreatedAt { get; set; }
         public DateTime? ClosedAt { get; set; }
 
-
+        public virtual ICollection<FormerCertificationEntity> FormerCertifications { get; set; } = new List<FormerCertificationEntity>();
         public virtual ICollection<SeminarMemberEntity> Certifications { get; set; } = new List<SeminarMemberEntity>();
         public virtual ICollection<PaymentEntity> Payments { get; set; } = new List<PaymentEntity>();
         public virtual ICollection<UserMembershipEntity> UserMemberships { get; set; } = new List<UserMembershipEntity>();
