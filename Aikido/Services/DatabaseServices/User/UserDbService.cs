@@ -1,5 +1,6 @@
 ﻿using Aikido.AdditionalData.Enums;
 using Aikido.Data;
+using Aikido.Dto.FormerCertifications;
 using Aikido.Dto.Users;
 using Aikido.Dto.Users.Creation;
 using Aikido.Entities;
@@ -301,6 +302,42 @@ namespace Aikido.Services.DatabaseServices.User
             }
 
             return await query.ToListAsync();
+        }
+
+        public async Task<List<FormerCertificationEntity>> GetUserFormerCertifications(long userId)
+        {
+            var formerCertifications = await _context.FormerCertifications
+                .Where(fc => fc.UserId == userId)
+                .ToListAsync();
+
+            return formerCertifications;
+        }
+
+        public async Task CreateFormerCertification(long userId, List<FormerCertificationCreationDto> certifications)
+        {
+            var list = new List<FormerCertificationEntity>();
+
+            foreach (var certification in certifications)
+            {
+                list.Add(new(userId, certification));
+            }
+
+            await _context.FormerCertifications.AddRangeAsync(list);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteFormerCertification(long userId)
+        {
+            var list = new List<FormerCertificationEntity>();
+            var certifications = _context.FormerCertifications.Where(fc => fc.UserId == userId);
+
+            foreach (var certification in certifications)
+            {
+                list.Add(certification);
+            }
+
+            _context.FormerCertifications.RemoveRange(list);
+            await _context.SaveChangesAsync();
         }
     }
 }

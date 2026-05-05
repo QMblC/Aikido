@@ -20,14 +20,14 @@ namespace Aikido.Application.Services
     {
         private readonly SeminarCoachEditRequestDbService _requestDbService;
         private readonly ISeminarDbService _seminarDbService;
-        private readonly PaymentService _paymentDbService;
+        private readonly PaymentDbService _paymentDbService;
         private readonly IClubDbService _clubDbService;
         private readonly INotificationService _notificationService;
 
         public SeminarCoachEditRequestAppService(
             SeminarCoachEditRequestDbService requestDbService,
             ISeminarDbService seminarDbService,
-            PaymentService paymentService,
+            PaymentDbService paymentService,
             IClubDbService clubDbService,
             INotificationService notificationService
             )

@@ -1,5 +1,6 @@
 ﻿using Aikido.AdditionalData;
 using Aikido.AdditionalData.Enums;
+using Aikido.Dto.FormerCertifications;
 using Aikido.Dto.Seminars;
 using Aikido.Dto.Users;
 using Aikido.Dto.Users.Creation;
@@ -7,6 +8,7 @@ using Aikido.Entities;
 using Aikido.Entities.Filters;
 using Aikido.Entities.Users;
 using Aikido.Exceptions;
+using Aikido.Services;
 using Aikido.Services.ApplicationServices;
 using Aikido.Services.DatabaseServices.Club;
 using Aikido.Services.DatabaseServices.Group;
@@ -29,6 +31,7 @@ namespace Aikido.Application.Services
         private readonly ISeminarDbService _seminarDbService;
         private readonly IClubStaffDbService _clubStaffDbService;
         private readonly INotificationService _notificationService;
+        private readonly PaymentDbService _paymentDbService;
 
         public UserApplicationService(
             IUserDbService userDbService,
@@ -39,7 +42,8 @@ namespace Aikido.Application.Services
             IUnitOfWork unitOfWork,
             ISeminarDbService seminarDbService,
             IClubStaffDbService clubStaffDbService,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            PaymentDbService paymentDbService)
         {
             _userDbService = userDbService;
             _userMembershipDbService = userMembershipDbService;
@@ -50,6 +54,7 @@ namespace Aikido.Application.Services
             _seminarDbService = seminarDbService;
             _clubStaffDbService = clubStaffDbService;
             _notificationService = notificationService;
+            _paymentDbService = paymentDbService;
         }
 
         public async Task<UserDto> GetUserByIdAsync(long id)
@@ -288,9 +293,34 @@ namespace Aikido.Application.Services
 
         public async Task<List<UserCertificationHistoryItemDto>> GetUserCertificationHistory(long userId)
         {
+            var formerCertifications = await _userDbService.GetUserFormerCertifications(userId);
             var members = await _seminarDbService.GetUserCertificationHistory(userId);
 
-            return members.Select(sm => new UserCertificationHistoryItemDto(sm)).ToList();
+            var finalCertifications = formerCertifications.Select(fc => new UserCertificationHistoryItemDto(fc))
+                .Union(members
+                .Select(sm => new UserCertificationHistoryItemDto(sm)))
+                .OrderBy(c => c.Date)
+                .ToList();
+
+            return finalCertifications;
+        }
+
+        public async Task UpdateUserFormerCertifications(long userId, List<FormerCertificationCreationDto> certifications)
+        {
+            var formerCertifications = await _userDbService.GetUserFormerCertifications(userId);
+            await _userDbService.DeleteFormerCertification(userId);
+            await _userDbService.CreateFormerCertification(userId, certifications);
+        }
+
+        public async Task<List<int>> GetUserAnnualFees(long userId)
+        {
+            var payments = await _paymentDbService.GetPaymentsByUser(userId);
+
+            return payments.Where(p => p.Status == PaymentStatus.Completed
+                && p.Type == PaymentType.AnnualFee)
+                .Select(p => p.Date.Year)
+                .Distinct()
+                .ToList();
         }
 
         private async Task EnsureUserCreateable(UserCreationDto user)

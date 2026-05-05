@@ -17,6 +17,7 @@ using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -594,7 +595,8 @@ namespace Aikido.Controllers
                     return NotFound($"Не найдены участники клуба с Id = {clubId}");
                 }
 
-                var stream = _tableService.CreateSeminarMembersTable(members.Cast<ISeminarMemberDataDto>().ToList());
+                var seminar = await _seminarApplicationService.GetSeminarByIdAsync(seminarId);
+                var stream = _tableService.CreateSeminarMembersTable(seminar, members.Cast<ISeminarMemberDataDto>().ToList());
                 return File(stream,
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     $"Members.xlsx");
@@ -625,7 +627,8 @@ namespace Aikido.Controllers
                     return NotFound($"Не найдены участники руководителя с Id = {managerId}");
                 }
 
-                var stream = _tableService.CreateSeminarMembersTable(members.Cast<ISeminarMemberDataDto>().ToList());
+                var seminar = await _seminarApplicationService.GetSeminarByIdAsync(seminarId);
+                var stream = _tableService.CreateSeminarMembersTable(seminar, members.Cast<ISeminarMemberDataDto>().ToList());
                 return File(stream,
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     $"Members.xlsx");
@@ -654,7 +657,8 @@ namespace Aikido.Controllers
                     return NotFound($"Не найдены участники");
                 }
 
-                var stream = _tableService.CreateSeminarMembersTable(members.Cast<ISeminarMemberDataDto>().ToList());
+                var seminar = await _seminarApplicationService.GetSeminarByIdAsync(seminarId);
+                var stream = _tableService.CreateSeminarMembersTable(seminar, members.Cast<ISeminarMemberDataDto>().ToList());
                 return File(stream,
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     $"Members.xlsx");
@@ -666,7 +670,7 @@ namespace Aikido.Controllers
         }
 
         /// <summary>
-        /// Загрузка итоговой ведомости
+        /// Получение итоговой ведомости в виде Excel таблицы
         /// </summary>
         /// <param name="seminarId"></param>
         /// <returns></returns>
@@ -682,7 +686,8 @@ namespace Aikido.Controllers
                     return StatusCode(404, new { Message = "Не удалось найти участников" });
                 }
 
-                var stream = _tableService.CreateSeminarMembersTable(members.Cast<ISeminarMemberDataDto>().ToList());
+                var seminar = await _seminarApplicationService.GetSeminarByIdAsync(seminarId);
+                var stream = _tableService.CreateSeminarMembersTable(seminar, members.Cast<ISeminarMemberDataDto>().ToList());
                 return File(stream,
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     $"Members.xlsx");
@@ -699,9 +704,12 @@ namespace Aikido.Controllers
         /// <param name="seminarId"></param>
         /// <param name="tableFile"></param>
         /// <returns></returns>
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPost("{seminarId}/final-statement/table")]
         public async Task<IActionResult> SetFinalStatement(long seminarId, [FromForm] TableFileRequest tableFile)
         {
+            var id = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
             try
             {
                 var file = tableFile.Table;
@@ -712,28 +720,13 @@ namespace Aikido.Controllers
                 using (var stream = new MemoryStream())
                 {
                     await file.CopyToAsync(stream);
-                    var partialMembers = _tableService.ParseSeminarMembersTable(stream);
+                    var members = _tableService.ParseSeminarMembersTable(stream);
 
-                    var fullCreationDataTasks = partialMembers.Select(async m =>
-                    {
-                        //var creationMember = new FinalSeminarMemberDto()
-                        //{
-                        //    UserId = m.UserId,
-                        //    Status = m.CertificationGrade != null
-                        //    ? EnumParser.ConvertEnumToString(SeminarMemberStatus.Certified)
-                        //    : EnumParser.ConvertEnumToString(SeminarMemberStatus.Training),
-                        //    CertificationGrade = m.CertificationGrade,
-                        //    SeminarPriceInRubles = m.SeminarPriceInRubles,
-                        //    BudoPassportPriceInRubles = m.BudoPassportPriceInRubles,
-                        //    AnnualFeePriceInRubles = m.AnnualFeePriceInRubles,
-                        //    CertificationPriceInRubles = m.CertificationPriceInRubles
-
-                        //};
-                        //return creationMember;
+                    await _seminarApplicationService.SaveSeminarMembers(seminarId, new SeminarMemberListDto() 
+                    { 
+                        CreatorId = id,
+                        Members = members
                     });
-
-                    //var members = await Task.WhenAll(fullCreationDataTasks);
-                    //await _seminarApplicationService.SaveSeminarMembers(seminarId, members.ToList());
                 }
                 return Ok();
             }
@@ -742,7 +735,6 @@ namespace Aikido.Controllers
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
         }
-
 
         #endregion
 

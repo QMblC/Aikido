@@ -108,7 +108,7 @@ builder.Services.AddScoped<IGroupDbService, GroupDbService>();
 builder.Services.AddScoped<ISeminarDbService, SeminarDbService>();
 
 builder.Services.AddScoped<AttendanceDbService>();
-builder.Services.AddScoped<PaymentService>();
+builder.Services.AddScoped<PaymentDbService>();
 builder.Services.AddScoped<ScheduleDbService>();
 
 builder.Services.AddScoped<EventService>();
