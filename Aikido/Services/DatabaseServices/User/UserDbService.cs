@@ -191,16 +191,15 @@ namespace Aikido.Services.DatabaseServices.User
             _context.Users.Update(user);
         }
 
-        public async Task UpdateUsers(List<UserDto> users)
+        public async Task UpdateUsers(List<(long Id, UserCreationDto Data)> users)
         {
-            foreach (var userData in users)
+            foreach (var user in users)
             {
-                if (userData.Id.HasValue)
-                {
-                    var user = await GetByIdOrThrowException(userData.Id.Value);
-                    user.Update(userData);
-                }
+                var userEntity = await GetByIdOrThrowException(user.Id);
+                userEntity.UpdateFromTableData(user.Data);
             }
+
+            await _context.SaveChangesAsync();
         }
 
         public async Task CloseAsync(long id)

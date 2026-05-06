@@ -192,8 +192,6 @@ namespace Aikido.Application.Services
 
         public async Task DeleteGroupAsync(long id)
         {
-            await EnsureGroupExists(id);
-
             await _groupDbService.RemoveAllMembersFromGroupAsync(id);
             await _groupDbService.DeleteAsync(id);
             await _notificationService.GroupDataChanged(NotificationAction.Delete, id);

@@ -229,6 +229,12 @@ namespace Aikido.Application.Services
             await _notificationService.UserDataChanged(NotificationAction.Update, userId);
         }
 
+        public async Task UpdateUsers(List<(long Id, UserCreationDto Data)> users)
+        {
+            await _userDbService.UpdateUsers(users);
+            await _notificationService.UserDataChanged(NotificationAction.Update);
+        }
+
         public async Task CloseUserAsync(long id)
         {
             var user = await _userDbService.GetByIdOrThrowException(id);

@@ -10,6 +10,7 @@ namespace Aikido.Services.DatabaseServices.Group
         Task<GroupEntity> GetByIdOrThrowException(long id, bool IsLater = true);
         Task<GroupEntity> GetGroupByIdAsync(long id);
         Task<bool> ExistsActive(long id);
+        Task<bool> Exists(long id);
         Task<List<GroupEntity>> GetAllActiveAsync();
         Task<List<GroupEntity>> GetAllArchivedAsync();
         Task<List<GroupEntity>> GetGroupsByClub(long clubId);

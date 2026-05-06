@@ -2,7 +2,7 @@
 
 namespace Aikido.Dto.Clubs
 {
-    public class ClubShortDto : IClubDto
+    public class ClubShortDto : DtoBase, IClubDto
     {
         public string Name { get; set; }
         public string City { get; set; }
@@ -17,6 +17,7 @@ namespace Aikido.Dto.Clubs
 
         public ClubShortDto(ClubEntity club)
         {
+            Id = club.Id;
             Name = club.Name;
             City = club.City;
             Address = club.Address;
