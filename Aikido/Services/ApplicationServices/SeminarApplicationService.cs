@@ -22,6 +22,7 @@ using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Aikido.Application.Services
 {
@@ -340,6 +341,8 @@ namespace Aikido.Application.Services
         {
             EnsureMembersUnique(request.Members);
 
+            request.Members = await FillMemberFields(seminarId, request.Members);
+
             await _seminarDbService.CreateSeminarMembers(seminarId, request);
             foreach (var member in request.Members)
             {
@@ -417,6 +420,28 @@ namespace Aikido.Application.Services
             {
                 throw new InvalidOperationException("Пользователь уже заявлен для участия");
             }
+        }
+
+        private async Task<List<SeminarMemberCreationDto>> FillMemberFields(long seminarId, List<SeminarMemberCreationDto> members)
+        {
+            List<SeminarMemberCreationDto> newMembersList = new();
+            newMembersList.AddRange(members);
+
+            foreach (var member in newMembersList)
+            {
+                var memberNewInfo = await GetNewSeminarMember(seminarId, member.UserId);
+
+                if (member.GroupId == null)
+                {
+                    member.GroupId = memberNewInfo.GroupId;
+                }
+                if (member.CoachId == null)
+                {
+                    member.CoachId = memberNewInfo.CoachId;
+                }
+            }
+
+            return newMembersList;
         }
 
         private void EnsureMembersUnique(IEnumerable<ISeminarMemberCreation> members)

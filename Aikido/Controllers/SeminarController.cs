@@ -730,6 +730,10 @@ namespace Aikido.Controllers
                 }
                 return Ok();
             }
+            catch (InvalidDataException ex)
+            {
+                return StatusCode(400, new { Message = "Неправильные данные", Details = ex.Message });
+            }
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
