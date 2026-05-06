@@ -55,6 +55,12 @@ namespace Aikido.Services.DatabaseServices.Group
                 && g.ClosedAt == null);
         }
 
+        public async Task<bool> Exists(long id)
+        {
+            return await _context.Groups
+                .AnyAsync(g => g.Id == id);
+        }
+
         public async Task<List<GroupEntity>> GetAllActiveAsync()
         {
             return await _context.Groups

@@ -155,11 +155,6 @@ namespace Aikido.Application.Services
 
         public async Task DeleteClubAsync(long id)
         {
-            if (!await _clubDbService.ExistsActive(id))
-            {
-                throw new EntityNotFoundException($"Клуб с Id = {id} не найден");
-            }
-
             await _clubDbService.RemoveAllMembersFromClubAsync(id);
             var club = await _clubDbService.GetClubById(id);
             if (club.ManagerId != null)

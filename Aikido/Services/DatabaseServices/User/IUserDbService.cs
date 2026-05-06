@@ -21,7 +21,7 @@ namespace Aikido.Services.DatabaseServices.User
         Task<List<UserEntity>> CreateUsers(List<UserCreationDto> users);
         Task UpdateUser(UserEntity user);
         Task UpdateUser(long id, UserCreationDto userData);
-        Task UpdateUsers(List<UserDto> users);
+        Task UpdateUsers(List<(long Id, UserCreationDto Data)> users);
         Task CloseAsync(long id);
         Task RecoverAsync(long id);
         Task Delete(long id);

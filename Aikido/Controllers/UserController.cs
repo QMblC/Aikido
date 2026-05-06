@@ -10,6 +10,7 @@ using Aikido.Requests;
 using Aikido.Services;
 using Aikido.Services.ApplicationServices;
 using Aikido.Services.UnitOfWork;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -240,14 +241,34 @@ namespace Aikido.Controllers
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
         }
-
+        [Authorize(Roles = "Admin,Manager")]
         [HttpGet("get/table")]
         public async Task<IActionResult> ExportUsers()
         {
-            var stream = await _tableService.ExportUsersToExcelAsync();
-            return File(stream,
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                "База пользователей.xlsx");
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+            var requestedById = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+            try
+            {
+                UsersDataDto? result;
+                if (role == EnumParser.ConvertEnumToString(Role.Admin))
+                {
+                    result = await _userApplicationService.GetActiveUserShortListCutDataAsync(0, int.MaxValue, new());
+                }
+                else
+                {
+                    result = await _userApplicationService.GetActiveUserShortListCutDataAsync(0, int.MaxValue, new(), requestedById);
+                }
+
+                var stream = _tableService.ExportUsersToExcel(result.Users);
+                return File(stream,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "База пользователей.xlsx");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Ошибка при получении списка пользователей. {ex.Message}");
+            }
         }
 
         [HttpPost("create")]
@@ -350,28 +371,12 @@ namespace Aikido.Controllers
             }
         }
 
-        [HttpGet("get/table-template-for-update")]
-        public async Task<IActionResult> GetUserUpdateTemplate()
-        {
-            try
-            {
-                var stream = await _tableService.GenerateUserUpdateTemplateExcelAsync();
-                return File(stream,
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    "Шаблон пользователей.xlsx");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Ошибка при создании шаблона.", Details = ex.Message });
-            }
-        }
-
         [HttpGet("get/table-template-for-create")]
         public async Task<IActionResult> GetUserCreateTemplate()
         {
             try
             {
-                var stream = await _tableService.GenerateUserCreateTemplateExcelAsync();
+                var stream = _tableService.GenerateUserCreateTemplateExcelAsync();
                 return File(stream,
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     "Шаблон пользователей.xlsx");
@@ -382,8 +387,9 @@ namespace Aikido.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPost("create/table")]
-        public async Task<IActionResult> SetFinalStatement([FromForm] TableFileRequest tableFile)
+        public async Task<IActionResult> CreateUsersByTable([FromForm] TableFileRequest tableFile)
         {
             try
             {
@@ -400,8 +406,33 @@ namespace Aikido.Controllers
                     {
                         await _userApplicationService.CreateUserAsync(member);
                     }
-                    return Ok();
+                    return NoContent();
                 }   
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при создании пользователей.", Details = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpPut("update/table")]
+        public async Task<IActionResult> UpdateUsersByTable([FromForm] TableFileRequest tableFile)
+        {
+            try
+            {
+                var file = tableFile.Table;
+
+                if (file == null || file.Length == 0)
+                    return BadRequest("Файл Excel не найден или пустой!");
+
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    var partialMembers = _tableService.ParseUserUpdateTable(stream);
+                    await _userApplicationService.UpdateUsers(partialMembers);
+                    return NoContent();
+                }
             }
             catch (Exception ex)
             {

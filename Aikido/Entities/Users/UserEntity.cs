@@ -106,6 +106,23 @@ namespace Aikido.Entities
                 RegistrationDate = DateTime.UtcNow;
         }
 
+        public void UpdateFromTableData(UserCreationDto userNewData)
+        {
+            Role = EnumParser.ConvertStringToEnum<Role>(userNewData.Role);
+            Login = userNewData.Login;
+            if (!string.IsNullOrEmpty(userNewData.Password))
+                Password = BCrypt.Net.BCrypt.HashPassword(userNewData.Password);
+            LastName = userNewData.LastName;
+            FirstName = userNewData.FirstName;
+            MiddleName = userNewData.MiddleName;
+            PhoneNumber = userNewData.PhoneNumber;
+            Grade = EnumParser.ConvertStringToEnum<Grade>(userNewData.Grade);
+            if (userNewData.Birthday != null)
+                Birthday = DateTime.SpecifyKind(userNewData.Birthday.Value, DateTimeKind.Utc);
+            else
+                Birthday = null;
+        }
+
         public bool Equals(UserEntity? other)
         {
             if (other == null)
