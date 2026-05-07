@@ -14,7 +14,7 @@ namespace Aikido.Dto.Users
 
         public string? MiddleName { get; set; }
 
-        public bool IsPhotoSaved { get; set } = false;
+        public bool IsPhotoSaved { get; set; } = false;
 
         public new string FullName => $"{LastName} {FirstName} {MiddleName}";
         public string? Sex { get; set; }
