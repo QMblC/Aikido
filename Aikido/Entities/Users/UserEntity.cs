@@ -25,6 +25,7 @@ namespace Aikido.Entities
 
         public Sex Sex { get; set; }
         public byte[] Photo { get; set; } = [];
+        public bool IsPhotoSaved { get; set; } = false;
         public string? PhoneNumber { get; set; }
         public DateTime? Birthday { get; set; }
         public Grade Grade { get; set; } = Grade.None;

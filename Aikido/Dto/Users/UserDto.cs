@@ -14,6 +14,8 @@ namespace Aikido.Dto.Users
 
         public string? MiddleName { get; set; }
 
+        public bool IsPhotoSaved { get; set } = false;
+
         public new string FullName => $"{LastName} {FirstName} {MiddleName}";
         public string? Sex { get; set; }
         public string? PhoneNumber { get; set; }
@@ -65,7 +67,9 @@ namespace Aikido.Dto.Users
                 MainUserMembershipAsUserId = user.MainUserMembershipAsUserId;
                 MainClubAsUserId = user.MainUserMembershipAsUser.ClubId;
                 MainGroupAsUserId = user.MainUserMembershipAsUser.GroupId;
-            }         
+            }
+
+            IsPhotoSaved = user.IsPhotoSaved;
         }
 
         public UserDto(UserEntity user, List<UserMembershipEntity> userMemberships) : this(user)

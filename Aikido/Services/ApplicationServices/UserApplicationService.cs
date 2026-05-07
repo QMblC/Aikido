@@ -266,9 +266,16 @@ namespace Aikido.Application.Services
             await _fileStorageService.SaveFileAsync(
                 outputStream,
                 filePath);
+
+            var user = await _userDbService.GetByIdOrThrowException(id);
+            user.IsPhotoSaved = true;
+            await _userDbService.UpdateUser(user);
+            await _unitOfWork.SaveChangesAsync();
+
+            await _notificationService.UserDataChanged(NotificationAction.Update, id);
         }
 
-        public void DeleteUserPhoto(long id)
+        public async Task DeleteUserPhoto(long id)
         {
             var relativePath = $"users/{id}/photo.png";
 
@@ -276,6 +283,12 @@ namespace Aikido.Application.Services
             {
                 _fileStorageService.DeleteFile(relativePath);
             }
+            var user = await _userDbService.GetByIdOrThrowException(id);
+            user.IsPhotoSaved = false;
+            await _userDbService.UpdateUser(user);
+            await _unitOfWork.SaveChangesAsync();
+
+            await _notificationService.UserDataChanged(NotificationAction.Update, id);
         }
 
         public async Task UpdateUsers(List<(long Id, UserCreationDto Data)> users)
