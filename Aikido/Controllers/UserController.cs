@@ -336,7 +336,7 @@ namespace Aikido.Controllers
         {
             try
             {
-                await _userApplicationService.DeleteUserAsync(id);
+                await _userApplicationService.DeleteUserPhoto(id);
                 return NoContent();
             }
             catch (InvalidOperationException ex)
