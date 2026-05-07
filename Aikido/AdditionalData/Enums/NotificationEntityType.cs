@@ -9,6 +9,6 @@
         Seminar,
         SeminarManagerMembers,
         SeminarCoachMembers,
-        SeminarMembers
+        SeminarMembers,
     }
 }

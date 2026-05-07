@@ -79,6 +79,7 @@ namespace Aikido.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin,Manager,Coach")]
         [HttpGet("get/short-list")]
         public async Task<ActionResult<List<UserShortDto>>> GetUserShortList()
         {
@@ -111,7 +112,7 @@ namespace Aikido.Controllers
             }
         }
 
-
+        [Authorize(Roles = "Admin,Manager,Coach")]
         [HttpGet("find")]
         public async Task<ActionResult<UserShortDto>> FindUsers([FromQuery] UserFilter filter)
         {
@@ -126,6 +127,7 @@ namespace Aikido.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin,Manager,Coach")]
         [HttpGet("get-coach/{coachId}/students")]
         public async Task<ActionResult<UserShortDto>> FindCoachStudentsByName(long coachId, [FromQuery] string name)
         {
@@ -192,6 +194,7 @@ namespace Aikido.Controllers
         /// <param name="userId"></param>
         /// <param name="userMembership"></param>
         /// <returns></returns>
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPost("{userId}/add/membership")]
         public async Task<IActionResult> AddUserMembership(long userId, [FromBody] UserMembershipCreationDto userMembership)
         {
@@ -220,6 +223,7 @@ namespace Aikido.Controllers
         /// <param name="userId"></param>
         /// <param name="groupId"></param>
         /// <returns></returns>
+        [Authorize(Roles = "Admin,Manager")]
         [HttpDelete("{userId}/groups/{groupId}")]
         public async Task<IActionResult> RemoveUserFromGroup(long userId, long groupId)
         {
@@ -241,6 +245,7 @@ namespace Aikido.Controllers
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
         }
+
         [Authorize(Roles = "Admin,Manager")]
         [HttpGet("get/table")]
         public async Task<IActionResult> ExportUsers()
@@ -271,6 +276,12 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Создание пользователя
+        /// </summary>
+        /// <param name="userData"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] UserCreationDto userData)
         {
@@ -290,10 +301,60 @@ namespace Aikido.Controllers
         }
 
         /// <summary>
+        /// Обновление фотографии пользователя
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="photo"></param>
+        /// <returns></returns>
+        [HttpPut("update/{id}/photo")]
+        public async Task<IActionResult> UpdateUserPhoto(
+            long id,
+            [FromForm] TableFileRequest photo)
+        {
+            try
+            {
+                await _userApplicationService.UpdateUserPhoto(id, photo.Table);
+                return NoContent();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { Messsage = "Невозможная операция", Details = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Удаление фотографии пользователя
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpDelete("delete/{id}/photo")]
+        public async Task<IActionResult> DeleteUserPhoto(long id)
+        {
+            try
+            {
+                await _userApplicationService.DeleteUserAsync(id);
+                return NoContent();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(409, new { Messsage = "Невозможная операция", Details = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Мягкое удаление пользователя
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPatch("close/{id}")]
         public async Task<IActionResult> CloseUserAsync(long id)
         {
@@ -311,12 +372,13 @@ namespace Aikido.Controllers
                 return StatusCode(500, new { Message = "Внутренняя ошибка сервера", Details = ex.Message });
             }
         }
-        
+
         /// <summary>
         /// Восстановление пользователя
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
+        [Authorize(Roles = "Admin")]
         [HttpPatch("recover/{id}")]
         public async Task<IActionResult> RecoverUserAsync(long id)
         {
@@ -331,6 +393,7 @@ namespace Aikido.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> Delete(long id)
         {
@@ -349,6 +412,7 @@ namespace Aikido.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPut("update/{id}")]
         public async Task<IActionResult> Update(long id, [FromBody] UserCreationDto userData)
         {
@@ -371,6 +435,7 @@ namespace Aikido.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin,Manager")]
         [HttpGet("get/table-template-for-create")]
         public async Task<IActionResult> GetUserCreateTemplate()
         {

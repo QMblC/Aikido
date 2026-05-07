@@ -14,9 +14,13 @@ using Aikido.Services.DatabaseServices.Club;
 using Aikido.Services.DatabaseServices.Group;
 using Aikido.Services.DatabaseServices.Seminar;
 using Aikido.Services.DatabaseServices.User;
+using Aikido.Services.FileStorageServices;
 using Aikido.Services.NotificationService;
 using Aikido.Services.UnitOfWork;
 using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.AspNetCore.Http;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 
 namespace Aikido.Application.Services
 {
@@ -32,6 +36,7 @@ namespace Aikido.Application.Services
         private readonly IClubStaffDbService _clubStaffDbService;
         private readonly INotificationService _notificationService;
         private readonly PaymentDbService _paymentDbService;
+        private readonly IFileStorageService _fileStorageService;
 
         public UserApplicationService(
             IUserDbService userDbService,
@@ -43,7 +48,8 @@ namespace Aikido.Application.Services
             ISeminarDbService seminarDbService,
             IClubStaffDbService clubStaffDbService,
             INotificationService notificationService,
-            PaymentDbService paymentDbService)
+            PaymentDbService paymentDbService,
+            IFileStorageService fileStorageService)
         {
             _userDbService = userDbService;
             _userMembershipDbService = userMembershipDbService;
@@ -55,6 +61,7 @@ namespace Aikido.Application.Services
             _clubStaffDbService = clubStaffDbService;
             _notificationService = notificationService;
             _paymentDbService = paymentDbService;
+            _fileStorageService = fileStorageService;
         }
 
         public async Task<UserDto> GetUserByIdAsync(long id)
@@ -227,6 +234,48 @@ namespace Aikido.Application.Services
             });
 
             await _notificationService.UserDataChanged(NotificationAction.Update, userId);
+        }
+
+        public async Task UpdateUserPhoto(long id, IFormFile photo)
+        {
+            var extension = Path.GetExtension(photo.FileName).ToLower();
+
+            var allowedExtensions = new[] { ".png", ".jpg", ".jpeg" };
+
+            if (!allowedExtensions.Contains(extension))
+            {
+                throw new InvalidDataException(
+                    "Файл должен быть в формате .png/.jpg/.jpeg");
+            }
+
+            DeleteUserPhoto(id);
+
+            using var stream = photo.OpenReadStream();
+
+            using var image = Image.Load(stream);
+
+            image.Mutate(x => x.Resize(256, 256));
+
+            var filePath = $"users/{id}/photo.png";
+
+            await using var outputStream = new MemoryStream();
+            image.SaveAsPng(outputStream);
+
+            outputStream.Position = 0;
+
+            await _fileStorageService.SaveFileAsync(
+                outputStream,
+                filePath);
+        }
+
+        public void DeleteUserPhoto(long id)
+        {
+            var relativePath = $"users/{id}/photo.png";
+
+            if (_fileStorageService.FileExists(relativePath))
+            {
+                _fileStorageService.DeleteFile(relativePath);
+            }
         }
 
         public async Task UpdateUsers(List<(long Id, UserCreationDto Data)> users)
