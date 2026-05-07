@@ -145,7 +145,7 @@ namespace Aikido.Controllers
         }
 
         [Authorize(Roles = "Admin,Manager,Coach")]
-        [HttpPost("update/{groupId}/attendance")]
+        [HttpPut("update/{groupId}/attendance")]
         public async Task<IActionResult> UpdateAttendances(long groupId, [FromBody] AttendanceUpdateDto attendances)
         {
             try
