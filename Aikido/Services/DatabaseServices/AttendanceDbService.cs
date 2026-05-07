@@ -44,29 +44,43 @@ namespace Aikido.Services
                 .ToListAsync();
         }
 
-        public async Task<long> CreateAttendance(UserMembershipEntity userMembership, DateTime date)
+        public async Task<long> CreateAttendance(long userMembershipId, DateTime date)
         {
-            var entity = new AttendanceEntity(userMembership, date);
+            var entity = new AttendanceEntity(userMembershipId, date);
             _context.Attendances.Add(entity);
             await _context.SaveChangesAsync();
             return entity.Id;
+        }
+
+        public async Task CreateAttendances(Dictionary<long, List<DateTime>> data)
+        {
+            var attendanceEntities = new List<AttendanceEntity>();
+
+            foreach(var pair in data)
+            {
+                foreach(var attendance in pair.Value)
+                {
+                    var attendanceEntity = new AttendanceEntity(pair.Key, attendance);
+                    attendanceEntities.Add(attendanceEntity);
+                }
+            }
+            await _context.Attendances.AddRangeAsync(attendanceEntities);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAttendances(List<long> idsToDelete)
+        {
+            var attendancesToDelete = _context.Attendances
+                .Where(a => idsToDelete.Contains(a.Id));
+
+            _context.Attendances.RemoveRange(attendancesToDelete);
+            await _context.SaveChangesAsync();
         }
 
         public async Task DeleteAttendance(long id)
         {
             var attendance = await GetAttendanceById(id);
             _context.Attendances.Remove(attendance);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task DeleteAttendances(List<long> ids)
-        {
-            var attendanceEntities = await _context.Attendances
-                .AsQueryable()
-                .Where(a => ids.Any(id => a.Id == id))
-                .ToListAsync();
-
-            _context.RemoveRange(attendanceEntities);
             await _context.SaveChangesAsync();
         }
 

@@ -3,6 +3,8 @@ using Aikido.Exceptions;
 using Aikido.Services;
 using Aikido.Dto.Attendance;
 using Aikido.Services.DatabaseServices.User;
+using Aikido.Services.NotificationService;
+using Aikido.AdditionalData.Enums;
 
 namespace Aikido.Application.Services
 {
@@ -11,14 +13,17 @@ namespace Aikido.Application.Services
         private readonly AttendanceDbService _attendanceDbService;
         private readonly IUserDbService _userDbService;
         private readonly IUserMembershipDbService _userMembershipDbService;
+        private readonly INotificationService _notificationService;
 
         public AttendanceApplicationService(AttendanceDbService attendanceService,
             IUserDbService userDbService,
-            IUserMembershipDbService userMembershipDbService)
+            IUserMembershipDbService userMembershipDbService,
+            INotificationService notificationService)
         {
             _attendanceDbService = attendanceService;
             _userDbService = userDbService;
             _userMembershipDbService = userMembershipDbService;
+            _notificationService = notificationService;
         }
 
         public async Task<AttendanceDto> GetAttendanceByIdAsync(long id)
@@ -49,7 +54,39 @@ namespace Aikido.Application.Services
             //}
 
             var userMembership = _userMembershipDbService.GetActiveUserMembership(attendanceData.UserId, groupId);
-            return await _attendanceDbService.CreateAttendance(userMembership, attendanceData.Date);
+            return await _attendanceDbService.CreateAttendance(userMembership.Id, attendanceData.Date);
+        }
+
+        public async Task UpdateAttendances(
+            long groupId,
+            AttendanceUpdateDto attendanceData)
+        {
+            var groupedAttendances = new Dictionary<long, List<DateTime>>();
+
+            foreach (var attendance in attendanceData.ToCreate)
+            {
+                var userMembership =
+                    _userMembershipDbService.GetActiveUserMembership(
+                        attendance.UserId,
+                        groupId);
+
+                if (userMembership == null)
+                {
+                    continue;
+                }
+
+                if (!groupedAttendances.ContainsKey(userMembership.Id))
+                {
+                    groupedAttendances[userMembership.Id] = new List<DateTime>();
+                }
+
+                groupedAttendances[userMembership.Id]
+                    .Add(attendance.Date);
+            }
+
+            await _attendanceDbService.DeleteAttendances(attendanceData.ToDelete);
+            await _attendanceDbService.CreateAttendances(groupedAttendances);
+            await _notificationService.AttendanceDataChanged(NotificationAction.Update, groupId);
         }
 
         public async Task DeleteAttendanceAsync(long id)

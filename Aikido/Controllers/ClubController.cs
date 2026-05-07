@@ -125,7 +125,7 @@ namespace Aikido.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return StatusCode(422, new { Message = "Операция невозможна", Details = ex.Message });
+                return StatusCode(409, new { Message = "Операция невозможна", Details = ex.Message });
             }
             catch (Exception ex)
             {
@@ -154,7 +154,7 @@ namespace Aikido.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return StatusCode(422, new { Message = "Операция невозможна", Details = ex.Message });
+                return StatusCode(409, new { Message = "Операция невозможна", Details = ex.Message });
             }
             catch (Exception ex)
             {

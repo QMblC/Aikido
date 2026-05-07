@@ -4,10 +4,10 @@ namespace Aikido.Services.FileStorageServices
 {
     public interface IFileStorageService
     {
-        Task SaveFileAsync(IFormFile file, string path);
-        Task<Stream> GetFileAsync(string path);
-        void DeleteFile(string path);
-        bool FileExists(string path);
+        Task SaveFileAsync(Stream stream, string relativePath);
+        Task<Stream> GetFileAsync(string relativePath);
+        void DeleteFile(string relativePath);
+        bool FileExists(string relativePath);
     }
 
 }

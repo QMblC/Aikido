@@ -11,6 +11,7 @@ using Aikido.Services.DatabaseServices.Group;
 using Aikido.Services.DatabaseServices.Seminar;
 using Aikido.Services.DatabaseServices.StatisticService;
 using Aikido.Services.DatabaseServices.User;
+using Aikido.Services.FileStorageServices;
 using Aikido.Services.NotificationService;
 using Aikido.Services.UnitOfWork;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
@@ -134,6 +135,7 @@ builder.Services.AddScoped<StatisticApplicationService>();
 builder.Services.AddScoped<UserMembershipApplicationService>();
 builder.Services.AddScoped<IClubStaffDbService, ClubStaffDbService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 
 builder.Services.AddSignalR();
 
@@ -191,15 +193,20 @@ app.MapGet("/health", async (AppDbContext context) =>
     }
 });
 
-app.MapHub<NotificationHub>("/hubs/notifications");
+app.UseStaticFiles();
+app.UseRouting();
 
 app.UseCors("AllowAllOriginsWithCredentials");
-app.UseCookiePolicy();
 
 app.UseAuthentication();
 app.UseJwtCookie();
 app.UseAuthorization();
+
 app.MapControllers();
+app.MapHub<NotificationHub>("/hubs/notifications");
+
+
+app.UseCookiePolicy();
 
 Log.Information("Запуск сервера Aikido на http://0.0.0.0:5000");
 app.Run("http://0.0.0.0:5000");

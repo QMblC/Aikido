@@ -530,7 +530,8 @@ namespace Aikido.Services.DatabaseServices.Seminar
             var paymentsToDelete = await _context.Payments
                 .Where(p => p.EventType == EventType.Seminar
                     && p.EventId == seminarId
-                    && userIdsToDelete.Contains(p.UserId))
+                    && userIdsToDelete.Contains(p.UserId)
+                    && p.Type != PaymentType.AnnualFee)
                 .ToListAsync();
 
             if (paymentsToDelete.Count > 0)
