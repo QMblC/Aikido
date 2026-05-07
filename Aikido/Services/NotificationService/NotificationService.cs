@@ -102,5 +102,15 @@ namespace Aikido.Services.NotificationService
                 action = EnumParser.ConvertEnumToString(action).ToLowerInvariant(),
             });
         }
+
+        public async Task AttendanceDataChanged(NotificationAction action, long groupId)
+        {
+            await _hub.Clients.All.SendAsync("dataChanged", new
+            {
+                entity = EnumParser.ConvertEnumToString(NotificationEntityType.Attendance).ToLowerInvariant(),
+                groupId,
+                action = EnumParser.ConvertEnumToString(action).ToLowerInvariant(),
+            });
+        }
     }
 }

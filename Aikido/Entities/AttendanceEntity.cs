@@ -17,10 +17,9 @@ namespace Aikido.Entities
 
         public AttendanceEntity() { }
 
-        public AttendanceEntity(UserMembershipEntity userMembership, DateTime date)
+        public AttendanceEntity(long userMembershipId, DateTime date)
         {
-            UserMembershipId = userMembership.Id;
-            UserMembership = userMembership;
+            UserMembershipId = userMembershipId;
             Date = date;
         }
     }

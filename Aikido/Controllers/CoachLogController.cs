@@ -60,6 +60,7 @@ namespace Aikido.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin,Manager,Coach")]
         [HttpGet("get/{groupId}/monthly-attendance")]
         public async Task<ActionResult<GroupDashboardDto>> GetCoachDashboard(long groupId, [FromQuery] DateTime month)
         {
@@ -75,7 +76,7 @@ namespace Aikido.Controllers
             }  
         }
 
-        [Authorize]
+        [Authorize(Roles = "Admin,Manager,Coach")]
         [HttpGet("get/{groupId}/monthly-attendance/table")]
         public async Task<IActionResult> GetAttendanceTable(long groupId, [FromQuery] DateTime month)
         {
@@ -111,6 +112,7 @@ namespace Aikido.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin,Manager,Coach")]
         [HttpPost("create/{groupId}/attendance")]
         public async Task<IActionResult> CreateSingleAttendance(long groupId, [FromBody] AttendanceCreationDto attendance)
         {
@@ -126,6 +128,7 @@ namespace Aikido.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin,Manager,Coach")]
         [HttpDelete("delete/attendance/{id}")]
         public async Task<IActionResult> DeleteAttendance(long id)
         {
@@ -133,11 +136,27 @@ namespace Aikido.Controllers
             {
                 await _attendanceApplicationService.DeleteAttendanceAsync(id);
 
-                return Ok();
+                return NoContent();
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Ошибка при удалении посещаемости", Details = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Admin,Manager,Coach")]
+        [HttpPost("update/{groupId}/attendance")]
+        public async Task<IActionResult> UpdateAttendances(long groupId, [FromBody] AttendanceUpdateDto attendances)
+        {
+            try
+            {
+                await _attendanceApplicationService.UpdateAttendances(groupId, attendances);
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ошибка при записи посещаемости", Details = ex.Message });
             }
         }
     }

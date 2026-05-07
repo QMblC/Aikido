@@ -12,5 +12,6 @@ namespace Aikido.Services.NotificationService
         Task SeminarManagerMembersDataChanged(NotificationAction action, long seminarId, long managerId, long clubId);
         Task SeminarCoachMembersDataChanged(NotificationAction action, long seminarId, long coachId, long clubId);
         Task SeminarMembersDataChanged(NotificationAction action, long seminarId);
+        Task AttendanceDataChanged(NotificationAction action, long groupId);
     }
 }

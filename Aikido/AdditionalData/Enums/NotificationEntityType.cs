@@ -10,5 +10,6 @@
         SeminarManagerMembers,
         SeminarCoachMembers,
         SeminarMembers,
+        Attendance
     }
 }
