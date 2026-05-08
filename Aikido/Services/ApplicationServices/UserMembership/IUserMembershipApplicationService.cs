@@ -11,5 +11,6 @@ namespace Aikido.Services.ApplicationServices.UserMembership
         Task AddUserMembershipAsync(long userId, UserMembershipCreationDto dto);
         Task CloseUserMembershipAsync(long userId, long groupId);
         Task CloseExcessUserMemberships(long userId, List<UserMembershipCreationDto> newMemberships);
+        Task<List<UserMembershipDto>> GetUserMembershipsAsync(long userId);
     }
 }
