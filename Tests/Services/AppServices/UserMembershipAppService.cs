@@ -40,8 +40,6 @@ namespace Tests.Services.AppServices
             );
         }
 
-        private UserMembershipApplicationService CreateService() => _service;
-
         private static UserMembershipCreationDto CreateDto(long groupId = 10)
             => new()
             {

@@ -44,7 +44,6 @@ namespace Aikido.Dto.Users
             Id = user.Id;
             Role = user.Role.ToString();
             Login = user.Login;
-            Password = user.Password;
             LastName = user.LastName;
             FirstName = user.FirstName;
             MiddleName = user.MiddleName;
@@ -57,7 +56,7 @@ namespace Aikido.Dto.Users
             Certifications = user.Certifications?.Select(sm => new SeminarMemberDto(sm))
                 .ToList();
             HasBudoPassport = user.HasBudoPassport;
-            City = user.City;
+           
             ParentFullName = user.ParentFullName;
             ParentPhoneNumber = user.ParentPhoneNumber;
             RegistrationDate = user.RegistrationDate;
@@ -67,6 +66,7 @@ namespace Aikido.Dto.Users
                 MainUserMembershipAsUserId = user.MainUserMembershipAsUserId;
                 MainClubAsUserId = user.MainUserMembershipAsUser.ClubId;
                 MainGroupAsUserId = user.MainUserMembershipAsUser.GroupId;
+                City = user.MainUserMembershipAsUser.Club?.City;
             }
 
             IsPhotoSaved = user.IsPhotoSaved;
