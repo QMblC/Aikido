@@ -9,6 +9,7 @@ namespace Aikido.Dto.Seminars
         public DateTime Date { get; set; }
         public string? Location { get; set; }
         public string? Description { get; set; }
+        public bool IsApplied { get; set; }
 
         public SeminarShortDto() { }
 
@@ -19,6 +20,7 @@ namespace Aikido.Dto.Seminars
             Date = seminar.Date;
             Location = seminar.Location;
             Description = seminar.Description;
+            IsApplied = seminar.IsFinalStatementApplied;
         }
     }
 }

@@ -4,9 +4,9 @@ using Aikido.Entities;
 using Aikido.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
-namespace Aikido.Services
+namespace Aikido.Services.DatabaseServices.Schedule
 {
-    public class ScheduleDbService
+    public class ScheduleDbService : IScheduleDbService
     {
         private readonly AppDbContext _context;
 

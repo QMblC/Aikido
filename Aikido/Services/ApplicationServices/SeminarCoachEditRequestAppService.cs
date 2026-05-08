@@ -6,8 +6,8 @@ using Aikido.Entities.Seminar.SeminarFilters;
 using Aikido.Entities.Seminar.SeminarMemberRequest;
 using Aikido.Entities.Users;
 using Aikido.Exceptions;
-using Aikido.Services;
 using Aikido.Services.DatabaseServices.Club;
+using Aikido.Services.DatabaseServices.Payment;
 using Aikido.Services.DatabaseServices.Seminar;
 using Aikido.Services.NotificationService;
 using DocumentFormat.OpenXml.Office2016.Excel;
@@ -20,14 +20,14 @@ namespace Aikido.Application.Services
     {
         private readonly SeminarCoachEditRequestDbService _requestDbService;
         private readonly ISeminarDbService _seminarDbService;
-        private readonly PaymentDbService _paymentDbService;
+        private readonly IPaymentDbService _paymentDbService;
         private readonly IClubDbService _clubDbService;
         private readonly INotificationService _notificationService;
 
         public SeminarCoachEditRequestAppService(
             SeminarCoachEditRequestDbService requestDbService,
             ISeminarDbService seminarDbService,
-            PaymentDbService paymentService,
+            IPaymentDbService paymentService,
             IClubDbService clubDbService,
             INotificationService notificationService
             )

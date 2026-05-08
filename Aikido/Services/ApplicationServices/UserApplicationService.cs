@@ -8,10 +8,10 @@ using Aikido.Entities;
 using Aikido.Entities.Filters;
 using Aikido.Entities.Users;
 using Aikido.Exceptions;
-using Aikido.Services;
-using Aikido.Services.ApplicationServices;
+using Aikido.Services.ApplicationServices.UserMembership;
 using Aikido.Services.DatabaseServices.Club;
 using Aikido.Services.DatabaseServices.Group;
+using Aikido.Services.DatabaseServices.Payment;
 using Aikido.Services.DatabaseServices.Seminar;
 using Aikido.Services.DatabaseServices.User;
 using Aikido.Services.FileStorageServices;
@@ -30,12 +30,12 @@ namespace Aikido.Application.Services
         private readonly IUserMembershipDbService _userMembershipDbService;
         private readonly IClubDbService _clubDbService;
         private readonly IGroupDbService _groupDbService;
-        private readonly UserMembershipApplicationService _userMembershipApplicationService;
+        private readonly IUserMembershipApplicationService _userMembershipApplicationService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ISeminarDbService _seminarDbService;
         private readonly IClubStaffDbService _clubStaffDbService;
         private readonly INotificationService _notificationService;
-        private readonly PaymentDbService _paymentDbService;
+        private readonly IPaymentDbService _paymentDbService;
         private readonly IFileStorageService _fileStorageService;
 
         public UserApplicationService(
@@ -43,12 +43,12 @@ namespace Aikido.Application.Services
             IUserMembershipDbService userMembershipDbService,
             IClubDbService clubDbService,
             IGroupDbService groupDbService,
-            UserMembershipApplicationService userMembershipApplicationService,
+            IUserMembershipApplicationService userMembershipApplicationService,
             IUnitOfWork unitOfWork,
             ISeminarDbService seminarDbService,
             IClubStaffDbService clubStaffDbService,
             INotificationService notificationService,
-            PaymentDbService paymentDbService,
+            IPaymentDbService paymentDbService,
             IFileStorageService fileStorageService)
         {
             _userDbService = userDbService;
@@ -248,7 +248,7 @@ namespace Aikido.Application.Services
                     "Файл должен быть в формате .png/.jpg/.jpeg");
             }
 
-            DeleteUserPhoto(id);
+            await DeleteUserPhoto(id);
 
             using var stream = photo.OpenReadStream();
 

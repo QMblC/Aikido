@@ -8,9 +8,9 @@ using Aikido.Services.DatabaseServices.User;
 using Aikido.Services.NotificationService;
 using Aikido.Services.UnitOfWork;
 
-namespace Aikido.Services.ApplicationServices
+namespace Aikido.Services.ApplicationServices.UserMembership
 {
-    public class UserMembershipApplicationService
+    public class UserMembershipApplicationService : IUserMembershipApplicationService
     {
         private readonly IUserDbService _userDbService;
         private readonly IUserMembershipDbService _userMembershipDbService;

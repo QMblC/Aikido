@@ -5,10 +5,11 @@ using Aikido.Dto.Users.Creation;
 using Aikido.Entities;
 using Aikido.Entities.Users;
 using Aikido.Exceptions;
-using Aikido.Services;
-using Aikido.Services.ApplicationServices;
+using Aikido.Services.ApplicationServices.Attendnace;
+using Aikido.Services.ApplicationServices.UserMembership;
 using Aikido.Services.DatabaseServices.Club;
 using Aikido.Services.DatabaseServices.Group;
+using Aikido.Services.DatabaseServices.Schedule;
 using Aikido.Services.DatabaseServices.User;
 using Aikido.Services.NotificationService;
 using Aikido.Services.UnitOfWork;
@@ -24,9 +25,9 @@ namespace Aikido.Application.Services
         private readonly IUserMembershipDbService _userMembershipDbService;
         private readonly IClubDbService _clubDbService;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ScheduleDbService _scheduleDbService;
-        private readonly UserMembershipApplicationService _userMembershipApplicationService;
-        private readonly AttendanceApplicationService _attendanceApplicationService;
+        private readonly IScheduleDbService _scheduleDbService;
+        private readonly IUserMembershipApplicationService _userMembershipApplicationService;
+        private readonly IAttendanceApplicationService _attendanceApplicationService;
         private readonly INotificationService _notificationService;
 
         public GroupApplicationService(
@@ -35,9 +36,9 @@ namespace Aikido.Application.Services
             IUserMembershipDbService userMembershipDbService,
             IClubDbService clubDbService,
             IUnitOfWork unitOfWork,
-            ScheduleDbService scheduleDbService,
-            UserMembershipApplicationService userMembershipApplicationService,
-            AttendanceApplicationService attendanceApplicationService,
+            IScheduleDbService scheduleDbService,
+            IUserMembershipApplicationService userMembershipApplicationService,
+            IAttendanceApplicationService attendanceApplicationService,
             INotificationService notificationService)
         {
             _groupDbService = groupDbService;

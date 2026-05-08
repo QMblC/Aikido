@@ -3,6 +3,7 @@ using Aikido.Dto.Attendance;
 using Aikido.Dto.Groups;
 using Aikido.Dto.Users;
 using Aikido.Services;
+using Aikido.Services.ApplicationServices.Attendnace;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;

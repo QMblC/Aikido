@@ -1,15 +1,15 @@
 ﻿using Aikido.Dto;
 using Aikido.Services.DatabaseServices;
 using Aikido.Exceptions;
-using Aikido.Services;
+using Aikido.Services.DatabaseServices.Payment;
 
 namespace Aikido.Application.Services
 {
     public class PaymentApplicationService
     {
-        private readonly PaymentDbService _paymentService;
+        private readonly IPaymentDbService _paymentService;
 
-        public PaymentApplicationService(PaymentDbService paymentService)
+        public PaymentApplicationService(IPaymentDbService paymentService)
         {
             _paymentService = paymentService;
         }

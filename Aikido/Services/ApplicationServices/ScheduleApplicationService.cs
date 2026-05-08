@@ -1,15 +1,15 @@
 ﻿using Aikido.Services.DatabaseServices;
 using Aikido.Exceptions;
-using Aikido.Services;
 using Aikido.Dto.Schedule;
+using Aikido.Services.DatabaseServices.Schedule;
 
 namespace Aikido.Application.Services
 {
     public class ScheduleApplicationService
     {
-        private readonly ScheduleDbService _scheduleService;
+        private readonly IScheduleDbService _scheduleService;
 
-        public ScheduleApplicationService(ScheduleDbService scheduleService)
+        public ScheduleApplicationService(IScheduleDbService scheduleService)
         {
             _scheduleService = scheduleService;
         }
