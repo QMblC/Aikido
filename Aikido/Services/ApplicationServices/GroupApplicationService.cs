@@ -213,7 +213,11 @@ namespace Aikido.Application.Services
             }
             var userMembership = new UserMembershipCreationDto(group, dto.IsMain, dto.IsCoach);
 
-            await _userMembershipApplicationService.AddUserMembershipAsync(userId, userMembership);
+            await _unitOfWork.ExecuteInTransactionAsync(async ()=>
+            {
+                await _userMembershipApplicationService.AddUserMembershipAsync(userId, userMembership);
+            });
+            
             await _notificationService.GroupMembersDataChanged(NotificationAction.Create, dto.GroupId);
         }
 
