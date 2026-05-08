@@ -23,14 +23,14 @@ namespace Aikido.Controllers
     public class UserController : ControllerBase
     {
         private readonly UserApplicationService _userApplicationService;
-        private readonly UserMembershipApplicationService _userMembershipApplicationService;
+        private readonly IUserMembershipApplicationService _userMembershipApplicationService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly TableService _tableService;
 
         public UserController(
             UserApplicationService userApplicationService,
             TableService tableService,
-            UserMembershipApplicationService userMembershipApplicationService,
+            IUserMembershipApplicationService userMembershipApplicationService,
             IUnitOfWork unitOfWork)
         {
             _userApplicationService = userApplicationService;

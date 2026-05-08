@@ -16,13 +16,13 @@ namespace Aikido.Controllers
     {
         private readonly UserApplicationService _userApplicationService;
         private readonly GroupApplicationService _groupApplicationService;
-        private readonly AttendanceApplicationService _attendanceApplicationService;
+        private readonly IAttendanceApplicationService _attendanceApplicationService;
         private readonly TableService _tableService;
 
         public CoachLogController(
             UserApplicationService userApplicationService,
             GroupApplicationService groupApplicationService,
-            AttendanceApplicationService attendanceApplicationService,
+            IAttendanceApplicationService attendanceApplicationService,
             TableService tableService)
         {
             _userApplicationService = userApplicationService;
