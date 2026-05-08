@@ -8,9 +8,9 @@ using Aikido.Entities.Seminar.SeminarMember;
 using Aikido.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
-namespace Aikido.Services
+namespace Aikido.Services.DatabaseServices.Payment
 {
-    public class PaymentDbService
+    public class PaymentDbService : IPaymentDbService
     {
         private readonly AppDbContext _context;
 

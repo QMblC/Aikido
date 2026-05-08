@@ -5,9 +5,9 @@ using Aikido.Entities.Users;
 using Aikido.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
-namespace Aikido.Services
+namespace Aikido.Services.DatabaseServices.Attendance
 {
-    public class AttendanceDbService
+    public class AttendanceDbService : IAttendanceDbService
     {
         private readonly AppDbContext _context;
 

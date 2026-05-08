@@ -8,7 +8,7 @@ using Aikido.Entities.Filters;
 using Aikido.Exceptions;
 using Aikido.Requests;
 using Aikido.Services;
-using Aikido.Services.ApplicationServices;
+using Aikido.Services.ApplicationServices.UserMembership;
 using Aikido.Services.UnitOfWork;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;

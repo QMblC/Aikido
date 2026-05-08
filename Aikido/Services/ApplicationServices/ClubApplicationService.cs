@@ -6,9 +6,9 @@ using Aikido.Dto.Users;
 using Aikido.Entities;
 using Aikido.Entities.Users;
 using Aikido.Exceptions;
-using Aikido.Services;
 using Aikido.Services.DatabaseServices.Club;
 using Aikido.Services.DatabaseServices.Group;
+using Aikido.Services.DatabaseServices.Schedule;
 using Aikido.Services.DatabaseServices.User;
 using Aikido.Services.NotificationService;
 using DocumentFormat.OpenXml.Office2010.Excel;
@@ -21,7 +21,7 @@ namespace Aikido.Application.Services
         private readonly IClubDbService _clubDbService;
         private readonly IGroupDbService _groupDbService;
         private readonly IUserDbService _userDbService;
-        private readonly ScheduleDbService _scheduleDbService;
+        private readonly IScheduleDbService _scheduleDbService;
         private readonly IClubStaffDbService _clubStaffDbService;
         private readonly INotificationService _notificationService;
 
@@ -29,7 +29,7 @@ namespace Aikido.Application.Services
             IClubDbService clubDbService,
             IGroupDbService groupDbService,
             IUserDbService userDbService,
-            ScheduleDbService scheduleDbService,
+            IScheduleDbService scheduleDbService,
             IClubStaffDbService clubStaffDbService,
             INotificationService notificationService)
         {

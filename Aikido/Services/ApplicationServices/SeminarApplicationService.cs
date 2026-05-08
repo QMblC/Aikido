@@ -10,8 +10,8 @@ using Aikido.Entities.Seminar.SeminarFilters;
 using Aikido.Entities.Seminar.SeminarMemberRequest;
 using Aikido.Entities.Users;
 using Aikido.Exceptions;
-using Aikido.Services;
 using Aikido.Services.DatabaseServices.Group;
+using Aikido.Services.DatabaseServices.Payment;
 using Aikido.Services.DatabaseServices.Seminar;
 using Aikido.Services.DatabaseServices.User;
 using Aikido.Services.NotificationService;
@@ -32,7 +32,7 @@ namespace Aikido.Application.Services
         private readonly IUserDbService _userDbService;
         private readonly IUserMembershipDbService _userMembershipDbService;
         private readonly IGroupDbService _groupDbService;
-        private readonly PaymentDbService _paymentDbService;
+        private readonly IPaymentDbService _paymentDbService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly INotificationService _notificationService;
 
@@ -41,7 +41,7 @@ namespace Aikido.Application.Services
             IUserDbService userDbService,
             IUserMembershipDbService userMembershipDbService,
             IGroupDbService groupDbService,
-            PaymentDbService paymentDbService,
+            IPaymentDbService paymentDbService,
             IUnitOfWork unitOfWork,
             INotificationService notificationService)
         {

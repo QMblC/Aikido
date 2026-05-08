@@ -1,21 +1,21 @@
 ﻿using Aikido.Services.DatabaseServices;
 using Aikido.Exceptions;
-using Aikido.Services;
 using Aikido.Dto.Attendance;
 using Aikido.Services.DatabaseServices.User;
 using Aikido.Services.NotificationService;
 using Aikido.AdditionalData.Enums;
+using Aikido.Services.DatabaseServices.Attendance;
 
-namespace Aikido.Application.Services
+namespace Aikido.Services.ApplicationServices.Attendnace
 {
-    public class AttendanceApplicationService
+    public class AttendanceApplicationService : IAttendanceApplicationService
     {
-        private readonly AttendanceDbService _attendanceDbService;
+        private readonly IAttendanceDbService _attendanceDbService;
         private readonly IUserDbService _userDbService;
         private readonly IUserMembershipDbService _userMembershipDbService;
         private readonly INotificationService _notificationService;
 
-        public AttendanceApplicationService(AttendanceDbService attendanceService,
+        public AttendanceApplicationService(IAttendanceDbService attendanceService,
             IUserDbService userDbService,
             IUserMembershipDbService userMembershipDbService,
             INotificationService notificationService)
