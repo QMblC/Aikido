@@ -305,10 +305,17 @@ namespace Aikido.Services.DatabaseServices.Seminar
             foreach (var member in managerRequest.Members)
             {
                 var userMembership = _context.UserMemberships.AsQueryable()
-                    .Where(um => um.UserId == member.UserId
-                    && um.GroupId == member.GroupId)
                     .Include(um => um.Club)
-                    .FirstOrDefault() ?? throw new EntityNotFoundException(nameof(UserMembershipEntity));        
+                    .FirstOrDefault(um => um.UserId == member.UserId
+                    && um.GroupId == member.GroupId && um.IsMain)
+                    ?? _context.UserMemberships.Include(um => um.Club)
+                    .FirstOrDefault(um => um.UserId == member.UserId
+                    && um.GroupId == member.GroupId && um.RoleInGroup == Role.Coach);
+                
+                if (userMembership == null)
+                {
+                    throw new InvalidOperationException("Участник не заявлен ни в одной группе");
+                }
                 
                 if (!clubSeminarMembers.Any(m => m.UserId == member.UserId))
                 {
