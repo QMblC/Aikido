@@ -16,7 +16,6 @@ namespace Aikido.Services.ApplicationServices.UserMembership
         private readonly IUserMembershipDbService _userMembershipDbService;
         private readonly IGroupDbService _groupDbService;
         private readonly IUnitOfWork _unitOfWork;
-        //private readonly INotificationService _notificationService;
 
         public UserMembershipApplicationService(IUserDbService userDbService,
             IUserMembershipDbService userMembershipDbService,
@@ -28,7 +27,6 @@ namespace Aikido.Services.ApplicationServices.UserMembership
             _userMembershipDbService = userMembershipDbService;
             _groupDbService = groupDbService;
             _unitOfWork = unitOfWork;
-            //_notificationService = notificationService;
         }
 
         public async Task AddUserMembershipAsync(long userId, UserMembershipCreationDto dto)

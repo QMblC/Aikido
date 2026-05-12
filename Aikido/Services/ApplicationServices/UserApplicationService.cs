@@ -301,7 +301,7 @@ namespace Aikido.Application.Services
         {
             var user = await _userDbService.GetByIdOrThrowException(id);
 
-            if (user.UserMemberships.Count() > 0)
+            if (user.UserMemberships.Where(um => um.ClosedAt == null).Count() > 0)
             {
                 throw new InvalidOperationException("Человек является участником одной или нескольких групп");
             }
