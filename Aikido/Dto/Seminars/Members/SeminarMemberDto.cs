@@ -132,8 +132,8 @@ namespace Aikido.Dto.Seminars.Members
             OldGrade = mainUserMembership.User?.Grade.ToString();
             CertificationGrade = Grade.None.ToString();
 
-            CoachId = mainUserMembership.Group?.UserMemberships.FirstOrDefault(um => um.RoleInGroup == Role.Coach)?.UserId;
-            CoachName = mainUserMembership.Group?.UserMemberships.FirstOrDefault(um => um.RoleInGroup == Role.Coach)?.User?.FullName ?? "";
+            CoachId = mainUserMembership.Group?.MainCoachId;
+            CoachName = mainUserMembership.Group?.MainCoach?.FullName ?? "";
 
             ManagerId = mainUserMembership.Club?.ManagerId;
             ManagerFullName = mainUserMembership.Club?.Manager?.FullName;

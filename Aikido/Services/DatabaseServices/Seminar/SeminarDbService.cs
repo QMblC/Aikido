@@ -305,10 +305,17 @@ namespace Aikido.Services.DatabaseServices.Seminar
             foreach (var member in managerRequest.Members)
             {
                 var userMembership = _context.UserMemberships.AsQueryable()
-                    .Where(um => um.UserId == member.UserId
-                    && um.GroupId == member.GroupId)
                     .Include(um => um.Club)
-                    .FirstOrDefault() ?? throw new EntityNotFoundException(nameof(UserMembershipEntity));        
+                    .FirstOrDefault(um => um.UserId == member.UserId
+                    && um.GroupId == member.GroupId && um.IsMain)
+                    ?? _context.UserMemberships.Include(um => um.Club)
+                    .FirstOrDefault(um => um.UserId == member.UserId
+                    && um.GroupId == member.GroupId && um.RoleInGroup == Role.Coach);
+                
+                if (userMembership == null)
+                {
+                    throw new InvalidOperationException("Участник не заявлен ни в одной группе");
+                }
                 
                 if (!clubSeminarMembers.Any(m => m.UserId == member.UserId))
                 {
@@ -352,8 +359,21 @@ namespace Aikido.Services.DatabaseServices.Seminar
             var paymentsToDelete = await _context.Payments
                 .Where(p => p.EventType == EventType.Seminar
                     && p.EventId == seminarId
-                    && userIdsToDelete.Contains(p.UserId))
+                    && userIdsToDelete.Contains(p.UserId)
+                    && p.Status != PaymentStatus.Completed)
                 .ToListAsync();
+
+            var paymentsToUpdate = await _context.Payments
+                .Where(p => p.EventType == EventType.Seminar
+                    && p.EventId == seminarId
+                    && userIdsToDelete.Contains(p.UserId)
+                    && p.Status == PaymentStatus.Completed)
+                .ToListAsync();
+
+            foreach (var payment in paymentsToUpdate)
+            {
+                payment.Status = PaymentStatus.Cancelled;
+            }
 
             if (paymentsToDelete.Count > 0)
                 _context.Payments.RemoveRange(paymentsToDelete);
@@ -531,8 +551,20 @@ namespace Aikido.Services.DatabaseServices.Seminar
                 .Where(p => p.EventType == EventType.Seminar
                     && p.EventId == seminarId
                     && userIdsToDelete.Contains(p.UserId)
-                    && p.Type != PaymentType.AnnualFee)
+                    && p.Status != PaymentStatus.Completed)
                 .ToListAsync();
+
+            var paymentsToUpdate = await _context.Payments
+                .Where(p => p.EventType == EventType.Seminar
+                    && p.EventId == seminarId
+                    && userIdsToDelete.Contains(p.UserId)
+                    && p.Status == PaymentStatus.Completed)
+                .ToListAsync();
+
+            foreach (var payment in paymentsToUpdate)
+            {
+                payment.Status = PaymentStatus.Cancelled;
+            }
 
             if (paymentsToDelete.Count > 0)
                 _context.Payments.RemoveRange(paymentsToDelete);
@@ -629,8 +661,21 @@ namespace Aikido.Services.DatabaseServices.Seminar
             var paymentsToDelete = await _context.Payments
                 .Where(p => p.EventType == EventType.Seminar
                     && p.EventId == seminarId
-                    && userIdsToDelete.Contains(p.UserId))
+                    && userIdsToDelete.Contains(p.UserId)
+                    && p.Status != PaymentStatus.Completed)
                 .ToListAsync();
+
+            var paymentsToUpdate = await _context.Payments
+                .Where(p => p.EventType == EventType.Seminar
+                    && p.EventId == seminarId
+                    && userIdsToDelete.Contains(p.UserId)
+                    && p.Status == PaymentStatus.Completed)
+                .ToListAsync();
+
+            foreach(var payment in paymentsToUpdate)
+            {
+                payment.Status = PaymentStatus.Cancelled;
+            }
 
             if (paymentsToDelete.Count > 0)
                 _context.Payments.RemoveRange(paymentsToDelete);
