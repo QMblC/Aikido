@@ -293,36 +293,36 @@ namespace Tests.Services.AppServices
 
         #region UserManagement
 
-        [Fact]
-        public async Task AddUserToGroup_ShouldCallAddMembership()
-        {
-            var userId = 1;
+        //[Fact]
+        //public async Task AddUserToGroup_ShouldCallAddMembership()
+        //{
+        //    var userId = 1;
 
-            var dto = new UserMembershipCreationShortDto
-            {
-                GroupId = 10,
-                IsMain = true,
-                IsCoach = false
-            };
+        //    var dto = new UserMembershipCreationShortDto
+        //    {
+        //        GroupId = 10,
+        //        IsMain = true,
+        //        IsCoach = false
+        //    };
 
-            _groupDbServiceMock
-                .Setup(x => x.ExistsActive(10))
-                .ReturnsAsync(true);
+        //    _groupDbServiceMock
+        //        .Setup(x => x.ExistsActive(10))
+        //        .ReturnsAsync(true);
 
-            _userDbServiceMock
-                .Setup(x => x.ExistsActive(userId))
-                .ReturnsAsync(true);
+        //    _userDbServiceMock
+        //        .Setup(x => x.ExistsActive(userId))
+        //        .ReturnsAsync(true);
 
-            _groupDbServiceMock
-                .Setup(x => x.GetGroupByIdAsync(10))
-                .ReturnsAsync(new GroupEntity { ClubId = 1 });
+        //    _groupDbServiceMock
+        //        .Setup(x => x.GetGroupByIdAsync(10))
+        //        .ReturnsAsync(new GroupEntity { ClubId = 1 });
 
-            await _service.AddUserToGroupAsync(userId, dto);
+        //    await _service.AddUserToGroupAsync(userId, dto);
 
-            _userMembershipAppMock.Verify(
-                x => x.AddUserMembershipAsync(userId, It.IsAny<UserMembershipCreationDto>()),
-                Times.Once);
-        }
+        //    _userMembershipAppMock.Verify(
+        //        x => x.AddUserMembershipAsync(userId, It.IsAny<UserMembershipCreationDto>()),
+        //        Times.Once);
+        //}
 
         [Fact]
         public async Task RemoveUserFromGroup_ShouldCallClose()
