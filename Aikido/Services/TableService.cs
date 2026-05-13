@@ -461,7 +461,7 @@ namespace Aikido.Services
                 }
 
                 user.Birthday = ParseDateCell(
-                    row.Cell(9),
+                    row.Cell(8),
                     rowNum,
                     "Дата рождения",
                     exceptions
@@ -718,15 +718,13 @@ namespace Aikido.Services
 
                 var str = cell.GetString();
 
-                if (DateTime.TryParseExact(
-                        str,
-                        "dd.MM.yyyy",
-                        CultureInfo.GetCultureInfo("ru-RU"),
-                        DateTimeStyles.None,
-                        out var date))
-                {
-                    return date;
-                }
+                if (DateTime.TryParse(str,
+                    CultureInfo.GetCultureInfo("ru-RU"),
+                    DateTimeStyles.None,
+                    out var parsed))
+                    {
+                        return parsed;
+                    }
 
                 errors.AppendLine($"Некорректное поле \"{fieldName}\" в строке: {rowNum}");
                 return null;
