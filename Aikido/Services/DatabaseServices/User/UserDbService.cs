@@ -173,11 +173,16 @@ namespace Aikido.Services.DatabaseServices.User
             return user;
         }
 
-        public async Task<List<UserEntity>> CreateUsers(List<UserCreationDto> users)
+        public async Task CreateUsers(List<UserCreationDto> userData)
         {
-            var entities = users.Select(u => new UserEntity(u)).ToList();
-            await _context.Users.AddRangeAsync(entities);
-            return entities;
+            var usersToCreate = new List<UserEntity>();
+            foreach (var user in userData)
+            {
+                usersToCreate.Add(new(user));
+            }
+
+            await _context.Users.AddRangeAsync(usersToCreate);
+            await _context.SaveChangesAsync();
         }
 
         public async Task UpdateUser(long id, UserCreationDto userData)

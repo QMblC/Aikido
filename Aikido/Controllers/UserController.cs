@@ -467,10 +467,7 @@ namespace Aikido.Controllers
                 {
                     await file.CopyToAsync(stream);
                     var partialMembers = _tableService.ParseUserCreationTable(stream);
-                    foreach (var member in partialMembers)
-                    {
-                        await _userApplicationService.CreateUserAsync(member);
-                    }
+                    await _userApplicationService.CreateUsersAsync(partialMembers);
                     return NoContent();
                 }   
             }

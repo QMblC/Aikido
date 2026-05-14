@@ -201,6 +201,12 @@ namespace Aikido.Application.Services
             return user.Id;
         }
 
+        public async Task CreateUsersAsync(List<UserCreationDto> users)
+        {
+            await _userDbService.CreateUsers(users);
+            await _notificationService.UserDataChanged(NotificationAction.Create);
+        }
+
         public async Task UpdateUserAsync(long userId, UserCreationDto userData)
         {
             await _unitOfWork.ExecuteInTransactionAsync(async () =>
@@ -336,19 +342,6 @@ namespace Aikido.Application.Services
             });
 
             await _notificationService.UserDataChanged(NotificationAction.Delete, id);
-        }
-
-        public async Task<List<long>> CreateUsersAsync(List<UserCreationDto> users)
-        {
-            var createdIds = new List<long>();
-
-            foreach (var userData in users)
-            {
-                var userId = await CreateUserAsync(userData);
-                createdIds.Add(userId);
-            }
-
-            return createdIds;
         }
 
         public async Task<List<UserSeminarHistoryItemDto>> GetUserSeminarHistory(long userId)

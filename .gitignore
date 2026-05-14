@@ -365,3 +365,7 @@ MigrationBackup/
 FodyWeavers.xsd
 
 **/wwwroot/uploads/
+**/publish-linux/
+**.zip
+**.rar
+**.7z

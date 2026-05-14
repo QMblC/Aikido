@@ -11,6 +11,10 @@ namespace Aikido.Controllers
     public class AdditionalDataController : ControllerBase
     {
 
+        /// <summary>
+        /// Получение необходимых enum для использования в селекторах
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("all")]
         public ActionResult<List<EnumItemDto>> GetAllEnums()
         {

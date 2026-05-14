@@ -67,6 +67,24 @@ namespace Aikido.Services.DatabaseServices.User
             return entity ?? throw new EntityNotFoundException(nameof(UserMembershipEntity));
         }
 
+        public UserMembershipEntity GetUserMembership(long userId, long groupId, DateTime date)
+        {
+            var entity = _context.UserMemberships
+                .Include(um => um.User)
+                .Include(um => um.Attendances)
+                .Include(um => um.Group)
+                    .ThenInclude(g => g.UserMemberships)
+                .Include(um => um.Group)
+                    .ThenInclude(g => g.Club)
+                .FirstOrDefault(um =>
+                    um.UserId == userId &&
+                    um.GroupId == groupId
+                    && um.CreateAt < date
+                    && (um.ClosedAt > date || um.ClosedAt == null));
+
+            return entity ?? throw new EntityNotFoundException(nameof(UserMembershipEntity));
+        }
+
         public UserMembershipEntity GetMainUserMembership(long userId)
         {
             var mainUserMembership = _context.UserMemberships.AsQueryable()
