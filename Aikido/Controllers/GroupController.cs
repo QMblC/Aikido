@@ -20,6 +20,11 @@ namespace Aikido.Controllers
             _groupApplicationService = groupApplicationService;
         }
 
+        /// <summary>
+        /// Получение информации о группе
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("get/{id}")]
         public async Task<ActionResult<GroupDto>> GetGroupById(long id)
         {
@@ -38,6 +43,11 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Получение детальной информации о группе
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("get/info/{id}")]
         public async Task<IActionResult> GetGroupInfo(long id)
         {
@@ -56,6 +66,10 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Получение всех групп
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("get/all")]
         public async Task<ActionResult<List<GroupDto>>> GetAllGroups()
         {
@@ -88,6 +102,11 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Получение групп пользователя
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
         [HttpGet("get/by-user/{userId}")]
         public async Task<ActionResult<List<GroupDto>>> GetGroupsByUser(long userId)
         {
@@ -102,6 +121,11 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Получение участников группы
+        /// </summary>
+        /// <param name="groupId"></param>
+        /// <returns></returns>
         [HttpGet("get/{groupId}/members")]
         public async Task<ActionResult<List<UserShortDto>>> GetGroupMembers(long groupId)
         {
@@ -116,6 +140,12 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Добавление в группу
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="userMembership"></param>
+        /// <returns></returns>
         [HttpPost("add/member/{userId}")]
         public async Task<IActionResult> AddUserToGroup(long userId, [FromBody] UserMembershipCreationShortDto userMembership)
         {
@@ -134,6 +164,12 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Удаление из группы
+        /// </summary>
+        /// <param name="groupId"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
         [HttpDelete("{groupId}/members/{userId}")]
         public async Task<IActionResult> RemoveUserFromGroup(long groupId, long userId)
         {
@@ -148,6 +184,11 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Создание группы
+        /// </summary>
+        /// <param name="groupData"></param>
+        /// <returns></returns>
         [HttpPost("create")]
         public async Task<IActionResult> CreateGroup([FromBody] GroupCreationDto groupData)
         {
@@ -166,6 +207,12 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Обновление группы
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="groupData"></param>
+        /// <returns></returns>
         [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateGroup(long id, [FromBody] GroupCreationDto groupData)
         {
@@ -248,6 +295,11 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Получение групп по тренеру
+        /// </summary>
+        /// <param name="coachId"></param>
+        /// <returns></returns>
         [HttpGet("get/by-coach/{coachId}")]
         public async Task<ActionResult<List<GroupShortDto>>> GetCoachGroups(long coachId)
         {

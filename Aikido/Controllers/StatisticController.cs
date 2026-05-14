@@ -185,6 +185,11 @@ namespace Aikido.Controllers
             return Ok(metric);
         }
 
+        /// <summary>
+        /// Средний процент аттестаций
+        /// </summary>
+        /// <param name="seminarIds"></param>
+        /// <returns></returns>
         [HttpGet("seminar-certification-percent/average")]
         public async Task<ActionResult<StatisticMetricDto>> GetAverageSeminarCertificationPercent([FromQuery] List<long> seminarIds)
         {
@@ -192,6 +197,11 @@ namespace Aikido.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Процент аттестации семинаров
+        /// </summary>
+        /// <param name="seminarIds"></param>
+        /// <returns></returns>
         [HttpGet("seminar-certification-percent")]
         public async Task<ActionResult<List<StatisticMetricDto>>> GetSeminarCertificationPercent([FromQuery] List<long> seminarIds)
         {
@@ -199,7 +209,11 @@ namespace Aikido.Controllers
 
             return Ok(result);
         }
-
+        /// <summary>
+        /// Средняя прибыль по семинарам
+        /// </summary>
+        /// <param name="seminarIds"></param>
+        /// <returns></returns>
         [HttpGet("seminar-money-income/average")]
         public async Task<ActionResult<StatisticMetricDto>> GetAverageSeminarMoneyIncome([FromQuery] List<long> seminarIds)
         {
@@ -207,6 +221,11 @@ namespace Aikido.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Прибыль по семинарам
+        /// </summary>
+        /// <param name="seminarIds"></param>
+        /// <returns></returns>
         [HttpGet("seminar-money-income")]
         public async Task<ActionResult<List<StatisticMetricDto>>> GetSeminarMoneyIncome([FromQuery] List<long> seminarIds)
         {
