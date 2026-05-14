@@ -25,5 +25,7 @@ namespace Aikido.Services.DatabaseServices.User
         Task<List<UserMembershipEntity>> GetActiveUserMembershipsAsUserAsync(long userId);
 
         Task<List<UserEntity>> GetCoachActiveStudentByName(long coachId, string name);
+
+        UserMembershipEntity GetUserMembership(long userId, long groupId, DateTime date);
     }
 }

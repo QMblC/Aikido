@@ -5,6 +5,7 @@ using Aikido.Services.DatabaseServices.User;
 using Aikido.Services.NotificationService;
 using Aikido.AdditionalData.Enums;
 using Aikido.Services.DatabaseServices.Attendance;
+using Aikido.Entities.Users;
 
 namespace Aikido.Services.ApplicationServices.Attendnace
 {
@@ -65,12 +66,17 @@ namespace Aikido.Services.ApplicationServices.Attendnace
 
             foreach (var attendance in attendanceData.ToCreate)
             {
-                var userMembership =
-                    _userMembershipDbService.GetActiveUserMembership(
-                        attendance.UserId,
-                        groupId);
+                UserMembershipEntity? userMembership = null;
 
-                if (userMembership == null)
+                try
+                {
+                    userMembership =
+                    _userMembershipDbService.GetUserMembership(
+                        attendance.UserId,
+                        groupId,
+                        attendanceData.ToCreate.FirstOrDefault().Date);
+                }
+                catch (Exception ex)
                 {
                     continue;
                 }

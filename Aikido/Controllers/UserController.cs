@@ -39,6 +39,11 @@ namespace Aikido.Controllers
             _unitOfWork = unitOfWork;
         }
 
+        /// <summary>
+        /// Получение информации о пользователе
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("get/{id}")]
         public async Task<ActionResult<UserDto>> GetUserDataById(long id)
         {
@@ -79,6 +84,10 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Получение списка пользователей (сокращённая информация)
+        /// </summary>
+        /// <returns></returns>
         [Authorize(Roles = "Admin,Manager,Coach")]
         [HttpGet("get/short-list")]
         public async Task<ActionResult<List<UserShortDto>>> GetUserShortList()
@@ -112,6 +121,11 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Поиск пользователя
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Admin,Manager,Coach")]
         [HttpGet("find")]
         public async Task<ActionResult<UserShortDto>> FindUsers([FromQuery] UserFilter filter)
@@ -127,6 +141,12 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Поиск учеников по тренеру
+        /// </summary>
+        /// <param name="coachId"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Admin,Manager,Coach")]
         [HttpGet("get-coach/{coachId}/students")]
         public async Task<ActionResult<UserShortDto>> FindCoachStudentsByName(long coachId, [FromQuery] string name)
@@ -142,6 +162,13 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Получение среза списка пользователей из бд
+        /// </summary>
+        /// <param name="startIndex"></param>
+        /// <param name="finishIndex"></param>
+        /// <param name="filter"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Admin,Manager,Coach")]
         [HttpGet("get/short-list-cut-data/{startIndex}/{finishIndex}")]
         public async Task<ActionResult<UsersDataDto>> GetUserShortListCutData(
@@ -172,6 +199,11 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Получение клубов пользователей
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
         [HttpGet("get/{userId}/clubs")]
         public async Task<ActionResult<List<UserMembershipDto>>> GetUserMembership(long userId)//Fix 
         {
@@ -246,6 +278,10 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Экспорт пользователей
+        /// </summary>
+        /// <returns></returns>
         [Authorize(Roles = "Admin,Manager")]
         [HttpGet("get/table")]
         public async Task<IActionResult> ExportUsers()
@@ -393,6 +429,11 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Удаление пользователя
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Admin")]
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> Delete(long id)
@@ -412,6 +453,12 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Обновление пользователя
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="userData"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Admin,Manager")]
         [HttpPut("update/{id}")]
         public async Task<IActionResult> Update(long id, [FromBody] UserCreationDto userData)
@@ -435,6 +482,10 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Шаблон Excel для создание пользователей
+        /// </summary>
+        /// <returns></returns>
         [Authorize(Roles = "Admin,Manager")]
         [HttpGet("get/table-template-for-create")]
         public async Task<IActionResult> GetUserCreateTemplate()
@@ -452,6 +503,11 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Создание пользователей через Excel
+        /// </summary>
+        /// <param name="tableFile"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Admin,Manager")]
         [HttpPost("create/table")]
         public async Task<IActionResult> CreateUsersByTable([FromForm] TableFileRequest tableFile)
@@ -467,10 +523,7 @@ namespace Aikido.Controllers
                 {
                     await file.CopyToAsync(stream);
                     var partialMembers = _tableService.ParseUserCreationTable(stream);
-                    foreach (var member in partialMembers)
-                    {
-                        await _userApplicationService.CreateUserAsync(member);
-                    }
+                    await _userApplicationService.CreateUsersAsync(partialMembers);
                     return NoContent();
                 }   
             }
@@ -480,6 +533,11 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Обновление пользователей через Excel
+        /// </summary>
+        /// <param name="tableFile"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Admin,Manager")]
         [HttpPut("update/table")]
         public async Task<IActionResult> UpdateUsersByTable([FromForm] TableFileRequest tableFile)
@@ -561,6 +619,12 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Обновление списка прошлых аттестаций пользователя
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="certifications"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Admin,Manager")]
         [HttpPut("update/{id}/certification-history")]
         public async Task<IActionResult> UpdateUserFormerCertification(long id, [FromBody] List<FormerCertificationCreationDto> certifications)

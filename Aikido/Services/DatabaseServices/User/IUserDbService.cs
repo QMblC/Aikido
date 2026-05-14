@@ -18,7 +18,7 @@ namespace Aikido.Services.DatabaseServices.User
         Task<List<UserEntity>> GetArchivedUsersAsync();
         Task<(List<UserEntity> Users, int TotalCount)> GetActiveUserListAlphabetAscending(int startIndex, int finishIndex, UserFilter filter);
         Task<UserEntity> CreateUser(UserCreationDto userData);
-        Task<List<UserEntity>> CreateUsers(List<UserCreationDto> users);
+        Task CreateUsers(List<UserCreationDto> users);
         Task UpdateUser(UserEntity user);
         Task UpdateUser(long id, UserCreationDto userData);
         Task UpdateUsers(List<(long Id, UserCreationDto Data)> users);

@@ -306,9 +306,13 @@ namespace Aikido.Services.DatabaseServices.Seminar
             {
                 var userMembership = _context.UserMemberships.AsQueryable()
                     .Include(um => um.Club)
+                    .Include(um => um.User)
                     .FirstOrDefault(um => um.UserId == member.UserId
                     && um.GroupId == member.GroupId && um.IsMain)
-                    ?? _context.UserMemberships.Include(um => um.Club)
+                    ?? 
+                    _context.UserMemberships
+                    .Include(um => um.Club)
+                    .Include(um => um.User)
                     .FirstOrDefault(um => um.UserId == member.UserId
                     && um.GroupId == member.GroupId && um.RoleInGroup == Role.Coach);
                 

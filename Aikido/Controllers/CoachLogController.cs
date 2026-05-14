@@ -31,6 +31,11 @@ namespace Aikido.Controllers
             _tableService = tableService;
         }
 
+        /// <summary>
+        /// Получение групп пользователя
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
         [HttpGet("user/{userId}/groups")]
         public async Task<ActionResult<List<GroupShortDto>>> GetUserGroups(long userId)
         {
@@ -47,6 +52,11 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Получение групп тренера
+        /// </summary>
+        /// <param name="coachId"></param>
+        /// <returns></returns>
         [HttpGet("coach/{coachId}/groups")]
         public async Task<ActionResult<List<GroupShortDto>>> GetCoachGroups(long coachId)
         {
@@ -60,7 +70,13 @@ namespace Aikido.Controllers
                 return StatusCode(500, new { Message = "Ошибка при получении групп тренера", Details = ex.Message });
             }
         }
-
+        
+        /// <summary>
+        /// Получение панели тренера конкретной группы
+        /// </summary>
+        /// <param name="groupId"></param>
+        /// <param name="month"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Admin,Manager,Coach")]
         [HttpGet("get/{groupId}/monthly-attendance")]
         public async Task<ActionResult<GroupDashboardDto>> GetCoachDashboard(long groupId, [FromQuery] DateTime month)
@@ -77,6 +93,12 @@ namespace Aikido.Controllers
             }  
         }
 
+        /// <summary>
+        /// Получение панели тренера конкретной группы в виде Excel
+        /// </summary>
+        /// <param name="groupId"></param>
+        /// <param name="month"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Admin,Manager,Coach")]
         [HttpGet("get/{groupId}/monthly-attendance/table")]
         public async Task<IActionResult> GetAttendanceTable(long groupId, [FromQuery] DateTime month)
@@ -97,6 +119,13 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Получение посещений ученика
+        /// </summary>
+        /// <param name="groupId"></param>
+        /// <param name="userId"></param>
+        /// <param name="month"></param>
+        /// <returns></returns>
         [Authorize]
         [HttpGet("get/{groupId}/user/{userId}/monthly-attendance")]
         public async Task<ActionResult<List<GroupDashboardDto>>> GetUserAttendance(long groupId, long userId, [FromQuery] DateTime month)
@@ -113,6 +142,12 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Создание одного посещения
+        /// </summary>
+        /// <param name="groupId"></param>
+        /// <param name="attendance"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Admin,Manager,Coach")]
         [HttpPost("create/{groupId}/attendance")]
         public async Task<IActionResult> CreateSingleAttendance(long groupId, [FromBody] AttendanceCreationDto attendance)
@@ -129,6 +164,11 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Удаление одного посещения
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Admin,Manager,Coach")]
         [HttpDelete("delete/attendance/{id}")]
         public async Task<IActionResult> DeleteAttendance(long id)
@@ -145,6 +185,12 @@ namespace Aikido.Controllers
             }
         }
 
+        /// <summary>
+        /// Обновление посещений списком
+        /// </summary>
+        /// <param name="groupId"></param>
+        /// <param name="attendances"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Admin,Manager,Coach")]
         [HttpPut("update/{groupId}/attendance")]
         public async Task<IActionResult> UpdateAttendances(long groupId, [FromBody] AttendanceUpdateDto attendances)
